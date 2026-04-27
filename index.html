@@ -43,12 +43,15 @@
 <meta name="theme-color" content="#0d0d0d">
 <meta name="license" content="GNU Affero General Public License v3.0 - https://www.gnu.org/licenses/agpl-3.0.html"/>
 <meta name="copyright" content="Copyright (C) 2026 sebasmobil"/>
-<title>S-MüzikApp</title>
+<!-- PWA -->
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="S-MüzikApp">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIj4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iYmciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMWExYTJlIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzBkMGQwZCIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0ib3JhbmdlIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6I2ZiOTIzYyIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNmOTczMTYiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9Imdsb3ciIGN4PSI1MCUiIGN5PSI1MCUiIHI9IjUwJSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNmOTczMTY7c3RvcC1vcGFjaXR5OjAuMyIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNmOTczMTY7c3RvcC1vcGFjaXR5OjAiLz4KICAgIDwvcmFkaWFsR3JhZGllbnQ+CiAgPC9kZWZzPgogIAogIDwhLS0gQXJrYSBwbGFuIC0tPgogIDxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiByeD0iNDIiIGZpbGw9InVybCgjYmcpIi8+CiAgCiAgPCEtLSBHbG93IGVmZmVjdCAtLT4KICA8ZWxsaXBzZSBjeD0iOTYiIGN5PSI5NiIgcng9IjgwIiByeT0iODAiIGZpbGw9InVybCgjZ2xvdykiLz4KICAKICA8IS0tIE3DvHppayBub3Rhc8SxIGfDtnZkZXNpIChvdmFsKSAtLT4KICA8ZWxsaXBzZSBjeD0iNzIiIGN5PSIxMjgiIHJ4PSIyMiIgcnk9IjE2IiBmaWxsPSJ1cmwoI29yYW5nZSkiIG9wYWNpdHk9IjAuOTUiLz4KICAKICA8IS0tIE5vdGEgc2FwxLEgKGRpa2V5IMOnaXpnaSkgLS0+CiAgPHJlY3QgeD0iOTAiIHk9IjU4IiB3aWR0aD0iOCIgaGVpZ2h0PSI3MiIgcng9IjQiIGZpbGw9InVybCgjb3JhbmdlKSIvPgogIAogIDwhLS0gTm90YSBiYXlyYcSfxLEgKHlhdGF5IMOnaXpnaSArIGXEn3JpKSAtLT4KICA8cmVjdCB4PSI5MCIgeT0iNTgiIHdpZHRoPSIzOCIgaGVpZ2h0PSI4IiByeD0iNCIgZmlsbD0idXJsKCNvcmFuZ2UpIi8+CiAgPHJlY3QgeD0iOTAiIHk9Ijg0IiB3aWR0aD0iMzIiIGhlaWdodD0iNyIgcng9IjMuNSIgZmlsbD0idXJsKCNvcmFuZ2UpIiBvcGFjaXR5PSIwLjc1Ii8+CiAgCiAgPCEtLSBTIGhhcmZpIC0gc2HEnyDDvHN0IGvDtsWfZSAtLT4KICA8dGV4dCB4PSIxMTgiIHk9IjU1IiBmb250LWZhbWlseT0iLWFwcGxlLXN5c3RlbSxzYW5zLXNlcmlmIiBmb250LXdlaWdodD0iOTAwIiBmb250LXNpemU9IjMyIiBmaWxsPSIjZjk3MzE2IiBvcGFjaXR5PSIwLjUiPlM8L3RleHQ+CiAgCiAgPCEtLSBQYXJsYW1hIG5va3Rhc8SxIC0tPgogIDxjaXJjbGUgY3g9Ijk2IiBjeT0iNjAiIHI9IjUiIGZpbGw9IiNmZmYiIG9wYWNpdHk9IjAuMyIvPgo8L3N2Zz4=">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIj4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iYmciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMWExYTJlIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzBkMGQwZCIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0ib3JhbmdlIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6I2ZiOTIzYyIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNmOTczMTYiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9Imdsb3ciIGN4PSI1MCUiIGN5PSI1MCUiIHI9IjUwJSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNmOTczMTY7c3RvcC1vcGFjaXR5OjAuMyIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNmOTczMTY7c3RvcC1vcGFjaXR5OjAiLz4KICAgIDwvcmFkaWFsR3JhZGllbnQ+CiAgPC9kZWZzPgogIAogIDwhLS0gQXJrYSBwbGFuIC0tPgogIDxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiByeD0iNDIiIGZpbGw9InVybCgjYmcpIi8+CiAgCiAgPCEtLSBHbG93IGVmZmVjdCAtLT4KICA8ZWxsaXBzZSBjeD0iOTYiIGN5PSI5NiIgcng9IjgwIiByeT0iODAiIGZpbGw9InVybCgjZ2xvdykiLz4KICAKICA8IS0tIE3DvHppayBub3Rhc8SxIGfDtnZkZXNpIChvdmFsKSAtLT4KICA8ZWxsaXBzZSBjeD0iNzIiIGN5PSIxMjgiIHJ4PSIyMiIgcnk9IjE2IiBmaWxsPSJ1cmwoI29yYW5nZSkiIG9wYWNpdHk9IjAuOTUiLz4KICAKICA8IS0tIE5vdGEgc2FwxLEgKGRpa2V5IMOnaXpnaSkgLS0+CiAgPHJlY3QgeD0iOTAiIHk9IjU4IiB3aWR0aD0iOCIgaGVpZ2h0PSI3MiIgcng9IjQiIGZpbGw9InVybCgjb3JhbmdlKSIvPgogIAogIDwhLS0gTm90YSBiYXlyYcSfxLEgKHlhdGF5IMOnaXpnaSArIGXEn3JpKSAtLT4KICA8cmVjdCB4PSI5MCIgeT0iNTgiIHdpZHRoPSIzOCIgaGVpZ2h0PSI4IiByeD0iNCIgZmlsbD0idXJsKCNvcmFuZ2UpIi8+CiAgPHJlY3QgeD0iOTAiIHk9Ijg0IiB3aWR0aD0iMzIiIGhlaWdodD0iNyIgcng9IjMuNSIgZmlsbD0idXJsKCNvcmFuZ2UpIiBvcGFjaXR5PSIwLjc1Ii8+CiAgCiAgPCEtLSBTIGhhcmZpIC0gc2HEnyDDvHN0IGvDtsWfZSAtLT4KICA8dGV4dCB4PSIxMTgiIHk9IjU1IiBmb250LWZhbWlseT0iLWFwcGxlLXN5c3RlbSxzYW5zLXNlcmlmIiBmb250LXdlaWdodD0iOTAwIiBmb250LXNpemU9IjMyIiBmaWxsPSIjZjk3MzE2IiBvcGFjaXR5PSIwLjUiPlM8L3RleHQ+CiAgCiAgPCEtLSBQYXJsYW1hIG5va3Rhc8SxIC0tPgogIDxjaXJjbGUgY3g9Ijk2IiBjeT0iNjAiIHI9IjUiIGZpbGw9IiNmZmYiIG9wYWNpdHk9IjAuMyIvPgo8L3N2Zz4=">
+<meta name="apple-mobile-web-app-title" content="S-MüzikApp">
+<meta name="application-name" content="S-MüzikApp">
+<link rel="manifest" id="pwaManifest">
+<link rel="apple-touch-icon" id="appleTouchIcon">
+<title>S-MüzikApp</title>
 <style>
 /* ── TEMALAR ── */
 :root {
@@ -1759,6 +1762,110 @@ document.getElementById('btnShuffle').addEventListener('click', function(e){ e.s
 document.getElementById('btnRepeat').addEventListener('click', function(e){ e.stopPropagation(); cycleRepeat(); });
 
 init().catch(e=>{console.error(e);toastErr('Başlatma hatası: '+e.message);});
+
+// ── PWA: MANIFEST + İKONLAR (inline, ayrı dosya gerekmez)
+(function(){
+  // ── SVG İkon üretici (turuncu nota teması)
+  function makeSVGIcon(size){
+    const r=size/2, c=size/2;
+    const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1c1c1e"/>
+      <stop offset="100%" style="stop-color:#0d0d0d"/>
+    </linearGradient>
+    <linearGradient id="ac" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f97316"/>
+      <stop offset="100%" style="stop-color:#fb923c"/>
+    </linearGradient>
+  </defs>
+  <rect width="${size}" height="${size}" rx="${size*0.22}" fill="url(#bg)"/>
+  <!-- nota gövdesi -->
+  <ellipse cx="${size*0.38}" cy="${size*0.68}" rx="${size*0.13}" ry="${size*0.09}" fill="url(#ac)"/>
+  <ellipse cx="${size*0.65}" cy="${size*0.60}" rx="${size*0.12}" ry="${size*0.085}" fill="url(#ac)"/>
+  <!-- nota sapları -->
+  <rect x="${size*0.495}" y="${size*0.28}" width="${size*0.045}" height="${size*0.40}" rx="${size*0.022}" fill="url(#ac)"/>
+  <rect x="${size*0.765}" y="${size*0.20}" width="${size*0.040}" height="${size*0.40}" rx="${size*0.020}" fill="url(#ac)"/>
+  <!-- bağlantı çizgisi -->
+  <path d="M${size*0.495} ${size*0.28} Q${size*0.63} ${size*0.175} ${size*0.765} ${size*0.20}" stroke="url(#ac)" stroke-width="${size*0.045}" fill="none" stroke-linecap="round"/>
+  <!-- parıltı -->
+  <circle cx="${size*0.28}" cy="${size*0.22}" r="${size*0.06}" fill="rgba(249,115,22,0.18)"/>
+</svg>`;
+    return svg;
+  }
+
+  function svgToDataURL(svg){
+    return 'data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(svg)));
+  }
+
+  // İkon boyutları
+  const sizes=[192,512];
+  const icons=sizes.map(s=>({
+    src: svgToDataURL(makeSVGIcon(s)),
+    sizes: s+'x'+s,
+    type: 'image/svg+xml',
+    purpose: 'any maskable'
+  }));
+
+  // apple-touch-icon (180px)
+  const appleIcon=svgToDataURL(makeSVGIcon(180));
+  document.getElementById('appleTouchIcon').href=appleIcon;
+
+  // Manifest objesi
+  const manifest={
+    name: 'S-MüzikApp Pro',
+    short_name: 'S-MüzikApp',
+    description: 'Yerel müzik çalar — S-MüzikApp Pro',
+    start_url: '.',
+    display: 'standalone',
+    orientation: 'portrait',
+    background_color: '#0d0d0d',
+    theme_color: '#f97316',
+    icons: icons,
+    categories: ['music','entertainment'],
+    lang: 'tr'
+  };
+
+  const blob=new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'});
+  const url=URL.createObjectURL(blob);
+  document.getElementById('pwaManifest').href=url;
+
+  // ── Service Worker (offline cache)
+  if('serviceWorker' in navigator){
+    const swCode=`
+const CACHE='smuzikapp-v1';
+self.addEventListener('install',e=>{
+  self.skipWaiting();
+});
+self.addEventListener('activate',e=>{
+  e.waitUntil(self.clients.claim());
+});
+self.addEventListener('fetch',e=>{
+  // Sadece aynı origin isteklerini yakala
+  if(e.request.url.startsWith(self.location.origin)){
+    e.respondWith(
+      caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{
+        const clone=res.clone();
+        caches.open(CACHE).then(c=>c.put(e.request,clone));
+        return res;
+      }))
+    );
+  }
+});`;
+    const swBlob=new Blob([swCode],{type:'application/javascript'});
+    const swURL=URL.createObjectURL(swBlob);
+    navigator.serviceWorker.register(swURL,{scope:'./'}).catch(()=>{});
+  }
+
+  // Tema değişince manifest'teki theme_color'ı güncelle
+  const origSetTheme=window.setTheme;
+  if(origSetTheme){
+    window.setTheme=function(t,silent){
+      origSetTheme(t,silent);
+      document.querySelector('meta[name=theme-color]').content=t==='dark'?'#0d0d0d':'#f5f5f5';
+    };
+  }
+})();
 </script>
 </body>
 </html>
