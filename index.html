@@ -157,51 +157,11 @@ html.light .disc .center{background:#222;}
 @keyframes spinRing{to{transform:rotate(360deg);}}
 /* Animasyon seçici — yukarıda tanımlı */
 
-/* Çubuk animasyonu (disc üstünde değil, art-wrap etrafında) */
-@keyframes animBars{
-  0%,100%{transform:scaleY(1);}
-  50%{transform:scaleY(1.06);}
-}
-.art-wrap.anim-bars::before,.art-wrap.anim-bars::after{
-  content:'';position:absolute;bottom:-8px;border-radius:2px;background:var(--accent);opacity:.7;
-  animation:barRise .7s ease-in-out infinite alternate;
-}
-/* Çubuk efekti — plak çevresinde dikey çubuklar */
-.disc-bars{position:absolute;inset:-18px;border-radius:50%;pointer-events:none;z-index:5;display:none;}
-.art-wrap.anim-bars .disc-bars,.art-wrap.anim-wave .disc-bars{display:block;}
-.disc-bars canvas{width:100%;height:100%;border-radius:50%;}
-
-/* Dalga animasyonu */
-@keyframes waveRipple{
-  0%{transform:scale(1);opacity:.6;}
-  100%{transform:scale(1.35);opacity:0;}
-}
-.wave-ring{position:absolute;inset:0;border-radius:50%;border:2px solid var(--accent);pointer-events:none;z-index:0;display:none;animation:waveRipple 1.6s ease-out infinite;}
-.wave-ring2{position:absolute;inset:0;border-radius:50%;border:2px solid var(--accent);pointer-events:none;z-index:0;display:none;animation:waveRipple 1.6s ease-out infinite .55s;}
-.wave-ring3{position:absolute;inset:0;border-radius:50%;border:2px solid var(--accent);pointer-events:none;z-index:0;display:none;animation:waveRipple 1.6s ease-out infinite 1.1s;}
-.art-wrap.anim-wave .wave-ring,
-.art-wrap.anim-wave .wave-ring2,
-.art-wrap.anim-wave .wave-ring3{display:block;}
-
-/* Çubuk animasyonu — disc etrafında dönen dikey çubuklar */
-.disc-bar-wrap{position:absolute;inset:-14px;border-radius:50%;pointer-events:none;z-index:5;display:none;overflow:visible;}
-.art-wrap.anim-bars .disc-bar-wrap{display:block;}
-.disc-bar-wrap span{position:absolute;width:4px;border-radius:2px;background:var(--accent);transform-origin:50% bottom;bottom:50%;left:calc(50% - 2px);}
-
-@keyframes spinRing{to{transform:rotate(360deg);}}
-/* 1-Varsayılan disc spin: yukarıda tanımlı */
-/* 2-Pulse */
-@keyframes animPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.04);}}
-/* 4-Wobble */
-@keyframes animWobble{0%,100%{transform:rotate(0deg);}20%{transform:rotate(-6deg);}40%{transform:rotate(5deg);}60%{transform:rotate(-3deg);}80%{transform:rotate(2deg);}}
-/* 6-Shake */
-@keyframes animShake{0%,100%{transform:rotate(0);}10%,30%,50%,70%,90%{transform:rotate(-4deg);}20%,40%,60%,80%{transform:rotate(4deg);}}
-.art-wrap.anim-pulse .disc{animation:animPulse 1.2s ease-in-out infinite;}
-.art-wrap.anim-pulse .disc.spin{animation:animPulse 1.2s ease-in-out infinite,spin 12s linear infinite;}
-.art-wrap.anim-wobble .disc{animation:animWobble 1.5s ease-in-out infinite;}
-.art-wrap.anim-wobble .disc.spin{animation:animWobble 1.5s ease-in-out infinite,spin 12s linear infinite;}
-.art-wrap.anim-shake .disc{animation:animShake 0.6s ease-in-out infinite;}
-.art-wrap.anim-shake .disc.spin{animation:animShake 0.6s ease-in-out infinite,spin 12s linear infinite;}
+/* Müziğe tepkili plak efektleri: tuval plağın ARKASINDA, dışarı taşar */
+#vizCanvas{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:-1;display:none;}
+.art-wrap.viz #vizCanvas{display:block;}
+.art-wrap.viz .disc{will-change:transform;}
+.art-wrap.viz .disc.spin{animation:none;} /* dönüşü JS yönetir (müziğe göre hızlanır/yavaşlar) */
 .art-wrap .disc.spin.paused{animation-play-state:paused!important;}
 
 .tinfo{width:100%;text-align:center;margin-bottom:12px;}
@@ -514,7 +474,7 @@ html.light .disc .center{background:#222;}
 <div class="bg"></div>
 <div id="app">
   <div class="appheader">
-    <span class="appname">S — Müzik Çalar <span class="appver">Pro 1.7</span></span>
+    <span class="appname">S — Müzik Çalar <span class="appver" id="appVer">Pro 1.8</span></span>
     <span class="appcopy">©sebasmobil &nbsp;<a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" style="color:inherit;font-size:0.8em;opacity:0.75;text-decoration:none;">AGPL v3.0</a></span>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Tema">🌙</button>
   </div>
@@ -540,10 +500,7 @@ html.light .disc .center{background:#222;}
       <div class="queue-list" id="queueList"></div>
     </div>
     <div class="art-wrap" id="artWrap">
-      <div class="wave-ring" id="waveRing1"></div>
-      <div class="wave-ring2" id="waveRing2"></div>
-      <div class="wave-ring3" id="waveRing3"></div>
-      <div class="disc-bar-wrap" id="discBarWrap"></div>
+      <canvas id="vizCanvas"></canvas>
       <div class="disc" id="disc">
         <div class="ring"></div><div class="ring"></div><div class="ring"></div>
         <svg class="note" id="artNote" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
@@ -552,12 +509,13 @@ html.light .disc .center{background:#222;}
       </div>
     </div>
     <div class="anim-picker" id="animPicker">
-      <button class="anim-btn active" id="abt0" onclick="setAnim(0)" title="Dönen plak">💿</button>
-      <button class="anim-btn" id="abt1" onclick="setAnim(1)" title="Nabız">💓</button>
-      <button class="anim-btn" id="abt3" onclick="setAnim(3)" title="Sallantı">🌊</button>
-      <button class="anim-btn" id="abt5" onclick="setAnim(5)" title="Titreme">⚡</button>
-      <button class="anim-btn" id="abt6" onclick="setAnim(6)" title="Çubuklar">📊</button>
-      <button class="anim-btn" id="abt7" onclick="setAnim(7)" title="Dalga">〰️</button>
+      <button class="anim-btn active" data-anim="0" onclick="setAnim(0,true)" title="Klasik plak">💿</button>
+      <button class="anim-btn" data-anim="11" onclick="setAnim(11,true)" title="Bas vuruşu">🥁</button>
+      <button class="anim-btn" data-anim="12" onclick="setAnim(12,true)" title="Spektrum halkası">🌈</button>
+      <button class="anim-btn" data-anim="13" onclick="setAnim(13,true)" title="Kıvılcım">✨</button>
+      <button class="anim-btn" data-anim="14" onclick="setAnim(14,true)" title="Ses dalgası halkası">🌀</button>
+      <button class="anim-btn" data-anim="15" onclick="setAnim(15,true)" title="Sahne ışıkları">🔦</button>
+      <button class="anim-btn" data-anim="16" onclick="setAnim(16,true)" title="Üç halka">🎯</button>
     </div>
     <div class="tinfo">
       <div class="tname" id="tname"><span class="no-track">Şarkı seçin</span></div>
@@ -753,22 +711,23 @@ aud.addEventListener('error', () => {
 });
 
 // ── VERSİYON & DEPOLAMA ANAHTARLARI
-const APP_VER = 'Pro 1.7';
-const DB_NAME = 'mzk_pro_1_7';
+const APP_VER   = 'Pro 1.8';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
+const STORE_VER = 'Pro 1.7';      // Depolama anahtarı etiketi — SABİT. Değiştirilirse çalma listeleri/ayarlar sıfırlanır
+const DB_NAME   = 'mzk_pro_1_7';  // IndexedDB adı — SABİT. Değiştirilirse şarkılar yeni boş veritabanına düşer
 const DB_VER  = 1;
 const LS = {
   theme:      'smzk_theme',
-  setupDone:  'smzk_setup_' + APP_VER,
-  playlists:  'smzk_pl_'    + APP_VER,
-  discAnim:   'smzk_anim_'  + APP_VER,
+  setupDone:  'smzk_setup_' + STORE_VER,
+  playlists:  'smzk_pl_'    + STORE_VER,
+  discAnim:   'smzk_anim_'  + STORE_VER,
 };
 // Kuyruk ve aktif kaynak — kalıcı olarak IndexedDB prefs'te sakla
 async function saveQueue(){
-  try{
-    await ps('queue_state', JSON.stringify({q:plQueue, pos:plQueuePos, plId:activePlId}));
-  }catch{}
+  // Kuyruk dizin yerine şarkı id'siyle saklanır: silme/sıra değişimi kaydı bozmaz
+  const state=JSON.stringify({ids:plQueue.map(i=>tracks[i]?tracks[i].id:null),pos:plQueuePos,plId:activePlId});
+  try{ await ps('queue_state', state); }catch{}
   // localStorage'da da yedekle (hız için)
-  try{localStorage.setItem('smzk_queue_pro14', JSON.stringify({q:plQueue,pos:plQueuePos,plId:activePlId}));}catch{}
+  try{localStorage.setItem('smzk_queue_pro14', state);}catch{}
 }
 async function loadQueue(){
   try{
@@ -778,7 +737,17 @@ async function loadQueue(){
     if(!raw) raw = localStorage.getItem('smzk_queue_pro14') || localStorage.getItem('smzk_queue_pro-1.3') || localStorage.getItem('smzk_queue_pro-1.4');
     if(raw){
       const d = typeof raw === 'string' ? JSON.parse(raw) : raw;
-      if(d){plQueue=d.q||[];plQueuePos=d.pos??-1;activePlId=d.plId||null;}
+      if(d){
+        let q;
+        if(Array.isArray(d.ids)) q = d.ids.map(id=>tracks.findIndex(t=>t.id===id)).filter(i=>i>=0);
+        else q = (d.q||[]).filter(i=>Number.isInteger(i)&&i>=0&&i<tracks.length); // eski biçim (dizin)
+        const pl = playlists.find(p=>p.id===d.plId);
+        if(q.length && pl){
+          plQueue = q; activePlId = d.plId;
+          const p = cur>=0 ? q.indexOf(cur) : -1;
+          plQueuePos = p>=0 ? p : Math.max(-1, Math.min((d.pos??-1), q.length-1));
+        } else { plQueue=[]; plQueuePos=-1; activePlId=null; }
+      }
     }
   }catch{}
 }
@@ -787,6 +756,7 @@ async function loadQueue(){
 async function migrateFromOldDBs(){
   // Bilinen eski DB adları
   const oldNames = ['mzkv1','mzk_v5_0','mzk_v5_1','mzk_v5_2','mzk_pro_1_0','mzk_pro_1_1','mzk_pro_1_2','mzk_pro_1_3','mzk_pro_1_4','mzk_pro_1_5','mzk_pro_1_6'];
+  let migFail = false;
   for(const oldName of oldNames){
     if(oldName === DB_NAME) continue;
     try{
@@ -798,26 +768,30 @@ async function migrateFromOldDBs(){
           const s = d.transaction('tracks','readonly').objectStore('tracks');
           const g = s.getAll();
           g.onsuccess = () => { d.close(); ok(g.result||[]); };
-          g.onerror   = () => { d.close(); ok([]); };
+          g.onerror   = () => { d.close(); ok(null); };
         };
-        r.onerror = () => ok([]);
-        r.onblocked = () => ok([]);
+        r.onerror = () => ok(null);
+        r.onblocked = () => ok(null);
       });
+      // Okuma hatası (null) boş DB değildir: silme, sonra tekrar dene
+      if(rows===null){ migFail = true; continue; }
+      let allOk = true;
       if(rows.length){
         let migrated = 0;
         for(const row of rows){
           // Zaten yeni DB'de var mı?
           const exists = tracks.some(t=>t.id===row.id);
           if(exists) continue;
-          // Yeni DB'ye ekle
+          // Yeni DB'ye ekle — önce kalıcı yazım, başarılıysa listeye
+          const saved = await dbPut({id:row.id,name:row.name,artist:row.artist,dur:row.dur,mime:row.mime,blob:row.blob});
+          if(!saved){ allOk = false; break; }
           const blob = new Blob([row.blob],{type:row.mime});
           const url  = URL.createObjectURL(blob);
           tracks.push({id:row.id,name:row.name,artist:row.artist,dur:row.dur,mime:row.mime,url});
-          await dbPut({id:row.id,name:row.name,artist:row.artist,dur:row.dur,mime:row.mime,blob:row.blob});
           migrated++;
         }
         if(migrated > 0){
-          toast('✅ '+migrated+' şarkı v'+APP_VER+'\'e taşındı');
+          toast('✅ '+migrated+' şarkı '+APP_VER+'\'e taşındı');
           renderLib();
         }
         // Eski playlist'leri de taşı (varsa)
@@ -826,24 +800,46 @@ async function migrateFromOldDBs(){
           localStorage.setItem(LS.playlists, oldPL);
         }
       }
-      // Eski DB'yi sil
-      indexedDB.deleteDatabase(oldName);
-    } catch(e){ /* sessizce geç */ }
+      // Eski DB'yi yalnızca her şey yeni DB'ye yazıldıysa sil
+      if(allOk) indexedDB.deleteDatabase(oldName);
+      else { migFail = true; toastErr('⚠️ Eski şarkılar taşınamadı (depolama dolu olabilir)'); }
+    } catch(e){ migFail = true; /* sessizce geç */ }
   }
+  if(!migFail) pruneGhostTrackIds();
+}
+// Kütüphanede artık olmayan şarkı id'lerini çalma listelerinden temizle (eski silmelerden kalanlar)
+function pruneGhostTrackIds(){
+  if(!tracks.length)return;
+  const ids=new Set(tracks.map(t=>t.id));let ch=false;
+  playlists.forEach(pl=>{const f=pl.trackIds.filter(id=>ids.has(id));if(f.length!==pl.trackIds.length){pl.trackIds=f;ch=true;}});
+  if(ch){savePlaylists();renderPlaylists();renderPlPanel();}
 }
 
 // ── IDB
 function openDB(){return new Promise((ok,fail)=>{const r=indexedDB.open(DB_NAME,DB_VER);r.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains('tracks'))d.createObjectStore('tracks',{keyPath:'id'});if(!d.objectStoreNames.contains('prefs'))d.createObjectStore('prefs');};r.onsuccess=e=>ok(e.target.result);r.onerror=()=>fail(r.error);});}
 const tx=(s,m)=>db.transaction(s,m).objectStore(s);
 const dbAll=()=>new Promise(ok=>{const r=tx('tracks','readonly').getAll();r.onsuccess=()=>ok(r.result||[]);});
-const dbPut=o=>new Promise(ok=>{const r=tx('tracks','readwrite').put(o);r.onsuccess=ok;r.onerror=ok;});
-const dbDel=id=>new Promise(ok=>{const r=tx('tracks','readwrite').delete(id);r.onsuccess=ok;});
-const dbClr=()=>new Promise(ok=>{const r=tx('tracks','readwrite').clear();r.onsuccess=ok;});
+// Yazma işlemleri: işlem gerçekten tamamlandıysa true, hata/iptal (ör. kota dolu) ise false döner
+let dbLastErr=null;
+const dbRun=fn=>new Promise(ok=>{
+  try{
+    dbLastErr=null;
+    const t=db.transaction('tracks','readwrite');
+    fn(t.objectStore('tracks'));
+    t.oncomplete=()=>ok(true);
+    t.onabort=()=>{dbLastErr=t.error||dbLastErr;ok(false);};
+  }catch(e){dbLastErr=e;ok(false);}
+});
+const dbPut=o=>dbRun(s=>s.put(o));
+const dbDel=id=>dbRun(s=>s.delete(id));
+const dbClr=()=>dbRun(s=>s.clear());
+const dbQuotaHit=()=>!!(dbLastErr&&dbLastErr.name==='QuotaExceededError');
 const pg=k=>new Promise(ok=>{try{const r=tx('prefs','readonly').get(k);r.onsuccess=()=>ok(r.result);r.onerror=()=>ok(null);}catch{ok(null);}});
 const ps=(k,v)=>{try{tx('prefs','readwrite').put(v,k);}catch{}};
 
 // ── INIT
 async function init(){
+  const verEl=document.getElementById('appVer');if(verEl)verEl.textContent=APP_VER;
   db=await openDB();
   const rows=await dbAll();
   tracks=rows.map(r=>{const blob=new Blob([r.blob],{type:r.mime});const url=URL.createObjectURL(blob);return{id:r.id,name:r.name,artist:r.artist,dur:r.dur,mime:r.mime,url};});
@@ -851,6 +847,7 @@ async function init(){
   cur=(await pg('ci'))??-1; const vol=(await pg('vol'))??1;
   aud.volume=vol; document.getElementById('volBar').value=vol;
   if(cur>=tracks.length)cur=-1;
+  if(shuffled)buildShuf(); // kayıtlı 'karışık' durumunda sıra boş kalmasın
   updShuf();updRep();
   loadPlaylists();
   await loadQueue(); // ← IDB'den kuyruk ve aktif playlist geri yükle (async, kalıcı)
@@ -870,22 +867,34 @@ async function init(){
 // ── DOSYA EKLE
 document.getElementById('fileInput').addEventListener('change',async e=>{
   const files=[...e.target.files];if(!files.length)return;
-  toast('Ekleniyor...');let n=0,skip=0;
+  toast('Ekleniyor...');let n=0,skip=0,fail=0,quota=false;
+  const added=[];
   for(const f of files){
     if(!f.size)continue;
     const mime=f.type||'audio/mpeg';
-    const ab=await f.arrayBuffer();
+    let ab;
+    try{ab=await f.arrayBuffer();}catch{fail++;continue;}
     const meta=parseMeta(f.name, ab); // ID3 tag + dosya adı fallback
     const isDup=tracks.some(t=>t.name===meta.name&&t.artist===meta.artist);
     if(isDup){skip++;continue;}
     const blob=new Blob([ab],{type:mime});const url=URL.createObjectURL(blob);
     const dur=await getDur(url);
     const id=Date.now()+'_'+Math.random().toString(36).slice(2);
-    tracks.push({id,name:meta.name,artist:meta.artist,dur,mime,url});
-    await dbPut({id,name:meta.name,artist:meta.artist,dur,mime,blob:ab});n++;
+    // Önce kalıcı depoya yaz; başarısızsa listeye EKLEME (yoksa yeniden açınca kaybolur)
+    const saved=await dbPut({id,name:meta.name,artist:meta.artist,dur,mime,blob:ab});
+    if(!saved){
+      URL.revokeObjectURL(url);fail++;
+      if(dbQuotaHit()){quota=true;break;}
+      continue;
+    }
+    tracks.push({id,name:meta.name,artist:meta.artist,dur,mime,url});added.push(tracks.length-1);n++;
   }
-  e.target.value='';renderLib();
-  if(n&&skip)toast(n+' şarkı eklendi, '+skip+' tekrar atlandı');
+  e.target.value='';
+  if(shuffled&&added.length)addToShuf(added);
+  renderLib();
+  if(quota)toastErr('⚠️ Depolama alanı doldu — '+n+' şarkı eklendi, kalanlar kaydedilemedi');
+  else if(fail)toastErr(n+' şarkı eklendi, '+fail+' şarkı kaydedilemedi');
+  else if(n&&skip)toast(n+' şarkı eklendi, '+skip+' tekrar atlandı');
   else if(n)toast(n+' şarkı eklendi');
   else if(skip)toastErr('Tüm şarkılar zaten kütüphanede mevcut');
   else toastErr('Eklenemedi');
@@ -997,7 +1006,7 @@ function togglePlay(){
   if(aud.paused)aud.play().catch(()=>{loadTrack(cur,true);});
   else aud.pause();
 }
-function playIdx(idx){if(shuffled)shufPos=shufOrder.indexOf(idx);loadTrack(idx,true);}
+function playIdx(idx){if(shuffled){ensureShuf();shufPos=shufOrder.indexOf(idx);}loadTrack(idx,true);}
 function playFromLib(idx){
   // Kütüphaneden tıklanınca playlist kuyruğunu temizle, tüm kütüphane çalsın
   activePlId=null;plQueue=[];plQueuePos=-1;saveQueue();
@@ -1013,7 +1022,7 @@ function prev(){
     if(nx<0){plQueuePos=0;aud.currentTime=0;}
     else{plQueuePos=nx;playIdx(plQueue[nx]);}
     saveQueue();
-  } else if(shuffled){shufPos=(shufPos-1+shufOrder.length)%shufOrder.length;loadTrack(shufOrder[shufPos]);}
+  } else if(shuffled){ensureShuf();shufPos=(shufPos-1+shufOrder.length)%shufOrder.length;loadTrack(shufOrder[shufPos]);}
   else loadTrack((cur-1+tracks.length)%tracks.length);
 }
 function next(fromEnded=false){
@@ -1032,6 +1041,7 @@ function next(fromEnded=false){
       plQueuePos=nx;playIdx(plQueue[nx]);saveQueue();
     }
   } else if(shuffled){
+    ensureShuf();
     shufPos=(shufPos+1)%shufOrder.length;
     loadTrack(shufOrder[shufPos],true);
   } else {
@@ -1050,8 +1060,8 @@ aud.addEventListener('ended',()=>{
   if(handleRC())return;
   next(true);
 });
-aud.addEventListener('play',()=>{updPlayBtn(true);updDisc(true);updPlayingIndicator();renderQueue();renderPlPanel();if(curAnim===6)animateBars();});
-aud.addEventListener('pause',()=>{updPlayBtn(false);updDisc(false);updPlayingIndicator();renderQueue();renderPlPanel();if(curAnim===6)stopBarAnim();});
+aud.addEventListener('play',()=>{updPlayBtn(true);updDisc(true);updPlayingIndicator();renderQueue();renderPlPanel();vizStart();});
+aud.addEventListener('pause',()=>{updPlayBtn(false);updDisc(false);updPlayingIndicator();renderQueue();renderPlPanel();});
 aud.addEventListener('timeupdate',()=>{
   if(seeking||!aud.duration)return;
   const p=aud.currentTime/aud.duration*100;
@@ -1121,6 +1131,16 @@ seekEl.addEventListener('change',()=>{});
 // ── SHUFFLE/REPEAT
 function toggleShuffle(){shuffled=!shuffled;ps('sh',shuffled);if(shuffled)buildShuf();updShuf();toast(shuffled?'Karışık açık':'Karışık kapalı');}
 function buildShuf(){shufOrder=[...Array(tracks.length).keys()];for(let i=shufOrder.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[shufOrder[i],shufOrder[j]]=[shufOrder[j],shufOrder[i]];}shufPos=cur>=0?(shufOrder.indexOf(cur)||0):0;}
+// Karışık sıra kütüphaneyle uyuşmuyorsa (boş/eski) yeniden kur
+function ensureShuf(){if(shuffled&&shufOrder.length!==tracks.length)buildShuf();}
+// Yeni eklenen şarkıları mevcut karışık sıranın henüz çalınmamış kısmına rastgele yerleştir
+function addToShuf(newIdxs){
+  if(shufOrder.length!==tracks.length-newIdxs.length){buildShuf();return;}
+  for(const idx of newIdxs){
+    const lo=Math.min(shufPos+1,shufOrder.length);
+    shufOrder.splice(lo+Math.floor(Math.random()*(shufOrder.length-lo+1)),0,idx);
+  }
+}
 function cycleRepeat(){repeat=(repeat+1)%3;ps('rp',repeat);updRep();toast(['Tekrar kapalı','Liste tekrar','Şarkı tekrar'][repeat]);}
 function updShuf(){document.getElementById('btnShuffle').classList.toggle('on',shuffled);}
 function updRep(){document.getElementById('btnRepeat').classList.toggle('on',repeat>0);document.getElementById('repeatIco').innerHTML=repeat===2?'<path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/><rect x="8.5" y="8.5" width="7" height="7" rx="1.5" fill="currentColor" opacity="0.92"/><text x="12" y="14.3" text-anchor="middle" font-size="6" fill="var(--bg)" font-weight="900" font-family="-apple-system,sans-serif">1</text>':'<path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/>';}
@@ -1275,21 +1295,10 @@ function toggleSel(idx){
 async function delSelected(){
   if(!selSet.size){toast('Şarkı seçilmedi');return;}
   if(!confirm(selSet.size+' şarkı silinsin mi?'))return;
-  // En büyük index'ten küçüğe sil (index kaymasını önle)
-  const idxs=[...selSet].sort((a,b)=>b-a);
-  for(const i of idxs){
-    const t=tracks[i];
-    URL.revokeObjectURL(t.url);
-    await dbDel(t.id);
-    tracks.splice(i,1);
-    if(cur===i){aud.pause();aud.src='';cur=-1;ps('ci',-1);updPlayer();updPlayBtn(false);}
-    else if(cur>i){cur--;ps('ci',cur);}
-  }
-  if(shuffled)buildShuf();
-  selSet.clear();
-  selMode=false;
-  renderLib();
-  toast(idxs.length+' şarkı silindi');
+  const idxs=[...selSet];
+  selSet.clear();selMode=false;
+  const n=await removeTracks(idxs);
+  if(n)toast(n+' şarkı silindi');
 }
 
 // Arama sonucunda tek şarkı çal
@@ -1324,8 +1333,71 @@ function updPlayingIndicator(){
     }
   });
 }
-async function delTrack(i){const t=tracks[i];URL.revokeObjectURL(t.url);await dbDel(t.id);tracks.splice(i,1);if(cur===i){aud.pause();aud.src='';cur=-1;ps('ci',-1);updPlayer();updPlayBtn(false);}else if(cur>i){cur--;ps('ci',cur);}if(shuffled)buildShuf();renderLib();toast('Silindi');}
-async function clearAll(){if(!confirm('Tüm şarkılar silinsin mi?'))return;aud.pause();aud.src='';tracks.forEach(t=>URL.revokeObjectURL(t.url));tracks=[];cur=-1;await dbClr();ps('ci',-1);selMode=false;selSet.clear();renderLib();updPlayer();updPlayBtn(false);toast('Kütüphane temizlendi');}
+function resetPlayerUI(){
+  const pf=document.getElementById('progFill'),pt=document.getElementById('progThumb');
+  if(pf)pf.style.width='0%';if(pt)pt.style.left='0%';
+  const c=document.getElementById('curT'),d=document.getElementById('durT');
+  if(c)c.textContent='0:00';if(d)d.textContent='0:00';
+  try{if('mediaSession'in navigator)navigator.mediaSession.metadata=null;}catch{}
+}
+// Şarkı silme (tek/çoklu). Kuyruk ve çalma listeleri id üzerinden tutarlı kalır.
+async function removeTracks(idxs){
+  const items=[...new Set(idxs)].filter(i=>Number.isInteger(i)&&i>=0&&i<tracks.length).map(i=>tracks[i]);
+  if(!items.length)return 0;
+  // Silmeden önce id tabanlı anlık görüntü
+  const curId=(cur>=0&&tracks[cur])?tracks[cur].id:null;
+  const hadQueue=plQueue.length>0&&!!activePlId;
+  const qIds=plQueue.map(i=>tracks[i]?tracks[i].id:null);
+  const oldPos=plQueuePos;
+  // Önce kalıcı depodan sil; silinemeyenler kütüphanede kalır
+  const removedIds=new Set();
+  for(const t of items){if(await dbDel(t.id))removedIds.add(t.id);}
+  const failed=items.length-removedIds.size;
+  if(removedIds.size){
+    const curRemoved=curId!==null&&removedIds.has(curId);
+    if(curRemoved){_loadToken++;aud.pause();aud.removeAttribute('src');aud.load();resetPlayerUI();}
+    let before=0; // çalan şarkıdan önce kalan (silinmemiş) kuyruk öğesi sayısı
+    if(hadQueue)for(let k=0;k<oldPos&&k<qIds.length;k++){if(qIds[k]!==null&&!removedIds.has(qIds[k]))before++;}
+    items.forEach(t=>{if(removedIds.has(t.id)){try{URL.revokeObjectURL(t.url);}catch{}}});
+    tracks=tracks.filter(t=>!removedIds.has(t.id));
+    cur=curRemoved?-1:(curId!==null?tracks.findIndex(t=>t.id===curId):-1);
+    ps('ci',cur);
+    // Çalma listelerinden temizle
+    playlists.forEach(pl=>{pl.trackIds=pl.trackIds.filter(id=>!removedIds.has(id));});
+    savePlaylists();
+    // Kuyruğu id'lerden yeniden kur
+    if(hadQueue){
+      plQueue=qIds.filter(id=>id!==null&&!removedIds.has(id)).map(id=>tracks.findIndex(t=>t.id===id)).filter(i=>i>=0);
+      if(!plQueue.length){plQueue=[];plQueuePos=-1;activePlId=null;}
+      else{
+        const p=cur>=0?plQueue.indexOf(cur):-1;
+        // Çalan silindiyse "sonraki", silinenin ardındaki şarkı olur
+        plQueuePos=p>=0?p:Math.max(-1,Math.min(before-1,plQueue.length-1));
+      }
+    }
+    saveQueue();
+    if(shuffled)buildShuf();
+    if(curRemoved){updPlayBtn(false);updDiscArt();}
+  }
+  renderLib();updPlayer();renderPlaylists();renderPlPanel();
+  if(failed)toastErr(failed+' şarkı silinemedi');
+  return removedIds.size;
+}
+async function delTrack(i){if(await removeTracks([i]))toast('Silindi');}
+async function clearAll(){
+  if(!confirm('Tüm şarkılar silinsin mi?'))return;
+  if(!(await dbClr())){toastErr('Kütüphane temizlenemedi');return;}
+  _loadToken++;
+  aud.pause();aud.removeAttribute('src');aud.load();resetPlayerUI();
+  tracks.forEach(t=>{try{URL.revokeObjectURL(t.url);}catch{}});
+  tracks=[];cur=-1;ps('ci',-1);
+  playlists.forEach(pl=>{pl.trackIds=[];});savePlaylists();
+  plQueue=[];plQueuePos=-1;activePlId=null;saveQueue();
+  shufOrder=[];shufPos=0;
+  selMode=false;selSet.clear();
+  renderLib();updPlayer();updPlayBtn(false);updDiscArt();renderPlaylists();renderPlPanel();
+  toast('Kütüphane temizlendi');
+}
 
 // ── PLAYLİSTLER
 function savePlaylists(){try{localStorage.setItem(LS.playlists,JSON.stringify(playlists));}catch{}}
@@ -1364,7 +1436,7 @@ function renamePl(pi){
 function deletePl(pi){
   const pl=playlists[pi];if(!pl)return;
   if(!confirm('"'+pl.name+'" silinsin mi?'))return;
-  if(activePlId===pl.id){activePlId=null;plQueue=[];plQueuePos=-1;}
+  if(activePlId===pl.id){activePlId=null;plQueue=[];plQueuePos=-1;saveQueue();}
   if(currentPlPanelId===pl.id)closePlPanel();
   playlists.splice(pi,1);savePlaylists();renderPlaylists();toast('Liste silindi');
 }
@@ -1459,9 +1531,12 @@ function playPlaylist(plId){
 }
 function playFromPl(plId,pos){
   const pl=playlists.find(p=>p.id===plId);if(!pl)return;
+  const gi=tracks.findIndex(t=>t.id===pl.trackIds[pos]);
+  if(gi<0){toastErr('Şarkı bulunamadı');return;}
   activePlId=plId;
   plQueue=pl.trackIds.map(tid=>tracks.findIndex(t=>t.id===tid)).filter(i=>i>=0);
-  plQueuePos=pos;playIdx(plQueue[pos]);saveQueue();
+  plQueuePos=plQueue.indexOf(gi); // eksik id'ler konumu kaydırmasın
+  playIdx(gi);saveQueue();
 }
 
 // ── ŞARKIYA EKLE SHEET
@@ -1509,77 +1584,269 @@ function showTab(t){
   if(t==='l')renderLib();if(t==='pl')renderPlaylists();
 }
 
-// ── ANİMASYON SEÇİCİ
-const ANIM_CLASSES=['','anim-pulse','','anim-wobble','','anim-shake','anim-bars','anim-wave'];
-let curAnim=parseInt(localStorage.getItem(LS.discAnim)||'0');
-let _barAnimId=null;
-let _extraAnimId=null;
+// ── ANİMASYON SEÇİCİ — müziğe tepki veren plak efektleri
+// 0 = Klasik (sade dönen plak, ses analizi yok) · 11–16 = müziğe tepkili efektler
+const VIZ_MODES=[11,12,13,14,15,16];
+const isViz=n=>VIZ_MODES.includes(n);
+let curAnim=parseInt(localStorage.getItem(LS.discAnim));
+if(curAnim!==0&&!isViz(curAnim))curAnim=11; // eski/geçersiz seçim → yeni varsayılan
 
-function buildBarWrap(){
-  const wrap=document.getElementById('discBarWrap');
-  wrap.innerHTML='';
-  const N=20;
-  const r=wrap.offsetWidth/2||120;
-  for(let i=0;i<N;i++){
-    const angle=(360/N)*i;
-    const span=document.createElement('span');
-    // her çubuk: dışarı doğru uzanıyor, açıya göre döndürülmüş
-    const rad=angle*Math.PI/180;
-    const cx=50+Math.cos(rad-Math.PI/2)*50;
-    const cy=50+Math.sin(rad-Math.PI/2)*50;
-    span.style.cssText=`
-      position:absolute;
-      width:4px;border-radius:2px;background:var(--accent);
-      left:calc(${cx}% - 2px);
-      top:calc(${cy}% - 2px);
-      height:8px;
-      transform:rotate(${angle}deg);
-      transform-origin:center center;
-      opacity:0.8;
-    `;
-    span.dataset.i=i;
-    span.dataset.angle=angle;
-    wrap.appendChild(span);
+// ── Ses analizi (Web Audio)
+// Yalnızca tepkili bir mod seçilip çalma başlayınca kurulur. AudioContext "running" değilse
+// ses akışı ona BAĞLANMAZ (yoksa çalma sessiz kalırdı); bu durumda efekt yedek (benzetim) ile çalışır.
+let _ac=null,_an=null,_fd=new Uint8Array(256),_td=new Uint8Array(512),_acFail=false,_acBusy=false;
+async function ensureAnalyser(){
+  if(_an)return true;
+  if(_acFail||_acBusy)return false;
+  _acBusy=true;
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC){_acFail=true;return false;}
+    if(!_ac){
+      _ac=new AC();
+      _ac.onstatechange=()=>{if(_an&&_ac.state!=='running'&&!aud.paused)_ac.resume().catch(()=>{});};
+    }
+    if(_ac.state!=='running')await Promise.race([_ac.resume().catch(()=>{}),new Promise(r=>setTimeout(r,800))]);
+    if(_ac.state!=='running')return false; // izin/jest yok: ses kesilmez, sonra tekrar denenir
+    const src=_ac.createMediaElementSource(aud);
+    const an=_ac.createAnalyser();an.fftSize=512;an.smoothingTimeConstant=0.72;
+    src.connect(an);an.connect(_ac.destination);
+    _an=an;_fd=new Uint8Array(an.frequencyBinCount);_td=new Uint8Array(an.fftSize);
+    return true;
+  }catch(e){_acFail=true;return false;}
+  finally{_acBusy=false;}
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden)return;
+  if(_ac&&_ac.state==='suspended')_ac.resume().catch(()=>{});
+  if(!aud.paused)vizStart();
+});
+
+// ── Müzik özellikleri: bas / orta / tiz, genel seviye, vuruş (kick)
+const V={bass:0,mid:0,high:0,level:0,kick:0,live:0,lastBeat:0,beatNow:false,rot:0,t:0,beamRot:0,swing:0};
+let _agc=0.3,_tdAgc=0.3,_bAvg=0,_pAcc=0,_vizRaf=null,_vizLast=0,_vizN=0,_acc=[249,115,22];
+let _shocks=[],_parts=[];const _bars=new Float32Array(36);
+let _vc=null,_vx=null,_vW=0,_vDpr=1,_discEl=null;
+
+const rgba=(r,g,b,a)=>`rgba(${r},${g},${b},${(Number.isFinite(a)?Math.max(0,Math.min(1,a)):0).toFixed(3)})`;
+const hsla=(h,s,l,a)=>`hsla(${Math.round(Number.isFinite(h)?h:0)},${s}%,${l}%,${(Number.isFinite(a)?Math.max(0,Math.min(1,a)):0).toFixed(3)})`;
+function accentRGB(){
+  const v=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+  const m=/^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(v);
+  return m?[parseInt(m[1],16),parseInt(m[2],16),parseInt(m[3],16)]:[249,115,22];
+}
+function avgBins(a,i0,i1){let s=0;for(let i=i0;i<i1;i++)s+=a[i];return s/(i1-i0)/255;}
+function discT(rot,sc){
+  if(!_discEl)_discEl=document.getElementById('disc');
+  if(_discEl)_discEl.style.transform='rotate('+rot.toFixed(2)+'deg) scale('+sc.toFixed(3)+')';
+}
+// Analiz kurulamadıysa: ~105 BPM'lik benzetim spektrumu (müzikle senkron DEĞİL)
+function fakeSpectrum(t){
+  const k=Math.pow(1-((t*1.75)%1),3);
+  for(let i=0;i<_fd.length;i++){
+    _fd[i]=i<6?k*230+20:i<32?90*(0.55+0.45*Math.sin(t*2.7+i*0.9))*(0.55+0.45*k)+20:55*(0.5+0.5*Math.sin(t*8+i*1.7))+10;
   }
+  for(let i=0;i<_td.length;i++)_td[i]=128+Math.sin(i*0.12+t*6)*60*(0.4+0.6*k)+Math.sin(i*0.31-t*9)*25;
+}
+function vizAnalyse(now,dt){
+  const playing=!aud.paused;
+  V.live+=((playing?1:0)-V.live)*Math.min(1,dt*(playing?6:2.2)); // plak yavaşça hızlanır/yavaşlar
+  V.t+=dt;
+  if(playing){
+    if(_an)_an.getByteFrequencyData(_fd);else fakeSpectrum(V.t);
+  }else{
+    for(let i=0;i<_fd.length;i++)_fd[i]=(_fd[i]*0.85)|0; // durunca yumuşakça sönsün
+  }
+  const b=avgBins(_fd,1,5),m=avgBins(_fd,5,32),h=avgBins(_fd,32,110);
+  // Otomatik kazanç: ses seviyesi düşük olsa da hareket aynı canlılıkta kalır
+  _agc=Math.max(_agc*Math.pow(0.85,dt),Math.max(b,m,h),0.25);
+  const nb=Math.min(1,b/_agc),nm=Math.min(1,m/_agc),nh=Math.min(1,h/_agc);
+  _bAvg+=(nb-_bAvg)*Math.min(1,dt*3);
+  V.beatNow=false;
+  if(playing&&nb>0.4&&nb>_bAvg*1.25+0.04&&now-V.lastBeat>220){V.lastBeat=now;V.kick=1;V.beatNow=true;}
+  V.kick*=Math.pow(0.002,dt);
+  V.bass+=(nb-V.bass)*Math.min(1,dt*18);
+  V.mid+=(nm-V.mid)*Math.min(1,dt*12);
+  V.high+=(nh-V.high)*Math.min(1,dt*14);
+  V.level=V.bass*0.5+V.mid*0.35+V.high*0.15;
 }
 
-function animateBars(){
-  if(_barAnimId)cancelAnimationFrame(_barAnimId);
-  const wrap=document.getElementById('discBarWrap');
-  const spans=[...wrap.querySelectorAll('span')];
-  if(!spans.length)return;
-  const N=spans.length;
-  let t=0;
-  function frame(){
-    t+=0.06;
-    spans.forEach((s,i)=>{
-      const wave=Math.sin(t + i*(2*Math.PI/N))*0.5+0.5;
-      const h=6+wave*18;
-      s.style.height=h+'px';
-      s.style.opacity=(0.4+wave*0.6).toFixed(2);
+// ── Efektler
+const VIZ_DRAW={
+  // 11 — Bas Vuruşu: her vuruşta plak zıplar, çevreye şok dalgaları yayılır
+  11(s){
+    const {ctx,cx,cy,R,dt}=s,[r,g,b]=_acc;
+    V.rot+=(20+150*V.level)*dt*V.live;
+    discT(V.rot,1+0.07*V.kick+0.02*V.bass);
+    ctx.globalCompositeOperation=s.comp;
+    const hr=R*(1.15+0.4*V.bass);
+    const gr=ctx.createRadialGradient(cx,cy,R*0.85,cx,cy,hr);
+    gr.addColorStop(0,rgba(r,g,b,0.45*V.bass*V.live));gr.addColorStop(1,rgba(r,g,b,0));
+    ctx.fillStyle=gr;ctx.beginPath();ctx.arc(cx,cy,hr,0,6.2832);ctx.fill();
+    if(V.beatNow)_shocks.push({t:0});
+    for(let i=_shocks.length-1;i>=0;i--){
+      const k=_shocks[i];k.t+=dt/0.85;
+      if(k.t>=1){_shocks.splice(i,1);continue;}
+      const e=1-Math.pow(1-k.t,2);
+      ctx.strokeStyle=rgba(r,g,b,(1-k.t)*0.75);ctx.lineWidth=1+4*(1-k.t);
+      ctx.beginPath();ctx.arc(cx,cy,R*(1.02+0.5*e),0,6.2832);ctx.stroke();
+    }
+  },
+  // 12 — Spektrum Halkası: frekans çubukları plağı sarar (soğuktan sıcağa renk)
+  12(s){
+    const {ctx,cx,cy,R,dt,light}=s;
+    V.rot+=(10+60*V.mid)*dt*V.live;
+    discT(V.rot,1+0.025*V.bass+0.02*V.kick);
+    const N=36,base=R+7,spin=V.rot*Math.PI/180*0.12;
+    ctx.globalCompositeOperation=s.comp;ctx.lineCap='round';
+    ctx.lineWidth=Math.max(2,(Math.PI*base/N)*0.55);
+    for(let k=0;k<N;k++){
+      const bin=1+Math.floor(Math.pow(k/(N-1),1.6)*100);
+      const v=Math.min(1,_fd[bin]/255/_agc);
+      _bars[k]+=(v-_bars[k])*(v>_bars[k]?0.6:0.14);
+      const bv=_bars[k],len=3+bv*R*0.45;
+      ctx.strokeStyle=hsla(8+bv*50,95,light?45:58,0.55+0.45*bv);
+      for(const sg of [1,-1]){
+        const a=-Math.PI/2+sg*(k+0.5)*Math.PI/N+spin,c=Math.cos(a),sn=Math.sin(a);
+        ctx.beginPath();ctx.moveTo(cx+c*base,cy+sn*base);ctx.lineTo(cx+c*(base+len),cy+sn*(base+len));ctx.stroke();
+      }
+    }
+  },
+  // 13 — Kıvılcım: vuruşta plak kenarından kıvılcımlar fırlar, tizler ince serpinti yapar
+  13(s){
+    const {ctx,cx,cy,R,dt,light}=s;
+    V.rot+=(30+100*V.level)*dt*V.live;
+    discT(V.rot,1+0.045*V.kick);
+    const emit=(n,mul)=>{
+      for(let i=0;i<n&&_parts.length<240;i++){
+        const a=Math.random()*6.2832,sp=(45+Math.random()*130)*(0.6+V.level)*mul,life=0.7+Math.random()*0.9;
+        _parts.push({x:cx+Math.cos(a)*R*0.98,y:cy+Math.sin(a)*R*0.98,
+          vx:Math.cos(a)*sp-Math.sin(a)*(Math.random()-0.5)*40,vy:Math.sin(a)*sp+Math.cos(a)*(Math.random()-0.5)*40,
+          life,max:life,size:1.4+Math.random()*2.4,hue:14+Math.random()*40});
+      }
+    };
+    if(V.beatNow)emit(10+Math.floor(18*V.bass),1.4);
+    _pAcc+=V.high*V.live*55*dt;const n=Math.floor(_pAcc);if(n>0){emit(n,1);_pAcc-=n;}
+    ctx.globalCompositeOperation=s.comp;
+    if(V.kick>0.02){ctx.strokeStyle=rgba(_acc[0],_acc[1],_acc[2],V.kick*0.6);ctx.lineWidth=2+3*V.kick;ctx.beginPath();ctx.arc(cx,cy,R+3,0,6.2832);ctx.stroke();}
+    const damp=Math.max(0,1-1.3*dt);
+    for(let i=_parts.length-1;i>=0;i--){
+      const p=_parts[i];p.life-=dt;
+      if(p.life<=0){_parts.splice(i,1);continue;}
+      p.vx*=damp;p.vy*=damp;p.x+=p.vx*dt;p.y+=p.vy*dt;
+      const f=p.life/p.max;
+      ctx.fillStyle=hsla(p.hue,100,light?48:62,Math.pow(f,1.2)*0.95);
+      ctx.beginPath();ctx.arc(p.x,p.y,p.size*(0.5+0.5*f),0,6.2832);ctx.fill();
+    }
+  },
+  // 14 — Osiloskop Halkası: ses dalgası plağın etrafında canlı bir halka çizer; plak ters yöne döner
+  14(s){
+    const {ctx,cx,cy,R,dt,light}=s;
+    V.rot+=(15+90*V.mid)*dt*V.live;
+    discT(-V.rot,1+0.03*V.bass);
+    if(_an&&!aud.paused)_an.getByteTimeDomainData(_td);
+    const L=_td.length,N=96,H=N/2;
+    let pk=0;for(let i=0;i<L;i+=4)pk=Math.max(pk,Math.abs(_td[i]-128)/128);
+    _tdAgc=Math.max(_tdAgc*Math.pow(0.8,dt),pk,0.12);
+    const amp=R*0.34*V.live,rot0=-Math.PI/2+V.rot*Math.PI/180*0.25;
+    ctx.globalCompositeOperation=s.comp;ctx.lineJoin='round';
+    [{r:R*1.14,w:2.6,hue:28,a:0.95,off:0},{r:R*1.27,w:1.8,hue:46,a:0.55,off:L>>2}].forEach(ly=>{
+      ctx.beginPath();
+      for(let i=0;i<=N;i++){
+        const j=i<=H?i:N-i; // simetrik → halka kusursuz kapanır
+        const v=(_td[(Math.floor(j/H*((L>>1)-1))+ly.off)%L]-128)/128/_tdAgc;
+        const rr=ly.r+v*amp,a=rot0+i/N*6.2832,x=cx+Math.cos(a)*rr,y=cy+Math.sin(a)*rr;
+        i?ctx.lineTo(x,y):ctx.moveTo(x,y);
+      }
+      ctx.closePath();ctx.strokeStyle=hsla(ly.hue,95,light?45:60,ly.a);ctx.lineWidth=ly.w+V.kick*1.5;ctx.stroke();
     });
-    _barAnimId=requestAnimationFrame(frame);
+  },
+  // 15 — Sahne Işıkları: çapraz dönen ışık huzmeleri, vuruşta parlar; plak ritimle sallanır
+  15(s){
+    const {ctx,cx,cy,R,W,dt}=s;
+    V.beamRot+=(0.35+2.0*V.level)*dt*V.live;
+    V.swing+=(1.2+3*V.level)*dt*V.live;
+    discT(9*Math.sin(V.swing)*(0.35+V.level),1+0.06*V.kick);
+    ctx.globalCompositeOperation=s.comp;
+    const hues=[18,34,48,12,28,42],half=0.10+0.22*V.bass+0.1*V.kick;
+    for(let i=0;i<6;i++){
+      const a=(i%2?-1:1)*V.beamRot+i*Math.PI/3;
+      const gr=ctx.createRadialGradient(cx,cy,R*0.9,cx,cy,W/2);
+      gr.addColorStop(0,hsla(hues[i],100,s.light?50:60,(0.16+0.5*V.kick+0.2*V.level)*V.live));
+      gr.addColorStop(1,hsla(hues[i],100,60,0));
+      ctx.fillStyle=gr;ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,W/2,a-half,a+half);ctx.closePath();ctx.fill();
+    }
+  },
+  // 16 — Üç Halka: bas / orta / tiz her biri kendi halkasını doldurur
+  16(s){
+    const {ctx,cx,cy,R,dt,light}=s;
+    V.rot+=(18+110*V.level)*dt*V.live;
+    discT(V.rot,1+0.03*V.kick);
+    ctx.lineCap='round';
+    [{r:R*1.10,v:V.bass,hue:14,sp:0.6},{r:R*1.20,v:V.mid,hue:34,sp:-1.0},{r:R*1.30,v:V.high,hue:52,sp:1.5}].forEach(rg=>{
+      ctx.lineWidth=5;ctx.strokeStyle=hsla(rg.hue,90,50,0.12);
+      ctx.beginPath();ctx.arc(cx,cy,rg.r,0,6.2832);ctx.stroke();
+      const st=-Math.PI/2+rg.sp*V.rot*Math.PI/180;
+      ctx.lineWidth=5+3*V.kick;ctx.strokeStyle=hsla(rg.hue,95,light?45:60,0.9);
+      ctx.beginPath();ctx.arc(cx,cy,rg.r,st,st+0.3+rg.v*5.4);ctx.stroke();
+    });
   }
-  frame();
-}
+};
 
-function stopBarAnim(){
-  if(_barAnimId){cancelAnimationFrame(_barAnimId);_barAnimId=null;}
-  if(_extraAnimId){cancelAnimationFrame(_extraAnimId);_extraAnimId=null;}
+function vizResize(){
+  const wrap=document.getElementById('artWrap');_vc=document.getElementById('vizCanvas');
+  if(!_vc||!wrap)return;
+  const w=wrap.offsetWidth;if(!w)return;
+  _vW=Math.round(w*1.7);_vDpr=Math.min(2,window.devicePixelRatio||1);
+  _vc.style.width=_vW+'px';_vc.style.height=_vW+'px';
+  _vc.width=Math.round(_vW*_vDpr);_vc.height=_vc.width;
+  _vx=_vc.getContext('2d');if(_vx)_vx.setTransform(_vDpr,0,0,_vDpr,0,0);
 }
+function vizFrame(now){
+  _vizRaf=null;
+  if(!isViz(curAnim))return;
+  const dt=Math.min(0.05,(now-_vizLast)/1000||0.016);_vizLast=now;
+  const pv=document.getElementById('pv'),wrap=document.getElementById('artWrap');
+  if(!pv||!wrap||!pv.classList.contains('active')){_vizRaf=requestAnimationFrame(vizFrame);return;} // gizliyken çizme
+  if(Math.round(wrap.offsetWidth*1.7)!==_vW)vizResize();
+  if(!_vx){_vizRaf=requestAnimationFrame(vizFrame);return;}
+  if((++_vizN)%45===1)_acc=accentRGB();
+  vizAnalyse(now,dt);
+  const W=_vW,ctx=_vx;
+  ctx.globalCompositeOperation='source-over';ctx.clearRect(0,0,W,W);
+  const light=document.documentElement.classList.contains('light');
+  VIZ_DRAW[curAnim]({ctx,W,cx:W/2,cy:W/2,R:wrap.offsetWidth/2,dt,light,comp:light?'source-over':'lighter'});
+  ctx.globalCompositeOperation='source-over';
+  // Çalıyorsa ya da efekt sönüyorsa devam; tamamen durulunca döngüyü bitir
+  if(!aud.paused||V.live>0.01||V.kick>0.01||_shocks.length||_parts.length)_vizRaf=requestAnimationFrame(vizFrame);
+  else ctx.clearRect(0,0,W,W);
+}
+function vizStart(){
+  if(!isViz(curAnim))return;
+  ensureAnalyser();
+  if(_vizRaf)return;
+  _vizLast=performance.now();
+  _vizRaf=requestAnimationFrame(vizFrame);
+}
+function vizStop(){if(_vizRaf){cancelAnimationFrame(_vizRaf);_vizRaf=null;}}
 
-function setAnim(n){
-  stopBarAnim();
+function setAnim(n,fromUser){
+  if(n!==0&&!isViz(n))n=11;
+  vizStop();
   const wrap=document.getElementById('artWrap');
-  ANIM_CLASSES.forEach(c=>{if(c)wrap.classList.remove(c);});
-  if(ANIM_CLASSES[n])wrap.classList.add(ANIM_CLASSES[n]);
+  wrap.classList.toggle('viz',isViz(n));
   curAnim=n;
   localStorage.setItem(LS.discAnim,n);
-  document.querySelectorAll('.anim-btn').forEach(b=>{
-    b.classList.remove('active');
-    if(b.getAttribute('onclick')==='setAnim('+n+')')b.classList.add('active');
-  });
-  if(n===6){buildBarWrap();if(!aud.paused)animateBars();}
+  document.querySelectorAll('.anim-btn').forEach(b=>b.classList.toggle('active',b.dataset.anim===String(n)));
+  _shocks.length=0;_parts.length=0;
+  if(!isViz(n)){
+    const d=document.getElementById('disc');if(d)d.style.transform='';
+    if(_vx)_vx.clearRect(0,0,_vW,_vW);
+  }else{
+    vizResize();
+    if(fromUser)ensureAnalyser(); // kullanıcı dokunuşu: AudioContext'i başlatmak için uygun an
+    if(!aud.paused)vizStart();
+  }
 }
 
 // ── ALBÜM FOTOĞRAFI
@@ -1766,9 +2033,11 @@ init().catch(e=>{console.error(e);toastErr('Başlatma hatası: '+e.message);});
 // ── PWA: MANIFEST + İKONLAR (inline, ayrı dosya gerekmez)
 (function(){
   // ── SVG İkon üretici (turuncu nota teması)
-  function makeSVGIcon(size){
-    const r=size/2, c=size/2;
-    const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+  // maskable=true: tam kare zemin + içerik %80'e küçültülür (güvenli alan), işletim sistemi kendi maskesini uygular
+  function makeSVGIcon(size, maskable){
+    const rx = maskable ? 0 : size*0.22;
+    const g0 = maskable ? `<g transform="translate(${size*0.1} ${size*0.1}) scale(0.8)">` : '<g>';
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#1c1c1e"/>
@@ -1779,85 +2048,84 @@ init().catch(e=>{console.error(e);toastErr('Başlatma hatası: '+e.message);});
       <stop offset="100%" style="stop-color:#fb923c"/>
     </linearGradient>
   </defs>
-  <rect width="${size}" height="${size}" rx="${size*0.22}" fill="url(#bg)"/>
-  <!-- nota gövdesi -->
+  <rect width="${size}" height="${size}" rx="${rx}" fill="url(#bg)"/>
+  ${g0}
   <ellipse cx="${size*0.38}" cy="${size*0.68}" rx="${size*0.13}" ry="${size*0.09}" fill="url(#ac)"/>
   <ellipse cx="${size*0.65}" cy="${size*0.60}" rx="${size*0.12}" ry="${size*0.085}" fill="url(#ac)"/>
-  <!-- nota sapları -->
   <rect x="${size*0.495}" y="${size*0.28}" width="${size*0.045}" height="${size*0.40}" rx="${size*0.022}" fill="url(#ac)"/>
   <rect x="${size*0.765}" y="${size*0.20}" width="${size*0.040}" height="${size*0.40}" rx="${size*0.020}" fill="url(#ac)"/>
-  <!-- bağlantı çizgisi -->
   <path d="M${size*0.495} ${size*0.28} Q${size*0.63} ${size*0.175} ${size*0.765} ${size*0.20}" stroke="url(#ac)" stroke-width="${size*0.045}" fill="none" stroke-linecap="round"/>
-  <!-- parıltı -->
   <circle cx="${size*0.28}" cy="${size*0.22}" r="${size*0.06}" fill="rgba(249,115,22,0.18)"/>
+  </g>
 </svg>`;
-    return svg;
+  }
+  function svgToDataURL(svg){ return 'data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(svg))); }
+
+  // SVG → PNG (iOS apple-touch-icon SVG kabul etmez; manifest için de PNG daha güvenilir)
+  function svgToPNG(svg,size){
+    return new Promise(res=>{
+      setTimeout(()=>res(null),3000); // yüklenemezse manifest beklemesin
+      try{
+        const img=new Image();
+        img.onload=()=>{
+          try{
+            const c=document.createElement('canvas');c.width=c.height=size;
+            c.getContext('2d').drawImage(img,0,0,size,size);
+            res(c.toDataURL('image/png'));
+          }catch{res(null);}
+        };
+        img.onerror=()=>res(null);
+        img.src=svgToDataURL(svg);
+      }catch{res(null);}
+    });
+  }
+  async function icon(size,maskable){
+    const svg=makeSVGIcon(size,maskable);
+    const png=await svgToPNG(svg,size);
+    return png ? {src:png,type:'image/png'} : {src:svgToDataURL(svg),type:'image/svg+xml'}; // PNG üretilemezse SVG'ye düş
   }
 
-  function svgToDataURL(svg){
-    return 'data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(svg)));
+  (async function setupPWA(){
+    const [apple,a192,a512,m192,m512]=await Promise.all([
+      icon(180,false), icon(192,false), icon(512,false), icon(192,true), icon(512,true)
+    ]);
+    document.getElementById('appleTouchIcon').href=apple.src;
+
+    // Blob manifest'te '.' blob: adresine göre çözülür; sayfanın gerçek adresini ver
+    const base=location.origin+location.pathname;
+    const manifest={
+      id: base,
+      name: 'S-MüzikApp Pro',
+      short_name: 'S-MüzikApp',
+      description: 'Yerel müzik çalar — S-MüzikApp Pro',
+      start_url: base,
+      scope: base.replace(/[^\/]*$/,''),
+      display: 'standalone',
+      orientation: 'portrait',
+      background_color: '#0d0d0d',
+      theme_color: '#f97316',
+      icons: [
+        {src:a192.src,sizes:'192x192',type:a192.type,purpose:'any'},
+        {src:a512.src,sizes:'512x512',type:a512.type,purpose:'any'},
+        {src:m192.src,sizes:'192x192',type:m192.type,purpose:'maskable'},
+        {src:m512.src,sizes:'512x512',type:m512.type,purpose:'maskable'}
+      ],
+      categories: ['music','entertainment'],
+      lang: 'tr'
+    };
+    const blob=new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'});
+    document.getElementById('pwaManifest').href=URL.createObjectURL(blob);
+  })().catch(()=>{});
+
+  // ── Service Worker
+  // Tarayıcılar blob: adresinden Service Worker kaydetmeyi KABUL ETMEZ; bu yüzden gerçek bir sw.js gerekir.
+  // sw.js, bu HTML ile aynı klasörde ve http(s) üzerinden sunulursa çevrimdışı çalışma etkinleşir.
+  // Yoksa/file:// ise sessizce atlanır, uygulama normal çalışmaya devam eder.
+  if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
   }
 
-  // İkon boyutları
-  const sizes=[192,512];
-  const icons=sizes.map(s=>({
-    src: svgToDataURL(makeSVGIcon(s)),
-    sizes: s+'x'+s,
-    type: 'image/svg+xml',
-    purpose: 'any maskable'
-  }));
-
-  // apple-touch-icon (180px)
-  const appleIcon=svgToDataURL(makeSVGIcon(180));
-  document.getElementById('appleTouchIcon').href=appleIcon;
-
-  // Manifest objesi
-  const manifest={
-    name: 'S-MüzikApp Pro',
-    short_name: 'S-MüzikApp',
-    description: 'Yerel müzik çalar — S-MüzikApp Pro',
-    start_url: '.',
-    display: 'standalone',
-    orientation: 'portrait',
-    background_color: '#0d0d0d',
-    theme_color: '#f97316',
-    icons: icons,
-    categories: ['music','entertainment'],
-    lang: 'tr'
-  };
-
-  const blob=new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'});
-  const url=URL.createObjectURL(blob);
-  document.getElementById('pwaManifest').href=url;
-
-  // ── Service Worker (offline cache)
-  if('serviceWorker' in navigator){
-    const swCode=`
-const CACHE='smuzikapp-v1';
-self.addEventListener('install',e=>{
-  self.skipWaiting();
-});
-self.addEventListener('activate',e=>{
-  e.waitUntil(self.clients.claim());
-});
-self.addEventListener('fetch',e=>{
-  // Sadece aynı origin isteklerini yakala
-  if(e.request.url.startsWith(self.location.origin)){
-    e.respondWith(
-      caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{
-        const clone=res.clone();
-        caches.open(CACHE).then(c=>c.put(e.request,clone));
-        return res;
-      }))
-    );
-  }
-});`;
-    const swBlob=new Blob([swCode],{type:'application/javascript'});
-    const swURL=URL.createObjectURL(swBlob);
-    navigator.serviceWorker.register(swURL,{scope:'./'}).catch(()=>{});
-  }
-
-  // Tema değişince manifest'teki theme_color'ı güncelle
+  // Tema değişince tarayıcı çubuğu rengini güncelle
   const origSetTheme=window.setTheme;
   if(origSetTheme){
     window.setTheme=function(t,silent){
