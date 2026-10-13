@@ -56,19 +56,20 @@
 /* ── TEMALAR ── */
 :root {
   --bg:#0d0d0d; --card:#1c1c1e; --card2:#2c2c2e; --accent:#f97316;
-  --accent2:#fb923c; --text:#f5f5f5; --muted:#888; --border:rgba(249,115,22,.15);
-  --shadow:rgba(249,115,22,.2); --st:env(safe-area-inset-top); --sb:env(safe-area-inset-bottom);
+  --accent2:#fb923c; --acc-rgb:249,115,22; --acc2-rgb:251,146,60; /* vurgu rengi: JS (renk teması) günceller */
+  --text:#f5f5f5; --muted:#888; --border:rgba(var(--acc-rgb),.15);
+  --shadow:rgba(var(--acc-rgb),.2); --st:env(safe-area-inset-top); --sb:env(safe-area-inset-bottom);
 }
 html.light {
   --bg:#f5f5f5; --card:#ffffff; --card2:#eeeeee; --accent:#ea6c00;
-  --accent2:#f97316; --text:#1a1a1a; --muted:#888; --border:rgba(234,108,0,.18);
-  --shadow:rgba(234,108,0,.15);
+  --accent2:#f97316; --acc-rgb:234,108,0; --acc2-rgb:249,115,22; --text:#1a1a1a; --muted:#888; --border:rgba(var(--acc-rgb),.18);
+  --shadow:rgba(var(--acc-rgb),.15);
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;overflow:hidden;user-select:none;transition:background .3s,color .3s;}
 .bg{position:fixed;inset:0;pointer-events:none;}
-.bg::before{content:'';position:absolute;top:-30%;left:-20%;width:70%;height:70%;background:radial-gradient(circle,rgba(249,115,22,.1) 0%,transparent 65%);animation:bg1 9s ease-in-out infinite alternate;}
-.bg::after{content:'';position:absolute;bottom:-30%;right:-20%;width:80%;height:80%;background:radial-gradient(circle,rgba(251,146,60,.07) 0%,transparent 65%);animation:bg2 11s ease-in-out infinite alternate;}
+.bg::before{content:'';position:absolute;top:-30%;left:-20%;width:70%;height:70%;background:radial-gradient(circle,rgba(var(--acc-rgb),.1) 0%,transparent 65%);animation:bg1 9s ease-in-out infinite alternate;}
+.bg::after{content:'';position:absolute;bottom:-30%;right:-20%;width:80%;height:80%;background:radial-gradient(circle,rgba(var(--acc2-rgb),.07) 0%,transparent 65%);animation:bg2 11s ease-in-out infinite alternate;}
 @keyframes bg1{to{transform:translate(8%,10%) scale(1.1);}}
 @keyframes bg2{to{transform:translate(-8%,-8%) scale(1.12);}}
 #app{position:relative;z-index:1;height:100dvh;display:flex;flex-direction:column;padding-top:calc(var(--st)+10px);padding-bottom:0;}
@@ -106,10 +107,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .vol{width:100%;display:flex;align-items:center;gap:8px;position:relative;z-index:1;flex-shrink:0;}
 .anim-picker{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;flex-shrink:0;flex-wrap:wrap;}
 .anim-btn{width:32px;height:32px;border-radius:9px;border:1.5px solid var(--border);background:var(--card2);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .18s;flex-shrink:0;position:relative;}
-.anim-btn.active{border-color:var(--accent);background:rgba(249,115,22,.13);color:var(--accent);box-shadow:0 2px 10px var(--shadow);}
+.anim-btn.active{border-color:var(--accent);background:rgba(var(--acc-rgb),.13);color:var(--accent);box-shadow:0 2px 10px var(--shadow);}
 .anim-btn:active{transform:scale(.88);}
 .pv-infobar{display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:4px;}
-.pv-source{display:flex;align-items:center;gap:5px;background:rgba(249,115,22,.1);border:1px solid var(--border);border-radius:20px;padding:5px 10px;cursor:pointer;max-width:65%;}
+.pv-source{display:flex;align-items:center;gap:5px;background:rgba(var(--acc-rgb),.1);border:1px solid var(--border);border-radius:20px;padding:5px 10px;cursor:pointer;max-width:65%;}
 .pv-source svg{width:12px;height:12px;color:var(--accent);flex-shrink:0;}
 .pv-source span{font-size:11px;font-weight:600;color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .pv-chevron{width:13px!important;height:13px!important;color:var(--muted)!important;}
@@ -126,7 +127,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .queue-list{max-height:140px;overflow-y:auto;padding:0 6px 6px;-webkit-overflow-scrolling:touch;}
 .queue-list::-webkit-scrollbar{display:none;}
 .q-item{display:flex;align-items:center;gap:7px;padding:6px 7px;border-radius:9px;cursor:pointer;}
-.q-item:active,.q-item.q-playing{background:rgba(249,115,22,.08);}
+.q-item:active,.q-item.q-playing{background:rgba(var(--acc-rgb),.08);}
 .q-item.q-playing .q-name{color:var(--accent);}
 .q-num{width:16px;text-align:center;font-size:11px;color:var(--muted);flex-shrink:0;}
 .q-info{flex:1;min-width:0;}
@@ -135,8 +136,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .q-dur{font-size:11px;color:var(--muted);flex-shrink:0;}
 
 /* DİSK */
-.disc{width:100%;height:100%;border-radius:50%;background:linear-gradient(135deg,#2a2a2e,#1a1a1e);border:2px solid rgba(249,115,22,.15);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;box-shadow:0 16px 44px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.08);}
-html.light .disc{background:linear-gradient(135deg,#3a3a3e,#2a2a2e);border:2px solid rgba(234,108,0,.25);box-shadow:0 16px 44px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.1);}
+.disc{width:100%;height:100%;border-radius:50%;background:linear-gradient(135deg,#2a2a2e,#1a1a1e);border:2px solid rgba(var(--acc-rgb),.15);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;box-shadow:0 16px 44px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.08);}
+html.light .disc{background:linear-gradient(135deg,#3a3a3e,#2a2a2e);border:2px solid rgba(var(--acc-rgb),.25);box-shadow:0 16px 44px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.1);}
 .disc.spin{animation:spin 12s linear infinite;}
 .disc.spin.paused{animation-play-state:paused;}
 @keyframes spin{to{transform:rotate(360deg);}}
@@ -151,7 +152,7 @@ html.light .disc .center{background:#222;}
 .disc-album-img{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;object-fit:cover;z-index:1;}
 .disc .center{z-index:3;}
 /* Turuncu dönen halka — büyütüldü */
-.spin-ring{position:absolute;inset:-4px;border-radius:50%;border:4px solid transparent;border-top-color:var(--accent);border-right-color:rgba(249,115,22,.4);animation:spinRing 2.4s linear infinite;z-index:4;pointer-events:none;display:none;}
+.spin-ring{position:absolute;inset:-4px;border-radius:50%;border:4px solid transparent;border-top-color:var(--accent);border-right-color:rgba(var(--acc-rgb),.4);animation:spinRing 2.4s linear infinite;z-index:4;pointer-events:none;display:none;}
 .disc.spin .spin-ring{display:block;}
 .disc.spin.paused .spin-ring{animation-play-state:paused;}
 @keyframes spinRing{to{transform:rotate(360deg);}}
@@ -161,15 +162,27 @@ html.light .disc .center{background:#222;}
 #vizCanvas{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:-1;display:none;}
 .art-wrap.viz #vizCanvas{display:block;}
 .art-wrap.viz .disc{will-change:transform;}
-.art-wrap.viz .disc.spin{animation:none;} /* dönüşü JS yönetir (müziğe göre hızlanır/yavaşlar) */
+.art-wrap.viz .disc.spin{animation:none;}
+.art-wrap.wide .disc{visibility:hidden;} /* plaksız yatay dalga modları */
+.fx-trigger{display:flex;align-items:center;gap:4px;height:32px;padding:0 10px 0 12px;border-radius:16px;border:1.5px solid var(--border);background:var(--card2);color:var(--muted);cursor:pointer;font-size:16px;transition:all .18s;}
+.fx-trigger svg{width:16px;height:16px;}
+.fx-trigger:active{transform:scale(.94);border-color:var(--accent);}
+/* Animasyon seçme penceresi */
+.fx-body{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 14px 16px;}
+.fx-group{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin:10px 2px 8px;}
+.fx-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.fx-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px 10px;border-radius:14px;border:1.5px solid var(--border);background:var(--card2);color:var(--muted);cursor:pointer;font-family:inherit;font-size:11px;font-weight:600;text-align:center;line-height:1.2;transition:all .15s;}
+.fx-item .fx-ico{font-size:24px;line-height:1;}
+.fx-item.active{border-color:var(--accent);background:rgba(var(--acc-rgb),.13);color:var(--accent);}
+.fx-item:active{transform:scale(.95);} /* dönüşü JS yönetir (müziğe göre hızlanır/yavaşlar) */
 .art-wrap .disc.spin.paused{animation-play-state:paused!important;}
 
 .tinfo{width:100%;text-align:center;margin-bottom:12px;}
 .tname{font-size:18px;font-weight:700;letter-spacing:-.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .tartist{font-size:13px;color:var(--muted);margin-top:2px;}
 .tartist-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:2px;}
-.pv-addpl{background:rgba(249,115,22,.12);border:1px solid var(--border);color:var(--accent);width:26px;height:26px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;}
-.pv-addpl:active{background:rgba(249,115,22,.25);transform:scale(.92);}
+.pv-addpl{background:rgba(var(--acc-rgb),.12);border:1px solid var(--border);color:var(--accent);width:26px;height:26px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;}
+.pv-addpl:active{background:rgba(var(--acc-rgb),.25);transform:scale(.92);}
 .pv-addpl svg{width:14px;height:14px;}
 .no-track{font-size:14px;color:var(--muted);}
 
@@ -184,7 +197,7 @@ html.light .disc .center{background:#222;}
 .ctrls{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:380px;align-self:center;padding:0 2px;margin-bottom:8px;position:relative;z-index:2;}
 .cbtn{background:none;border:none;color:var(--muted);cursor:pointer;padding:8px;border-radius:12px;transition:all .15s;display:flex;align-items:center;justify-content:center;position:relative;z-index:2;}
 .cbtn:active{transform:scale(.88);}
-#btnPrev:active,#btnNext:active{transform:scale(.82);background:rgba(249,115,22,.18);border-radius:50%;color:var(--accent);}
+#btnPrev:active,#btnNext:active{transform:scale(.82);background:rgba(var(--acc-rgb),.18);border-radius:50%;color:var(--accent);}
 #btnPrev,#btnNext{transition:all .13s;border-radius:50%;}
 .cbtn.on{color:var(--accent);}
 .cbtn svg{width:24px;height:24px;}
@@ -213,8 +226,8 @@ html.light .disc .center{background:#222;}
 .empty svg{width:48px;height:48px;opacity:.2;}
 .empty p{font-size:14px;line-height:1.55;}
 .titem{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:13px;cursor:pointer;transition:background .12s;}
-.titem:active{background:rgba(249,115,22,.08);}
-.titem.playing{background:rgba(249,115,22,.06);}
+.titem:active{background:rgba(var(--acc-rgb),.08);}
+.titem.playing{background:rgba(var(--acc-rgb),.06);}
 .titem.playing .iname{color:var(--accent);}
 .inum{width:20px;text-align:center;font-size:11px;color:var(--muted);flex-shrink:0;}
 .iart{width:40px;height:40px;border-radius:10px;background:var(--card2);display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid var(--border);}
@@ -250,8 +263,8 @@ html.light .disc .center{background:#222;}
 .plscroll{flex:1;overflow-y:auto;padding:0 12px 8px;-webkit-overflow-scrolling:touch;}
 .plscroll::-webkit-scrollbar{display:none;}
 .pl-item{display:flex;align-items:center;gap:10px;padding:10px 10px;border-radius:13px;cursor:pointer;transition:background .12s;border:1px solid transparent;margin-bottom:2px;}
-.pl-item:active{background:rgba(249,115,22,.08);}
-.pl-item.active-pl{background:rgba(249,115,22,.06);border-color:var(--border);}
+.pl-item:active{background:rgba(var(--acc-rgb),.08);}
+.pl-item.active-pl{background:rgba(var(--acc-rgb),.06);border-color:var(--border);}
 .pl-item.active-pl .pl-name{color:var(--accent);}
 .pl-icon{width:42px;height:42px;border-radius:11px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .pl-icon svg{width:18px;height:18px;color:#fff;}
@@ -276,8 +289,8 @@ html.light .disc .center{background:#222;}
 .pl-panel-scroll{flex:1;overflow-y:auto;padding:0 12px 8px;-webkit-overflow-scrolling:touch;}
 .pl-panel-scroll::-webkit-scrollbar{display:none;}
 .pl-track{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:12px;cursor:pointer;transition:background .12s;}
-.pl-track:active{background:rgba(249,115,22,.08);}
-.pl-track.playing{background:rgba(249,115,22,.06);}
+.pl-track:active{background:rgba(var(--acc-rgb),.08);}
+.pl-track.playing{background:rgba(var(--acc-rgb),.06);}
 .pl-track.playing .pl-tname{color:var(--accent);}
 .pl-tnum{width:18px;text-align:center;font-size:11px;color:var(--muted);flex-shrink:0;}
 .pl-tart{width:38px;height:38px;border-radius:9px;background:var(--card2);display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid var(--border);}
@@ -301,7 +314,7 @@ html.light .disc .center{background:#222;}
 .add-list{overflow-y:auto;padding:0 8px 10px;-webkit-overflow-scrolling:touch;}
 .add-list::-webkit-scrollbar{display:none;}
 .add-row{display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:11px;cursor:pointer;}
-.add-row:active{background:rgba(249,115,22,.1);}
+.add-row:active{background:rgba(var(--acc-rgb),.1);}
 .add-chk{width:21px;height:21px;border-radius:6px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;}
 .add-chk.on{background:var(--accent);border-color:var(--accent);}
 .add-chk svg{width:12px;height:12px;color:#fff;display:none;}
@@ -309,18 +322,18 @@ html.light .disc .center{background:#222;}
 .add-pl-name{font-size:13px;font-weight:500;}
 .add-pl-cnt{font-size:11px;color:var(--muted);margin-top:1px;}
 .add-new{display:flex;align-items:center;gap:9px;padding:9px 8px;border-radius:11px;cursor:pointer;color:var(--accent);font-size:13px;font-weight:600;}
-.add-new:active{background:rgba(249,115,22,.08);}
+.add-new:active{background:rgba(var(--acc-rgb),.08);}
 .add-new svg{width:16px;height:16px;}
 
 /* ŞARKI SEÇİCİ */
-.pl-add-tracks{background:rgba(249,115,22,.12);border:1px solid var(--border);color:var(--accent);width:32px;height:32px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.pl-add-tracks:active{background:rgba(249,115,22,.25);}
+.pl-add-tracks{background:rgba(var(--acc-rgb),.12);border:1px solid var(--border);color:var(--accent);width:32px;height:32px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.pl-add-tracks:active{background:rgba(var(--acc-rgb),.25);}
 .pl-add-tracks svg{width:18px;height:18px;}
 .tp-search-wrap{padding:0 12px 8px;flex-shrink:0;}
 .tp-search{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:9px 12px;color:var(--text);font-size:16px;outline:none;}
 .tp-search::placeholder{color:var(--muted);}
 .tp-row{display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:11px;cursor:pointer;}
-.tp-row:active{background:rgba(249,115,22,.08);}
+.tp-row:active{background:rgba(var(--acc-rgb),.08);}
 .tp-chk{width:22px;height:22px;border-radius:7px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;}
 .tp-chk.on{background:var(--accent);border-color:var(--accent);}
 .tp-chk svg{width:13px;height:13px;color:#fff;display:none;}
@@ -347,9 +360,9 @@ html.light .disc .center{background:#222;}
 .stlabel{font-size:13px;}
 .stnum-wrap{display:flex;align-items:center;gap:8px;}
 .stnbtn{width:30px;height:30px;border-radius:9px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:17px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.stnbtn:active{background:rgba(249,115,22,.15);}
+.stnbtn:active{background:rgba(var(--acc-rgb),.15);}
 .stnval{font-size:19px;font-weight:700;color:var(--accent);min-width:30px;text-align:center;}
-.stbadge{background:rgba(249,115,22,.12);color:var(--accent);font-size:12px;font-weight:700;padding:3px 10px;border-radius:7px;border:1px solid var(--border);}
+.stbadge{background:rgba(var(--acc-rgb),.12);color:var(--accent);font-size:12px;font-weight:700;padding:3px 10px;border-radius:7px;border:1px solid var(--border);}
 .stbtn{width:100%;padding:11px;border-radius:11px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:13px;font-weight:700;cursor:pointer;}
 .stbtn.stop{background:linear-gradient(135deg,#f87171,#ef4444);}
 /* repeat counter slider */
@@ -359,7 +372,7 @@ html.light .disc .center{background:#222;}
 /* sleep */
 .sleep-presets{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;}
 .sleep-pre{flex:1;min-width:44px;padding:6px 3px;border-radius:9px;border:1px solid var(--border);background:var(--bg);color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;text-align:center;}
-.sleep-pre:active,.sleep-pre.sel{background:rgba(249,115,22,.12);color:var(--accent);border-color:var(--accent);}
+.sleep-pre:active,.sleep-pre.sel{background:rgba(var(--acc-rgb),.12);color:var(--accent);border-color:var(--accent);}
 .sleep-slider{width:100%;-webkit-appearance:none;height:5px;border-radius:3px;outline:none;cursor:pointer;margin-bottom:4px;}
 .sleep-slider::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:white;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.3);}
 .sleep-val{text-align:center;font-size:20px;font-weight:700;color:var(--accent);margin-bottom:10px;}
@@ -368,6 +381,17 @@ html.light .disc .center{background:#222;}
 .theme-toggle{display:flex;background:var(--card2);border-radius:10px;padding:3px;gap:3px;}
 .t-opt{padding:6px 14px;border-radius:8px;border:none;background:transparent;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;}
 .t-opt.on{background:var(--accent);color:#fff;}
+/* Renk teması seçici */
+.color-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px 6px;margin-top:10px;}
+.color-sw{display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:none;cursor:pointer;color:var(--muted);font-size:10px;font-weight:600;padding:0;font-family:inherit;}
+.color-dot{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--c1),var(--c2));display:flex;align-items:center;justify-content:center;color:#fff;transition:transform .15s,box-shadow .15s;box-shadow:0 2px 8px rgba(0,0,0,.25);}
+html.light .color-dot{background:linear-gradient(135deg,var(--l1),var(--l2));}
+.color-dot svg{width:20px;height:20px;opacity:0;transform:scale(.5);transition:all .15s;}
+.color-sw.on{color:var(--text);}
+.color-sw.on .color-dot{box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--c1);}
+html.light .color-sw.on .color-dot{box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--l1);}
+.color-sw.on .color-dot svg{opacity:1;transform:scale(1);}
+.color-sw:active .color-dot{transform:scale(.9);}
 
 /* TOAST */
 .toast{position:fixed;bottom:calc(var(--sb)+75px);left:50%;transform:translateX(-50%) translateY(14px);background:rgba(28,28,30,.95);backdrop-filter:blur(20px);color:var(--text);padding:8px 14px;border-radius:11px;font-size:12px;font-weight:500;pointer-events:none;opacity:0;transition:all .22s;z-index:300;white-space:nowrap;border:1px solid var(--border);}
@@ -390,7 +414,7 @@ html.light .disc .center{background:#222;}
 .semoji{font-size:18px;flex-shrink:0;}
 .stext{font-size:13px;line-height:1.4;}
 .stext strong{color:var(--accent);}
-.snote{font-size:11px;color:var(--muted);text-align:center;margin-bottom:14px;padding:8px 10px;background:rgba(249,115,22,.05);border-radius:9px;border:1px solid var(--border);line-height:1.5;}
+.snote{font-size:11px;color:var(--muted);text-align:center;margin-bottom:14px;padding:8px 10px;background:rgba(var(--acc-rgb),.05);border-radius:9px;border:1px solid var(--border);line-height:1.5;}
 .sbtn{width:100%;padding:13px;border-radius:13px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:14px;font-weight:700;cursor:pointer;}
 #fileInput{display:none;}
 </style>
@@ -471,10 +495,21 @@ html.light .disc .center{background:#222;}
   </div>
 </div>
 
+<div class="add-sheet" id="fxSheet" style="display:none">
+  <div class="add-bg" onclick="closeFxSheet()"></div>
+  <div class="add-box">
+    <div class="add-hdr">
+      <span class="add-title">Animasyon</span>
+      <button class="add-close" onclick="closeFxSheet()" aria-label="Kapat"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+    </div>
+    <div class="fx-body" id="fxBody"></div>
+  </div>
+</div>
+
 <div class="bg"></div>
 <div id="app">
   <div class="appheader">
-    <span class="appname">S — Müzik Çalar <span class="appver" id="appVer">Pro 1.8</span></span>
+    <span class="appname">S — Müzik Çalar <span class="appver" id="appVer">Pro 2.0</span></span>
     <span class="appcopy">©sebasmobil &nbsp;<a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" style="color:inherit;font-size:0.8em;opacity:0.75;text-decoration:none;">AGPL v3.0</a></span>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Tema">🌙</button>
   </div>
@@ -509,13 +544,7 @@ html.light .disc .center{background:#222;}
       </div>
     </div>
     <div class="anim-picker" id="animPicker">
-      <button class="anim-btn active" data-anim="0" onclick="setAnim(0,true)" title="Klasik plak">💿</button>
-      <button class="anim-btn" data-anim="11" onclick="setAnim(11,true)" title="Bas vuruşu">🥁</button>
-      <button class="anim-btn" data-anim="12" onclick="setAnim(12,true)" title="Spektrum halkası">🌈</button>
-      <button class="anim-btn" data-anim="13" onclick="setAnim(13,true)" title="Kıvılcım">✨</button>
-      <button class="anim-btn" data-anim="14" onclick="setAnim(14,true)" title="Ses dalgası halkası">🌀</button>
-      <button class="anim-btn" data-anim="15" onclick="setAnim(15,true)" title="Sahne ışıkları">🔦</button>
-      <button class="anim-btn" data-anim="16" onclick="setAnim(16,true)" title="Üç halka">🎯</button>
+      <button class="fx-trigger" id="fxTrigger" onclick="openFxSheet()" title="Animasyon seç" aria-label="Animasyon seç"><span id="fxTrigIco">💿</span><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></button>
     </div>
     <div class="tinfo">
       <div class="tname" id="tname"><span class="no-track">Şarkı seçin</span></div>
@@ -617,6 +646,13 @@ html.light .disc .center{background:#222;}
         </div>
       </div>
 
+      <!-- RENK TEMASI -->
+      <div class="stcard">
+        <div class="stcard-title"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 0 0 0 18c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>Renk Teması</div>
+        <div class="stcard-sub">Uygulamanın vurgu rengini seçin</div>
+        <div class="color-grid" id="colorGrid"></div>
+      </div>
+
       <!-- TEKRAR SAYACI -->
       <div class="stcard">
         <div class="stcard-title"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>Şarkı Tekrar Sayacı</div>
@@ -711,7 +747,7 @@ aud.addEventListener('error', () => {
 });
 
 // ── VERSİYON & DEPOLAMA ANAHTARLARI
-const APP_VER   = 'Pro 1.8';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
+const APP_VER   = 'Pro 2.0';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
 const STORE_VER = 'Pro 1.7';      // Depolama anahtarı etiketi — SABİT. Değiştirilirse çalma listeleri/ayarlar sıfırlanır
 const DB_NAME   = 'mzk_pro_1_7';  // IndexedDB adı — SABİT. Değiştirilirse şarkılar yeni boş veritabanına düşer
 const DB_VER  = 1;
@@ -720,7 +756,48 @@ const LS = {
   setupDone:  'smzk_setup_' + STORE_VER,
   playlists:  'smzk_pl_'    + STORE_VER,
   discAnim:   'smzk_anim_'  + STORE_VER,
+  color:      'smzk_color',
 };
+// ── RENK TEMALARI (10 adet): vurgu rengi. d = koyu tema tonları, l = açık tema tonları
+const COLOR_THEMES=[
+  {id:'orange',name:'Turuncu',d:['#f97316','#fb923c'],l:['#ea6c00','#f97316']},
+  {id:'blue',  name:'Mavi',   d:['#3b82f6','#60a5fa'],l:['#2563eb','#3b82f6']},
+  {id:'sky',   name:'Gökyüzü',d:['#0284c7','#0ea5e9'],l:['#0369a1','#0284c7']},
+  {id:'indigo',name:'İndigo', d:['#6366f1','#818cf8'],l:['#4f46e5','#6366f1']},
+  {id:'purple',name:'Mor',    d:['#a855f7','#c084fc'],l:['#9333ea','#a855f7']},
+  {id:'pink',  name:'Pembe',  d:['#ec4899','#f472b6'],l:['#db2777','#ec4899']},
+  {id:'red',   name:'Kırmızı',d:['#ef4444','#f87171'],l:['#dc2626','#ef4444']},
+  {id:'amber', name:'Amber',  d:['#d97706','#f59e0b'],l:['#b45309','#d97706']},
+  {id:'green', name:'Yeşil',  d:['#16a34a','#22c55e'],l:['#15803d','#16a34a']},
+  {id:'teal',  name:'Turkuaz',d:['#0d9488','#14b8a6'],l:['#0f766e','#0d9488']},
+];
+let curColor=localStorage.getItem(LS.color)||'orange';
+if(!COLOR_THEMES.some(c=>c.id===curColor))curColor='orange';
+function hexRGB(h){const m=/^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(h);return m?parseInt(m[1],16)+','+parseInt(m[2],16)+','+parseInt(m[3],16):'249,115,22';}
+function applyColorTheme(id){
+  const th=COLOR_THEMES.find(c=>c.id===id)||COLOR_THEMES[0];
+  const light=document.documentElement.classList.contains('light');
+  const [a,a2]=light?th.l:th.d,st=document.documentElement.style;
+  st.setProperty('--accent',a);st.setProperty('--accent2',a2);
+  st.setProperty('--acc-rgb',hexRGB(a));st.setProperty('--acc2-rgb',hexRGB(a2));
+}
+function renderColorGrid(){
+  const el=document.getElementById('colorGrid');if(!el)return;
+  el.innerHTML=COLOR_THEMES.map(c=>`<button class="color-sw${c.id===curColor?' on':''}" onclick="setColorTheme('${c.id}')" title="${c.name}" style="--c1:${c.d[0]};--c2:${c.d[1]};--l1:${c.l[0]};--l2:${c.l[1]}"><span class="color-dot"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" fill="currentColor"/></svg></span>${c.name}</button>`).join('');
+}
+function setColorTheme(id,silent){
+  if(!COLOR_THEMES.some(c=>c.id===id))id='orange';
+  curColor=id;localStorage.setItem(LS.color,id);
+  applyColorTheme(id);renderColorGrid();
+  if(typeof refreshVizColor==='function')refreshVizColor();
+  // PWA ikonu/manifest yeni renge göre yenilensin (art arda tıklamada bekle)
+  clearTimeout(window._pwaT);window._pwaT=setTimeout(()=>{if(window.refreshPWAIcons)window.refreshPWAIcons();},600);
+  if(!silent)toast('Renk: '+COLOR_THEMES.find(c=>c.id===id).name);
+}
+// İlk boyamadan önce uygula (turuncu kırpışması olmasın)
+if(localStorage.getItem(LS.theme)==='light')document.documentElement.classList.add('light');
+applyColorTheme(curColor);renderColorGrid();
+
 // Kuyruk ve aktif kaynak — kalıcı olarak IndexedDB prefs'te sakla
 async function saveQueue(){
   // Kuyruk dizin yerine şarkı id'siyle saklanır: silme/sıra değişimi kaydı bozmaz
@@ -1582,12 +1659,15 @@ function showTab(t){
     document.getElementById(tids[id]).classList.toggle('active',t===id);
   });
   if(t==='l')renderLib();if(t==='pl')renderPlaylists();
+  if(t==='p'&&typeof vizStart==='function')vizStart();
 }
 
 // ── ANİMASYON SEÇİCİ — müziğe tepki veren plak efektleri
 // 0 = Klasik (sade dönen plak, ses analizi yok) · 11–16 = müziğe tepkili efektler
-const VIZ_MODES=[11,12,13,14,15,16];
+// 11–16: plak etrafında · 21–26: plaksız, yatay ses dalgası çizgileri (WIDE)
+const VIZ_MODES=[11,12,13,14,15,16,21,22,23,24,25,26];
 const isViz=n=>VIZ_MODES.includes(n);
+const isWide=n=>n>=21&&n<=26;
 let curAnim=parseInt(localStorage.getItem(LS.discAnim));
 if(curAnim!==0&&!isViz(curAnim))curAnim=11; // eski/geçersiz seçim → yeni varsayılan
 
@@ -1624,9 +1704,15 @@ document.addEventListener('visibilitychange',()=>{
 
 // ── Müzik özellikleri: bas / orta / tiz, genel seviye, vuruş (kick)
 const V={bass:0,mid:0,high:0,level:0,kick:0,live:0,lastBeat:0,beatNow:false,rot:0,t:0,beamRot:0,swing:0};
-let _agc=0.3,_tdAgc=0.3,_bAvg=0,_pAcc=0,_vizRaf=null,_vizLast=0,_vizN=0,_acc=[249,115,22];
+let _agc=0.3,_tdAgc=0.3,_bAvg=0,_pAcc=0,_vizRaf=null,_vizLast=0,_vizN=0,_acc=accentRGB(),_hue=rgbHue(_acc);
 let _shocks=[],_parts=[];const _bars=new Float32Array(36);
-let _vc=null,_vx=null,_vW=0,_vDpr=1,_discEl=null;
+// Yatay dalga modları için ortak veri
+const _S=new Float32Array(64);                 // yumuşatılmış, log aralıklı 64 bantlı spektrum (0..1)
+const _wx=new Float32Array(260),_wy=new Float32Array(260),_ph=new Float32Array(5),_pk=new Float32Array(128);
+const _hist=new Float32Array(96);              // 24: ses şiddeti geçmişi (sağdan girer, sola akar)
+const _rows=Array.from({length:10},()=>new Float32Array(48)); // 26: spektrum satırları
+let _hAcc=0,_rAcc=0;
+let _vc=null,_vx=null,_vW=0,_vH=0,_vDpr=1,_discEl=null;
 
 const rgba=(r,g,b,a)=>`rgba(${r},${g},${b},${(Number.isFinite(a)?Math.max(0,Math.min(1,a)):0).toFixed(3)})`;
 const hsla=(h,s,l,a)=>`hsla(${Math.round(Number.isFinite(h)?h:0)},${s}%,${l}%,${(Number.isFinite(a)?Math.max(0,Math.min(1,a)):0).toFixed(3)})`;
@@ -1635,6 +1721,13 @@ function accentRGB(){
   const m=/^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(v);
   return m?[parseInt(m[1],16),parseInt(m[2],16),parseInt(m[3],16)]:[249,115,22];
 }
+function rgbHue(c){
+  const r=c[0]/255,g=c[1]/255,b=c[2]/255,mx=Math.max(r,g,b),d=mx-Math.min(r,g,b);
+  if(!d)return 25;
+  let h=(mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4)*60;
+  return h<0?h+360:h;
+}
+function refreshVizColor(){_acc=accentRGB();_hue=rgbHue(_acc);}
 function avgBins(a,i0,i1){let s=0;for(let i=i0;i<i1;i++)s+=a[i];return s/(i1-i0)/255;}
 function discT(rot,sc){
   if(!_discEl)_discEl=document.getElementById('disc');
@@ -1661,6 +1754,10 @@ function vizAnalyse(now,dt){
   // Otomatik kazanç: ses seviyesi düşük olsa da hareket aynı canlılıkta kalır
   _agc=Math.max(_agc*Math.pow(0.85,dt),Math.max(b,m,h),0.25);
   const nb=Math.min(1,b/_agc),nm=Math.min(1,m/_agc),nh=Math.min(1,h/_agc);
+  for(let i=0;i<64;i++){ // yatay modlar için bant verisi
+    const v=Math.min(1,_fd[1+Math.floor(Math.pow(i/63,1.7)*110)]/255/_agc);
+    _S[i]+=(v-_S[i])*(v>_S[i]?0.55:0.12);
+  }
   _bAvg+=(nb-_bAvg)*Math.min(1,dt*3);
   V.beatNow=false;
   if(playing&&nb>0.4&&nb>_bAvg*1.25+0.04&&now-V.lastBeat>220){V.lastBeat=now;V.kick=1;V.beatNow=true;}
@@ -1705,7 +1802,7 @@ const VIZ_DRAW={
       const v=Math.min(1,_fd[bin]/255/_agc);
       _bars[k]+=(v-_bars[k])*(v>_bars[k]?0.6:0.14);
       const bv=_bars[k],len=3+bv*R*0.45;
-      ctx.strokeStyle=hsla(8+bv*50,95,light?45:58,0.55+0.45*bv);
+      ctx.strokeStyle=hsla(_hue-17+bv*50,95,light?45:58,0.55+0.45*bv);
       for(const sg of [1,-1]){
         const a=-Math.PI/2+sg*(k+0.5)*Math.PI/N+spin,c=Math.cos(a),sn=Math.sin(a);
         ctx.beginPath();ctx.moveTo(cx+c*base,cy+sn*base);ctx.lineTo(cx+c*(base+len),cy+sn*(base+len));ctx.stroke();
@@ -1722,7 +1819,7 @@ const VIZ_DRAW={
         const a=Math.random()*6.2832,sp=(45+Math.random()*130)*(0.6+V.level)*mul,life=0.7+Math.random()*0.9;
         _parts.push({x:cx+Math.cos(a)*R*0.98,y:cy+Math.sin(a)*R*0.98,
           vx:Math.cos(a)*sp-Math.sin(a)*(Math.random()-0.5)*40,vy:Math.sin(a)*sp+Math.cos(a)*(Math.random()-0.5)*40,
-          life,max:life,size:1.4+Math.random()*2.4,hue:14+Math.random()*40});
+          life,max:life,size:1.4+Math.random()*2.4,hue:_hue-11+Math.random()*40});
       }
     };
     if(V.beatNow)emit(10+Math.floor(18*V.bass),1.4);
@@ -1750,7 +1847,7 @@ const VIZ_DRAW={
     _tdAgc=Math.max(_tdAgc*Math.pow(0.8,dt),pk,0.12);
     const amp=R*0.34*V.live,rot0=-Math.PI/2+V.rot*Math.PI/180*0.25;
     ctx.globalCompositeOperation=s.comp;ctx.lineJoin='round';
-    [{r:R*1.14,w:2.6,hue:28,a:0.95,off:0},{r:R*1.27,w:1.8,hue:46,a:0.55,off:L>>2}].forEach(ly=>{
+    [{r:R*1.14,w:2.6,hue:_hue+3,a:0.95,off:0},{r:R*1.27,w:1.8,hue:_hue+21,a:0.55,off:L>>2}].forEach(ly=>{
       ctx.beginPath();
       for(let i=0;i<=N;i++){
         const j=i<=H?i:N-i; // simetrik → halka kusursuz kapanır
@@ -1768,7 +1865,7 @@ const VIZ_DRAW={
     V.swing+=(1.2+3*V.level)*dt*V.live;
     discT(9*Math.sin(V.swing)*(0.35+V.level),1+0.06*V.kick);
     ctx.globalCompositeOperation=s.comp;
-    const hues=[18,34,48,12,28,42],half=0.10+0.22*V.bass+0.1*V.kick;
+    const hues=[-7,9,23,-13,3,17].map(x=>_hue+x),half=0.10+0.22*V.bass+0.1*V.kick;
     for(let i=0;i<6;i++){
       const a=(i%2?-1:1)*V.beamRot+i*Math.PI/3;
       const gr=ctx.createRadialGradient(cx,cy,R*0.9,cx,cy,W/2);
@@ -1783,23 +1880,168 @@ const VIZ_DRAW={
     V.rot+=(18+110*V.level)*dt*V.live;
     discT(V.rot,1+0.03*V.kick);
     ctx.lineCap='round';
-    [{r:R*1.10,v:V.bass,hue:14,sp:0.6},{r:R*1.20,v:V.mid,hue:34,sp:-1.0},{r:R*1.30,v:V.high,hue:52,sp:1.5}].forEach(rg=>{
+    [{r:R*1.10,v:V.bass,hue:_hue-11,sp:0.6},{r:R*1.20,v:V.mid,hue:_hue+9,sp:-1.0},{r:R*1.30,v:V.high,hue:_hue+27,sp:1.5}].forEach(rg=>{
       ctx.lineWidth=5;ctx.strokeStyle=hsla(rg.hue,90,50,0.12);
       ctx.beginPath();ctx.arc(cx,cy,rg.r,0,6.2832);ctx.stroke();
       const st=-Math.PI/2+rg.sp*V.rot*Math.PI/180;
       ctx.lineWidth=5+3*V.kick;ctx.strokeStyle=hsla(rg.hue,95,light?45:60,0.9);
       ctx.beginPath();ctx.arc(cx,cy,rg.r,st,st+0.3+rg.v*5.4);ctx.stroke();
     });
+  },
+  // ───── PLAKSIZ · YATAY SES DALGASI MODLARI ─────
+  // 21 — Dalga Çizgisi: canlı ses dalgası, ışıldayan tek çizgi (osiloskop)
+  21(s){
+    const {ctx,W,H,dt,light}=s,mid=H/2,L=_td.length,N=Math.min(160,Math.max(60,W>>1));
+    if(_an&&!aud.paused)_an.getByteTimeDomainData(_td);
+    let pk=0;for(let i=0;i<L;i+=4)pk=Math.max(pk,Math.abs(_td[i]-128)/128);
+    _tdAgc=Math.max(_tdAgc*Math.pow(0.8,dt),pk,0.12);
+    const amp=H*0.40*V.live;
+    for(let i=0;i<=N;i++){
+      const t=i/N,v=Math.max(-1.3,Math.min(1.3,(_td[Math.floor(t*(L-1))]-128)/128/_tdAgc));
+      _wx[i]=t*W;_wy[i]=mid+v*amp*Math.pow(Math.sin(Math.PI*t),0.6); // uçlar sönümlenir
+    }
+    wBase(s);ctx.globalCompositeOperation=s.comp;ctx.lineJoin='round';ctx.lineCap='round';
+    [[9,0.12],[5,0.28],[2+V.kick*1.8,1]].forEach(([w,a])=>{ // parıltı + çekirdek
+      ctx.lineWidth=w;ctx.strokeStyle=wGrad(ctx,W,a,light);smoothPath(ctx,N+1);ctx.stroke();
+    });
+  },
+  // 22 — Çoklu Dalga: üst üste binen 5 akışkan sinüs şeridi (bas/orta/tiz ayrı ayrı sürer)
+  22(s){
+    const {ctx,W,H,dt,light}=s,mid=H/2,N=Math.min(180,Math.max(70,W>>1));
+    const bands=[V.bass,V.mid,V.high,V.level,V.mid],fr=[1.2,1.9,2.7,3.5,1.5],sp=[1.6,-2.2,2.9,-1.3,1.1],ho=[0,-6,10,22,-14];
+    wBase(s);ctx.globalCompositeOperation=s.comp;ctx.lineCap='round';
+    for(let k=0;k<5;k++){
+      _ph[k]+=sp[k]*dt*(0.4+2.2*V.level)*V.live;
+      const A=H*0.36*(1-k*0.13)*(0.05+0.95*bands[k])*V.live*(1+0.35*V.kick);
+      for(let i=0;i<=N;i++){
+        const t=i/N;_wx[i]=t*W;_wy[i]=mid+Math.sin(t*6.2832*fr[k]+_ph[k])*A*Math.pow(Math.sin(Math.PI*t),1.6);
+      }
+      ctx.lineWidth=k===0?3:2;ctx.strokeStyle=hsla(_hue+ho[k],95,light?46:62,0.9-k*0.12);
+      smoothPath(ctx,N+1);ctx.stroke();
+      if(k===0){ctx.lineTo(W,mid);ctx.lineTo(0,mid);ctx.closePath();ctx.fillStyle=hsla(_hue,95,60,0.10);ctx.fill();}
+    }
+  },
+  // 23 — Çubuk Dalga: ortadan kenara doğru frekans çubukları, merkezden yukarı-aşağı simetrik
+  23(s){
+    const {ctx,W,H,dt,light}=s,mid=H/2,pitch=7,N=Math.min(120,Math.floor(W/pitch)),x0=(W-N*pitch)/2+pitch/2,bw=pitch*0.5;
+    ctx.globalCompositeOperation=s.comp;ctx.lineCap='round';ctx.lineWidth=bw;
+    const vals=[];
+    for(let i=0;i<N;i++){
+      const f=Math.abs((i+0.5)/N*2-1)*62.99,j=Math.floor(f),fr=f-j; // 0 = bas (orta), 1 = tiz (kenar)
+      const v=_S[j]*(1-fr)+_S[Math.min(63,j+1)]*fr;vals.push(v);
+      _pk[i]=Math.max(_pk[i]-dt*0.35,v);
+      const h=1.5+v*H*0.46,x=x0+i*pitch;
+      ctx.strokeStyle=hsla(_hue-17+v*50,95,light?46:60,0.55+0.45*v);
+      ctx.beginPath();ctx.moveTo(x,mid-h);ctx.lineTo(x,mid+h);ctx.stroke();
+    }
+    ctx.strokeStyle=hsla(_hue+10,100,light?40:75,0.75); // tepe işaretleri yavaşça iner
+    for(let i=0;i<N;i++){
+      const ph=1.5+_pk[i]*H*0.46,h=1.5+vals[i]*H*0.46,x=x0+i*pitch;
+      if(ph>h+3){ctx.beginPath();ctx.moveTo(x,mid-ph);ctx.lineTo(x,mid-ph-1);ctx.moveTo(x,mid+ph);ctx.lineTo(x,mid+ph+1);ctx.stroke();}
+    }
+  },
+  // 24 — Akan Geçmiş: şiddet geçmişi sağdan girip sola akar (ses dosyası dalga formu gibi)
+  24(s){
+    const {ctx,W,H,dt,light}=s,mid=H/2,n=_hist.length,pitch=W/(n-1),step=1/30;
+    _hAcc+=dt;
+    while(_hAcc>=step){
+      _hAcc-=step;
+      const base=0.5*V.bass+0.32*V.mid+0.18*V.high;
+      _hist.copyWithin(0,1);_hist[n-1]=Math.min(1,base*(0.78+0.44*Math.random()))*V.live;
+    }
+    const off=-(_hAcc/step)*pitch;
+    wBase(s);ctx.globalCompositeOperation=s.comp;ctx.lineCap='round';ctx.lineWidth=Math.max(1.5,pitch*0.6);
+    let busy=false;
+    for(let i=0;i<n;i++){
+      const v=_hist[i];if(v>0.02)busy=true;
+      const x=i*pitch+off,h=1+v*H*0.46,age=i/(n-1);
+      ctx.strokeStyle=hsla(_hue-22+age*50,95,light?46:60,(0.18+0.82*age)*(0.5+0.5*Math.min(1,v*1.5)));
+      ctx.beginPath();ctx.moveTo(x,mid-h);ctx.lineTo(x,mid+h);ctx.stroke();
+    }
+    V.busy=busy;
+    ctx.fillStyle=hsla(_hue+20,100,light?45:70,0.35+0.4*V.kick); // "şimdi" noktası
+    ctx.beginPath();ctx.arc(W-2,mid,3+4*V.kick,0,6.2832);ctx.fill();
+  },
+  // 25 — Spektrum Alanı: dolgulu frekans eğrisi + alttaki silik yansıması
+  25(s){
+    const {ctx,W,H,light}=s,mid=H/2,N=64;
+    wBase(s);ctx.globalCompositeOperation=s.comp;ctx.lineJoin='round';
+    const shape=(sign,k)=>{
+      for(let i=0;i<N;i++){
+        const edge=Math.min(1,Math.min(i,N-1-i)/5); // uçlar çizgiye iner
+        _wx[i]=i/(N-1)*W;_wy[i]=mid+sign*_S[i]*H*0.46*k*edge;
+      }
+      smoothPath(ctx,N);
+    };
+    const fillArea=(y0,y1,a)=>{
+      ctx.lineTo(W,mid);ctx.lineTo(0,mid);ctx.closePath();
+      const g=ctx.createLinearGradient(0,y0,0,y1);g.addColorStop(0,hsla(_hue,95,60,a));g.addColorStop(1,hsla(_hue,95,60,0.02));
+      ctx.fillStyle=g;ctx.fill();
+    };
+    shape(-1,1);fillArea(mid-H*0.46,mid,0.55);
+    ctx.lineWidth=2.2;ctx.strokeStyle=wGrad(ctx,W,1,light);shape(-1,1);ctx.stroke();
+    shape(1,0.55);fillArea(mid+H*0.25,mid,0.22);
+    ctx.lineWidth=1.4;ctx.strokeStyle=wGrad(ctx,W,0.35,light);shape(1,0.55);ctx.stroke();
+  },
+  // 26 — Çizgi Yığını: geçmiş spektrumlar üst üste dizilir, en yeni çizgi önde ("Unknown Pleasures" tarzı)
+  26(s){
+    const {ctx,W,H,dt,light}=s,ROWS=_rows.length,M=48,padX=W*0.06,y0=H*0.22,y1=H*0.86,amp=H*0.22;
+    _rAcc+=dt;
+    while(_rAcc>=0.085){
+      _rAcc-=0.085;
+      const r=_rows.shift();for(let j=0;j<M;j++)r[j]=_S[Math.floor(j*64/M)];
+      _rows.push(r);
+    }
+    ctx.globalCompositeOperation=s.comp;ctx.lineJoin='round';ctx.lineCap='round';
+    let mx=0;
+    for(let r=0;r<ROWS;r++){
+      const row=_rows[r],f=r/(ROWS-1),base=y0+(y1-y0)*f;
+      for(let i=0;i<M;i++){
+        const t=i/(M-1);mx=Math.max(mx,row[i]);
+        _wx[i]=padX+t*(W-2*padX);_wy[i]=base-row[i]*amp*Math.pow(Math.sin(Math.PI*t),1.3);
+      }
+      ctx.lineWidth=1+1.1*f;ctx.strokeStyle=hsla(_hue-10+f*28,95,light?46:62,0.2+0.8*f);
+      smoothPath(ctx,M);ctx.stroke();
+    }
+    V.busy=mx>0.03;
   }
 };
 
+// ── Yatay modlar için çizim yardımcıları
+function wGrad(ctx,W,a,light){ // soldan sağa ton kayan çizgi rengi
+  const L=light?46:60,g=ctx.createLinearGradient(0,0,W,0);
+  g.addColorStop(0,hsla(_hue-22,95,L,a));g.addColorStop(0.5,hsla(_hue,95,L+2,a));g.addColorStop(1,hsla(_hue+28,95,L+4,a));
+  return g;
+}
+function smoothPath(ctx,n){ // _wx/_wy noktalarından yumuşak eğri
+  ctx.beginPath();ctx.moveTo(_wx[0],_wy[0]);
+  for(let i=1;i<n-1;i++)ctx.quadraticCurveTo(_wx[i],_wy[i],(_wx[i]+_wx[i+1])/2,(_wy[i]+_wy[i+1])/2);
+  ctx.lineTo(_wx[n-1],_wy[n-1]);
+}
+function wBase(s){ // sessizken bile görünen ince orta çizgi
+  const {ctx,W,H,light}=s;
+  ctx.globalCompositeOperation='source-over';ctx.lineWidth=1;ctx.strokeStyle=wGrad(ctx,W,0.25,light);
+  ctx.beginPath();ctx.moveTo(0,H/2);ctx.lineTo(W,H/2);ctx.stroke();
+}
+
+// Tuval boyutu: plak modlarında plağın 1.7 katı kare; yatay modlarda satır genişliği × plak yüksekliği
+function vizTarget(){
+  const wrap=document.getElementById('artWrap');if(!wrap)return null;
+  const w=wrap.offsetWidth,h=wrap.offsetHeight;if(!w)return null;
+  if(isWide(curAnim)){
+    const par=wrap.parentElement,cs=par?getComputedStyle(par):null;
+    const pad=cs?((parseFloat(cs.paddingLeft)||0)+(parseFloat(cs.paddingRight)||0)):0;
+    const inner=par?par.clientWidth-pad:w;
+    return [Math.round(Math.max(w,Math.min(inner,560))),Math.round(h||w)];
+  }
+  const d=Math.round(w*1.7);return [d,d];
+}
 function vizResize(){
-  const wrap=document.getElementById('artWrap');_vc=document.getElementById('vizCanvas');
-  if(!_vc||!wrap)return;
-  const w=wrap.offsetWidth;if(!w)return;
-  _vW=Math.round(w*1.7);_vDpr=Math.min(2,window.devicePixelRatio||1);
-  _vc.style.width=_vW+'px';_vc.style.height=_vW+'px';
-  _vc.width=Math.round(_vW*_vDpr);_vc.height=_vc.width;
+  _vc=document.getElementById('vizCanvas');const t=vizTarget();
+  if(!_vc||!t)return;
+  _vW=t[0];_vH=t[1];_vDpr=Math.min(2,window.devicePixelRatio||1);
+  _vc.style.width=_vW+'px';_vc.style.height=_vH+'px';
+  _vc.width=Math.round(_vW*_vDpr);_vc.height=Math.round(_vH*_vDpr);
   _vx=_vc.getContext('2d');if(_vx)_vx.setTransform(_vDpr,0,0,_vDpr,0,0);
 }
 function vizFrame(now){
@@ -1807,19 +2049,24 @@ function vizFrame(now){
   if(!isViz(curAnim))return;
   const dt=Math.min(0.05,(now-_vizLast)/1000||0.016);_vizLast=now;
   const pv=document.getElementById('pv'),wrap=document.getElementById('artWrap');
-  if(!pv||!wrap||!pv.classList.contains('active')){_vizRaf=requestAnimationFrame(vizFrame);return;} // gizliyken çizme
-  if(Math.round(wrap.offsetWidth*1.7)!==_vW)vizResize();
+  if(!pv||!wrap||!pv.classList.contains('active')){ // gizliyken çizme; çalıyorsa sekmeye dönülünce devam
+    if(!aud.paused)_vizRaf=requestAnimationFrame(vizFrame);
+    return;
+  }
+  const t=vizTarget();
+  if(t&&(t[0]!==_vW||t[1]!==_vH))vizResize();
   if(!_vx){_vizRaf=requestAnimationFrame(vizFrame);return;}
-  if((++_vizN)%45===1)_acc=accentRGB();
+  if((++_vizN)%45===1)refreshVizColor();
   vizAnalyse(now,dt);
-  const W=_vW,ctx=_vx;
-  ctx.globalCompositeOperation='source-over';ctx.clearRect(0,0,W,W);
+  const W=_vW,H=_vH,ctx=_vx;
+  ctx.globalCompositeOperation='source-over';ctx.clearRect(0,0,W,H);
   const light=document.documentElement.classList.contains('light');
-  VIZ_DRAW[curAnim]({ctx,W,cx:W/2,cy:W/2,R:wrap.offsetWidth/2,dt,light,comp:light?'source-over':'lighter'});
+  V.busy=false;
+  VIZ_DRAW[curAnim]({ctx,W,H,cx:W/2,cy:H/2,R:wrap.offsetWidth/2,dt,light,comp:light?'source-over':'lighter'});
   ctx.globalCompositeOperation='source-over';
   // Çalıyorsa ya da efekt sönüyorsa devam; tamamen durulunca döngüyü bitir
-  if(!aud.paused||V.live>0.01||V.kick>0.01||_shocks.length||_parts.length)_vizRaf=requestAnimationFrame(vizFrame);
-  else ctx.clearRect(0,0,W,W);
+  if(!aud.paused||V.live>0.01||V.kick>0.01||_shocks.length||_parts.length||V.busy)_vizRaf=requestAnimationFrame(vizFrame);
+  else if(!isWide(curAnim))ctx.clearRect(0,0,W,H); // yatay modlar sakin çizgiyi gösterir
 }
 function vizStart(){
   if(!isViz(curAnim))return;
@@ -1829,23 +2076,52 @@ function vizStart(){
   _vizRaf=requestAnimationFrame(vizFrame);
 }
 function vizStop(){if(_vizRaf){cancelAnimationFrame(_vizRaf);_vizRaf=null;}}
+window.addEventListener('resize',()=>{if(isViz(curAnim)){vizResize();vizStart();}});
 
+const ANIM_INFO=[
+  {id:0, ico:'💿',name:'Klasik plak',g:0},
+  {id:11,ico:'🥁',name:'Bas vuruşu',g:0},
+  {id:12,ico:'🌈',name:'Spektrum halkası',g:0},
+  {id:13,ico:'✨',name:'Kıvılcım',g:0},
+  {id:14,ico:'🌀',name:'Ses dalgası halkası',g:0},
+  {id:15,ico:'🔦',name:'Sahne ışıkları',g:0},
+  {id:16,ico:'🎯',name:'Üç halka',g:0},
+  {id:21,ico:'〰️',name:'Dalga çizgisi',g:1},
+  {id:22,ico:'🌊',name:'Çoklu dalga',g:1},
+  {id:23,ico:'🎚️',name:'Çubuk dalga',g:1},
+  {id:24,ico:'📈',name:'Akan geçmiş',g:1},
+  {id:25,ico:'🏔️',name:'Spektrum alanı',g:1},
+  {id:26,ico:'🎼',name:'Çizgi yığını',g:1},
+];
+const ANIM_GROUPS=['Plaklı','Plaksız · yatay ses dalgası'];
+function openFxSheet(){
+  document.getElementById('fxBody').innerHTML=ANIM_GROUPS.map((gn,g)=>
+    '<div class="fx-group">'+gn+'</div><div class="fx-grid">'+
+    ANIM_INFO.filter(a=>a.g===g).map(a=>'<button class="fx-item'+(a.id===curAnim?' active':'')+'" onclick="pickFx('+a.id+')"><span class="fx-ico">'+a.ico+'</span>'+a.name+'</button>').join('')+
+    '</div>').join('');
+  document.getElementById('fxSheet').style.display='flex';
+}
+function closeFxSheet(){document.getElementById('fxSheet').style.display='none';}
+function pickFx(id){setAnim(id,true);closeFxSheet();}
 function setAnim(n,fromUser){
   if(n!==0&&!isViz(n))n=11;
   vizStop();
   const wrap=document.getElementById('artWrap');
   wrap.classList.toggle('viz',isViz(n));
+  wrap.classList.toggle('wide',isWide(n));
   curAnim=n;
   localStorage.setItem(LS.discAnim,n);
-  document.querySelectorAll('.anim-btn').forEach(b=>b.classList.toggle('active',b.dataset.anim===String(n)));
+  const info=ANIM_INFO.find(a=>a.id===n)||ANIM_INFO[0];
+  const ti=document.getElementById('fxTrigIco');if(ti)ti.textContent=info.ico;
+  const tb=document.getElementById('fxTrigger');if(tb)tb.title='Animasyon: '+info.name;
   _shocks.length=0;_parts.length=0;
-  if(!isViz(n)){
-    const d=document.getElementById('disc');if(d)d.style.transform='';
-    if(_vx)_vx.clearRect(0,0,_vW,_vW);
-  }else{
+  const d=document.getElementById('disc');
+  if((!isViz(n)||isWide(n))&&d)d.style.transform='';
+  if(_vx)_vx.clearRect(0,0,_vW,_vH);
+  if(isViz(n)){
     vizResize();
     if(fromUser)ensureAnalyser(); // kullanıcı dokunuşu: AudioContext'i başlatmak için uygun an
-    if(!aud.paused)vizStart();
+    if(!aud.paused||isWide(n))vizStart(); // yatay modlar durunca da sakin çizgiyi bir kez çizer
   }
 }
 
@@ -1926,6 +2202,8 @@ function setTheme(t,silent){
   document.getElementById('tLight').classList.toggle('on',t==='light');
   document.getElementById('themeBtn').textContent=t==='dark'?'🌙':'☀️';
   document.querySelector('meta[name=theme-color]').content=t==='dark'?'#0d0d0d':'#f5f5f5';
+  applyColorTheme(curColor);
+  if(typeof refreshVizColor==='function')refreshVizColor();
   if(!silent)toast(t==='dark'?'Koyu tema':'Açık tema');
 }
 function toggleTheme(){setTheme(document.documentElement.classList.contains('light')?'dark':'light');}
@@ -2034,7 +2312,9 @@ init().catch(e=>{console.error(e);toastErr('Başlatma hatası: '+e.message);});
 (function(){
   // ── SVG İkon üretici (turuncu nota teması)
   // maskable=true: tam kare zemin + içerik %80'e küçültülür (güvenli alan), işletim sistemi kendi maskesini uygular
+  function iconColors(){const th=COLOR_THEMES.find(c=>c.id===curColor)||COLOR_THEMES[0];return th.d;}
   function makeSVGIcon(size, maskable){
+    const [ac1,ac2]=iconColors();
     const rx = maskable ? 0 : size*0.22;
     const g0 = maskable ? `<g transform="translate(${size*0.1} ${size*0.1}) scale(0.8)">` : '<g>';
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
@@ -2044,8 +2324,8 @@ init().catch(e=>{console.error(e);toastErr('Başlatma hatası: '+e.message);});
       <stop offset="100%" style="stop-color:#0d0d0d"/>
     </linearGradient>
     <linearGradient id="ac" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#f97316"/>
-      <stop offset="100%" style="stop-color:#fb923c"/>
+      <stop offset="0%" style="stop-color:${ac1}"/>
+      <stop offset="100%" style="stop-color:${ac2}"/>
     </linearGradient>
   </defs>
   <rect width="${size}" height="${size}" rx="${rx}" fill="url(#bg)"/>
@@ -2055,7 +2335,7 @@ init().catch(e=>{console.error(e);toastErr('Başlatma hatası: '+e.message);});
   <rect x="${size*0.495}" y="${size*0.28}" width="${size*0.045}" height="${size*0.40}" rx="${size*0.022}" fill="url(#ac)"/>
   <rect x="${size*0.765}" y="${size*0.20}" width="${size*0.040}" height="${size*0.40}" rx="${size*0.020}" fill="url(#ac)"/>
   <path d="M${size*0.495} ${size*0.28} Q${size*0.63} ${size*0.175} ${size*0.765} ${size*0.20}" stroke="url(#ac)" stroke-width="${size*0.045}" fill="none" stroke-linecap="round"/>
-  <circle cx="${size*0.28}" cy="${size*0.22}" r="${size*0.06}" fill="rgba(249,115,22,0.18)"/>
+  <circle cx="${size*0.28}" cy="${size*0.22}" r="${size*0.06}" fill="rgba(${hexRGB(ac1)},0.18)"/>
   </g>
 </svg>`;
   }
@@ -2085,7 +2365,8 @@ init().catch(e=>{console.error(e);toastErr('Başlatma hatası: '+e.message);});
     return png ? {src:png,type:'image/png'} : {src:svgToDataURL(svg),type:'image/svg+xml'}; // PNG üretilemezse SVG'ye düş
   }
 
-  (async function setupPWA(){
+  let _mUrl=null;
+  async function setupPWA(){
     const [apple,a192,a512,m192,m512]=await Promise.all([
       icon(180,false), icon(192,false), icon(512,false), icon(192,true), icon(512,true)
     ]);
@@ -2103,7 +2384,7 @@ init().catch(e=>{console.error(e);toastErr('Başlatma hatası: '+e.message);});
       display: 'standalone',
       orientation: 'portrait',
       background_color: '#0d0d0d',
-      theme_color: '#f97316',
+      theme_color: iconColors()[0],
       icons: [
         {src:a192.src,sizes:'192x192',type:a192.type,purpose:'any'},
         {src:a512.src,sizes:'512x512',type:a512.type,purpose:'any'},
@@ -2114,8 +2395,12 @@ init().catch(e=>{console.error(e);toastErr('Başlatma hatası: '+e.message);});
       lang: 'tr'
     };
     const blob=new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'});
-    document.getElementById('pwaManifest').href=URL.createObjectURL(blob);
-  })().catch(()=>{});
+    if(_mUrl)URL.revokeObjectURL(_mUrl);
+    _mUrl=URL.createObjectURL(blob);
+    document.getElementById('pwaManifest').href=_mUrl;
+  }
+  setupPWA().catch(()=>{});
+  window.refreshPWAIcons=()=>setupPWA().catch(()=>{});
 
   // ── Service Worker
   // Tarayıcılar blob: adresinden Service Worker kaydetmeyi KABUL ETMEZ; bu yüzden gerçek bir sw.js gerekir.
