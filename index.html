@@ -544,7 +544,7 @@ html.light .color-sw.on .color-dot{box-shadow:0 0 0 2px var(--card),0 0 0 4px va
       </div>
     </div>
     <div class="anim-picker" id="animPicker">
-      <button class="fx-trigger" id="fxTrigger" onclick="openFxSheet()" title="Animasyon seç" aria-label="Animasyon seç"><span id="fxTrigIco">💿</span><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></button>
+      <button class="fx-trigger" id="fxTrigger" onclick="openFxSheet()" title="Animasyon seç" aria-label="Animasyon seç"><span id="fxTrigIco">🏔️</span><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></button>
     </div>
     <div class="tinfo">
       <div class="tname" id="tname"><span class="no-track">Şarkı seçin</span></div>
@@ -1042,7 +1042,7 @@ function loadTrack(idx, play=true){
   const t=tracks[idx];
   const token=++_loadToken;
 
-  aud.pause();
+  appPause();
   aud.currentTime=0;
   aud.src=t.url;
   aud.load(); // ← Blob URL'nin tarayıcı tarafından kesin tanınması için
@@ -1081,7 +1081,7 @@ function togglePlay(){
     return;
   }
   if(aud.paused)aud.play().catch(()=>{loadTrack(cur,true);});
-  else aud.pause();
+  else appPause();
 }
 function playIdx(idx){if(shuffled){ensureShuf();shufPos=shufOrder.indexOf(idx);}loadTrack(idx,true);}
 function playFromLib(idx){
@@ -1112,8 +1112,8 @@ function next(fromEnded=false){
     if(nx>=plQueue.length){
       if(handleQRC('pl'))return;
       if(repeat===1){plQueuePos=0;playIdx(plQueue[0]);saveQueue();}
-      else if(fromEnded){aud.pause();updPlayBtn(false);}
-      else{aud.pause();updPlayBtn(false);}
+      else if(fromEnded){appPause();updPlayBtn(false);}
+      else{appPause();updPlayBtn(false);}
     } else {
       plQueuePos=nx;playIdx(plQueue[nx]);saveQueue();
     }
@@ -1126,7 +1126,7 @@ function next(fromEnded=false){
     if(nx>=tracks.length){
       if(handleQRC('lib'))return;
       if(repeat===1)loadTrack(0,true);
-      else{aud.pause();updPlayBtn(false);}
+      else{appPause();updPlayBtn(false);}
     } else {
       loadTrack(nx,true);
     }
@@ -1137,8 +1137,29 @@ aud.addEventListener('ended',()=>{
   if(handleRC())return;
   next(true);
 });
-aud.addEventListener('play',()=>{updPlayBtn(true);updDisc(true);updPlayingIndicator();renderQueue();renderPlPanel();vizStart();});
-aud.addEventListener('pause',()=>{updPlayBtn(false);updDisc(false);updPlayingIndicator();renderQueue();renderPlPanel();});
+// ── Sistem kesintisi (başka uygulama, arama, Siri…) ve otomatik devam
+// Uygulamanın kendi duraklatmaları appPause() ile yapılır; ondan gelmeyen 'pause' olayı kesinti sayılır.
+let _expectPause=0,_interrupted=false;
+function appPause(){
+  if(!aud.paused){_expectPause++;aud.pause();}
+  _interrupted=false;
+}
+function tryAutoResume(){
+  if(!_interrupted||!aud.paused||cur<0||!aud.src)return;
+  const p=aud.play();
+  if(p&&p.catch)p.catch(()=>{}); // izin verilmezse ▶ düğmesi normal çalışır
+}
+function resumeSoon(){if(!_interrupted)return;tryAutoResume();setTimeout(tryAutoResume,1200);}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)return;resumeSoon();if(!aud.paused)vizStart();});
+window.addEventListener('pageshow',resumeSoon);
+window.addEventListener('focus',resumeSoon);
+aud.addEventListener('play',()=>{_interrupted=false;try{navigator.mediaSession.playbackState='playing';}catch{}updPlayBtn(true);updDisc(true);updPlayingIndicator();renderQueue();renderPlPanel();vizStart();});
+aud.addEventListener('pause',()=>{
+  if(_expectPause>0)_expectPause--;
+  else if(!aud.ended&&aud.src&&cur>=0)_interrupted=true; // kullanıcı/uygulama istemedi → sistem kesintisi
+  try{navigator.mediaSession.playbackState='paused';}catch{}
+  updPlayBtn(false);updDisc(false);updPlayingIndicator();renderQueue();renderPlPanel();
+});
 aud.addEventListener('timeupdate',()=>{
   if(seeking||!aud.duration)return;
   const p=aud.currentTime/aud.duration*100;
@@ -1263,7 +1284,7 @@ function updMS(){
   const t=tracks[cur];
   navigator.mediaSession.metadata=new MediaMetadata({title:t.name,artist:t.artist||'Bilinmeyen Sanatçı'});
   navigator.mediaSession.setActionHandler('play',()=>aud.play());
-  navigator.mediaSession.setActionHandler('pause',()=>aud.pause());
+  navigator.mediaSession.setActionHandler('pause',()=>appPause());
   navigator.mediaSession.setActionHandler('previoustrack',prev);
   navigator.mediaSession.setActionHandler('nexttrack',()=>next(false));
   try{navigator.mediaSession.setActionHandler('seekto',d=>{if(aud.duration)aud.currentTime=d.seekTime;});}catch{}
@@ -1432,7 +1453,7 @@ async function removeTracks(idxs){
   const failed=items.length-removedIds.size;
   if(removedIds.size){
     const curRemoved=curId!==null&&removedIds.has(curId);
-    if(curRemoved){_loadToken++;aud.pause();aud.removeAttribute('src');aud.load();resetPlayerUI();}
+    if(curRemoved){_loadToken++;appPause();aud.removeAttribute('src');aud.load();resetPlayerUI();}
     let before=0; // çalan şarkıdan önce kalan (silinmemiş) kuyruk öğesi sayısı
     if(hadQueue)for(let k=0;k<oldPos&&k<qIds.length;k++){if(qIds[k]!==null&&!removedIds.has(qIds[k]))before++;}
     items.forEach(t=>{if(removedIds.has(t.id)){try{URL.revokeObjectURL(t.url);}catch{}}});
@@ -1465,7 +1486,7 @@ async function clearAll(){
   if(!confirm('Tüm şarkılar silinsin mi?'))return;
   if(!(await dbClr())){toastErr('Kütüphane temizlenemedi');return;}
   _loadToken++;
-  aud.pause();aud.removeAttribute('src');aud.load();resetPlayerUI();
+  appPause();aud.removeAttribute('src');aud.load();resetPlayerUI();
   tracks.forEach(t=>{try{URL.revokeObjectURL(t.url);}catch{}});
   tracks=[];cur=-1;ps('ci',-1);
   playlists.forEach(pl=>{pl.trackIds=[];});savePlaylists();
@@ -1669,38 +1690,95 @@ const VIZ_MODES=[11,12,13,14,15,16,21,22,23,24,25,26];
 const isViz=n=>VIZ_MODES.includes(n);
 const isWide=n=>n>=21&&n<=26;
 let curAnim=parseInt(localStorage.getItem(LS.discAnim));
-if(curAnim!==0&&!isViz(curAnim))curAnim=11; // eski/geçersiz seçim → yeni varsayılan
+const DEFAULT_ANIM=25; // varsayılan: Spektrum alanı
+if(curAnim!==0&&!isViz(curAnim))curAnim=DEFAULT_ANIM; // kayıt yok / eski / geçersiz seçim → varsayılan
 
-// ── Ses analizi (Web Audio)
-// Yalnızca tepkili bir mod seçilip çalma başlayınca kurulur. AudioContext "running" değilse
-// ses akışı ona BAĞLANMAZ (yoksa çalma sessiz kalırdı); bu durumda efekt yedek (benzetim) ile çalışır.
-let _ac=null,_an=null,_fd=new Uint8Array(256),_td=new Uint8Array(512),_acFail=false,_acBusy=false;
-async function ensureAnalyser(){
-  if(_an)return true;
-  if(_acFail||_acBusy)return false;
-  _acBusy=true;
-  try{
-    const AC=window.AudioContext||window.webkitAudioContext;
-    if(!AC){_acFail=true;return false;}
-    if(!_ac){
-      _ac=new AC();
-      _ac.onstatechange=()=>{if(_an&&_ac.state!=='running'&&!aud.paused)_ac.resume().catch(()=>{});};
-    }
-    if(_ac.state!=='running')await Promise.race([_ac.resume().catch(()=>{}),new Promise(r=>setTimeout(r,800))]);
-    if(_ac.state!=='running')return false; // izin/jest yok: ses kesilmez, sonra tekrar denenir
-    const src=_ac.createMediaElementSource(aud);
-    const an=_ac.createAnalyser();an.fftSize=512;an.smoothingTimeConstant=0.72;
-    src.connect(an);an.connect(_ac.destination);
-    _an=an;_fd=new Uint8Array(an.frequencyBinCount);_td=new Uint8Array(an.fftSize);
-    return true;
-  }catch(e){_acFail=true;return false;}
-  finally{_acBusy=false;}
+// ── Ses analizi: ÖNCEDEN ANALİZ (ses Web Audio'dan GEÇİRİLMEZ)
+// Neden: çalan sesi AudioContext'e yönlendirmek iPhone'da başka uygulama (Instagram, arama…) sesi kesince
+// bağlamı "interrupted" durumda bırakıp müziği sessizleştiriyor ve diğer uygulamanın sesini engelliyordu.
+// Şimdi şarkı çalmaya başlayınca arka planda bir kez çözümlenir (OfflineAudioContext: ses çıkışı/oturumu kullanmaz),
+// efektler çalma süresine (aud.currentTime) göre bu tablodan okunur. Ses doğrudan, normal şekilde çalar.
+const AN_RATE=22050,AN_N=512,AN_BINS=112,AN_MAX_DUR=360,AN_MAX_BYTES=16*1048576;
+let _fd=new Uint8Array(256),_td=new Uint8Array(512);
+const _anCache=new Map(),_anFail=new Set();let _anCur=null,_anTok=0,_anBusy=null;
+const _anWin=new Float32Array(AN_N),_cosT=new Float32Array(AN_N/2),_sinT=new Float32Array(AN_N/2),_rev=new Uint16Array(AN_N);
+for(let i=0;i<AN_N;i++){
+  _anWin[i]=0.5-0.5*Math.cos(2*Math.PI*i/(AN_N-1));
+  let r=0;for(let b=0;b<9;b++)if(i&(1<<b))r|=1<<(8-b);_rev[i]=r;
 }
-document.addEventListener('visibilitychange',()=>{
-  if(document.hidden)return;
-  if(_ac&&_ac.state==='suspended')_ac.resume().catch(()=>{});
-  if(!aud.paused)vizStart();
-});
+for(let k=0;k<AN_N/2;k++){_cosT[k]=Math.cos(2*Math.PI*k/AN_N);_sinT[k]=-Math.sin(2*Math.PI*k/AN_N);}
+function anFFT(re,im){
+  const n=AN_N;
+  for(let i=0;i<n;i++){const j=_rev[i];if(j>i){let t=re[i];re[i]=re[j];re[j]=t;t=im[i];im[i]=im[j];im[j]=t;}}
+  for(let size=2;size<=n;size<<=1){
+    const half=size>>1,step=n/size;
+    for(let i=0;i<n;i+=size){
+      for(let j=0,k=0;j<half;j++,k+=step){
+        const a=i+j,b=a+half,tr=re[b]*_cosT[k]-im[b]*_sinT[k],ti=re[b]*_sinT[k]+im[b]*_cosT[k];
+        re[b]=re[a]-tr;im[b]=im[a]-ti;re[a]+=tr;im[a]+=ti;
+      }
+    }
+  }
+}
+// Şarkıyı çöz → her 23 ms için 112 bantlık spektrum (86 Hz genişlik) + dalga formu (Int8)
+async function analyseTrack(t,decodeFn){
+  if(_anCache.has(t.id)){_anCur=_anCache.get(t.id);return;}
+  const tok=++_anTok;_anBusy=t.id;
+  try{
+    if(t.dur>AN_MAX_DUR){_anFail.add(t.id);return;}           // çok uzun parça: belleği korumak için benzetim
+    const OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext;
+    if(!OAC&&!decodeFn){_anFail.add(t.id);return;}
+    const blob=await (await fetch(t.url)).blob();
+    if(blob.size>AN_MAX_BYTES){_anFail.add(t.id);return;}
+    const raw=await blob.arrayBuffer();
+    if(tok!==_anTok)return;
+    const ab=decodeFn?await decodeFn(raw):await new Promise((ok,no)=>{
+      const p=new OAC(1,AN_RATE,AN_RATE).decodeAudioData(raw,ok,no);if(p&&p.then)p.then(ok,no);
+    });
+    if(tok!==_anTok)return;
+    const c0=ab.getChannelData(0),c1=ab.numberOfChannels>1?ab.getChannelData(1):null,len=c0.length;
+    const nF=Math.floor((len-AN_N)/AN_N)+1;
+    if(nF<2){_anFail.add(t.id);return;}
+    const frames=new Uint8Array(nF*AN_BINS),pcm=new Int8Array(nF*AN_N);
+    const re=new Float32Array(AN_N),im=new Float32Array(AN_N);
+    for(let f=0;f<nF;f++){
+      const o=f*AN_N;
+      for(let i=0;i<AN_N;i++){
+        const x=c1?(c0[o+i]+c1[o+i])*0.5:c0[o+i];
+        pcm[o+i]=Math.max(-127,Math.min(127,Math.round(x*127)));
+        re[i]=x*_anWin[i];im[i]=0;
+      }
+      anFFT(re,im);
+      for(let k=0;k<AN_BINS;k++){
+        const a=2*k,b=a+1;
+        const m=0.5*(Math.sqrt(re[a]*re[a]+im[a]*im[a])+Math.sqrt(re[b]*re[b]+im[b]*im[b]))/(AN_N/4);
+        frames[f*AN_BINS+k]=Math.max(0,Math.min(255,Math.round((20*Math.log10(m+1e-9)+100)/70*255)));
+      }
+      if(f%160===159){await new Promise(r=>setTimeout(r,0));if(tok!==_anTok)return;} // arayüzü kilitleme
+    }
+    const res={id:t.id,frames,pcm,nF};
+    _anCache.set(t.id,res);if(_anCache.size>2)_anCache.delete(_anCache.keys().next().value);
+    if(tok===_anTok)_anCur=res;
+  }catch(e){_anFail.add(t.id);}
+  finally{if(_anBusy===t.id)_anBusy=null;}
+}
+function ensureAnalysis(){
+  if(!isViz(curAnim)||cur<0||!tracks[cur])return;
+  const t=tracks[cur];
+  if((_anCur&&_anCur.id===t.id)||_anBusy===t.id||_anFail.has(t.id))return;
+  analyseTrack(t);
+}
+// Çalma noktasına karşılık gelen spektrum ve dalga formunu _fd/_td'ye yaz (analiz hazırsa true)
+function fillFromAnalysis(tm){
+  const A=_anCur,t=cur>=0?tracks[cur]:null;
+  if(!A||!t||A.id!==t.id)return false;
+  const fpos=Math.max(0,tm)*AN_RATE/AN_N,fl=Math.floor(fpos),f0=Math.min(A.nF-1,fl),f1=Math.min(A.nF-1,fl+1),fr=fpos-fl;
+  for(let k=0;k<AN_BINS;k++)_fd[k]=A.frames[f0*AN_BINS+k]*(1-fr)+A.frames[f1*AN_BINS+k]*fr;
+  for(let k=AN_BINS;k<_fd.length;k++)_fd[k]=0;
+  let s0=Math.floor(tm*AN_RATE)-AN_N;if(s0<0)s0=0;
+  for(let i=0;i<AN_N&&i<_td.length;i++){const idx=s0+i;_td[i]=128+(idx<A.pcm.length?A.pcm[idx]:0);}
+  return true;
+}
 
 // ── Müzik özellikleri: bas / orta / tiz, genel seviye, vuruş (kick)
 const V={bass:0,mid:0,high:0,level:0,kick:0,live:0,lastBeat:0,beatNow:false,rot:0,t:0,beamRot:0,swing:0};
@@ -1746,7 +1824,7 @@ function vizAnalyse(now,dt){
   V.live+=((playing?1:0)-V.live)*Math.min(1,dt*(playing?6:2.2)); // plak yavaşça hızlanır/yavaşlar
   V.t+=dt;
   if(playing){
-    if(_an)_an.getByteFrequencyData(_fd);else fakeSpectrum(V.t);
+    if(!fillFromAnalysis(aud.currentTime+0.03))fakeSpectrum(V.t); // analiz hazır değilse benzetim
   }else{
     for(let i=0;i<_fd.length;i++)_fd[i]=(_fd[i]*0.85)|0; // durunca yumuşakça sönsün
   }
@@ -1841,7 +1919,6 @@ const VIZ_DRAW={
     const {ctx,cx,cy,R,dt,light}=s;
     V.rot+=(15+90*V.mid)*dt*V.live;
     discT(-V.rot,1+0.03*V.bass);
-    if(_an&&!aud.paused)_an.getByteTimeDomainData(_td);
     const L=_td.length,N=96,H=N/2;
     let pk=0;for(let i=0;i<L;i+=4)pk=Math.max(pk,Math.abs(_td[i]-128)/128);
     _tdAgc=Math.max(_tdAgc*Math.pow(0.8,dt),pk,0.12);
@@ -1892,7 +1969,6 @@ const VIZ_DRAW={
   // 21 — Dalga Çizgisi: canlı ses dalgası, ışıldayan tek çizgi (osiloskop)
   21(s){
     const {ctx,W,H,dt,light}=s,mid=H/2,L=_td.length,N=Math.min(160,Math.max(60,W>>1));
-    if(_an&&!aud.paused)_an.getByteTimeDomainData(_td);
     let pk=0;for(let i=0;i<L;i+=4)pk=Math.max(pk,Math.abs(_td[i]-128)/128);
     _tdAgc=Math.max(_tdAgc*Math.pow(0.8,dt),pk,0.12);
     const amp=H*0.40*V.live;
@@ -2070,7 +2146,7 @@ function vizFrame(now){
 }
 function vizStart(){
   if(!isViz(curAnim))return;
-  ensureAnalyser();
+  ensureAnalysis();
   if(_vizRaf)return;
   _vizLast=performance.now();
   _vizRaf=requestAnimationFrame(vizFrame);
@@ -2104,7 +2180,7 @@ function openFxSheet(){
 function closeFxSheet(){document.getElementById('fxSheet').style.display='none';}
 function pickFx(id){setAnim(id,true);closeFxSheet();}
 function setAnim(n,fromUser){
-  if(n!==0&&!isViz(n))n=11;
+  if(n!==0&&!isViz(n))n=DEFAULT_ANIM;
   vizStop();
   const wrap=document.getElementById('artWrap');
   wrap.classList.toggle('viz',isViz(n));
@@ -2120,7 +2196,6 @@ function setAnim(n,fromUser){
   if(_vx)_vx.clearRect(0,0,_vW,_vH);
   if(isViz(n)){
     vizResize();
-    if(fromUser)ensureAnalyser(); // kullanıcı dokunuşu: AudioContext'i başlatmak için uygun an
     if(!aud.paused||isWide(n))vizStart(); // yatay modlar durunca da sakin çizgiyi bir kez çizer
   }
 }
@@ -2223,7 +2298,7 @@ function toggleRC(){
 }
 function handleRC(){
   if(!rcActive)return false;rcLeft--;document.getElementById('rcLeft').textContent=rcLeft;
-  if(rcLeft<=0){rcActive=false;document.getElementById('rcBtn').textContent='Başlat';document.getElementById('rcBtn').classList.remove('stop');document.getElementById('rcStatus').style.display='none';document.getElementById('rcSlider').disabled=false;aud.pause();updPlayBtn(false);toast('Tekrar tamamlandı');return true;}
+  if(rcLeft<=0){rcActive=false;document.getElementById('rcBtn').textContent='Başlat';document.getElementById('rcBtn').classList.remove('stop');document.getElementById('rcStatus').style.display='none';document.getElementById('rcSlider').disabled=false;appPause();updPlayBtn(false);toast('Tekrar tamamlandı');return true;}
   aud.currentTime=0;aud.play().catch(()=>{});return true;
 }
 
@@ -2266,7 +2341,7 @@ function handleQRC(mode){
     document.getElementById('qrcBtn').classList.remove('stop');
     document.getElementById('qrcStatus').style.display='none';
     document.getElementById('qrcSlider').disabled=false;
-    aud.pause();updPlayBtn(false);
+    appPause();updPlayBtn(false);
     toast('Tekrar tamamlandı 🎉');
     return true;
   }
@@ -2283,7 +2358,7 @@ function toggleSleep(){
   if(sleepTimer){clearTimeout(sleepTimer);clearInterval(sleepTick);sleepTimer=null;document.getElementById('sleepBtn').textContent='Başlat';document.getElementById('sleepBtn').classList.remove('stop');document.getElementById('sleepStatus').style.display='none';document.getElementById('sleepSlider').disabled=false;document.querySelectorAll('.sleep-pre').forEach(b=>b.disabled=false);updSleepBadge(null);toast('Uyku zamanlayıcı iptal');}
   else{
     const ms=sleepMin*60000;sleepEnd=Date.now()+ms;
-    sleepTimer=setTimeout(()=>{aud.pause();updPlayBtn(false);clearInterval(sleepTick);sleepTimer=null;document.getElementById('sleepBtn').textContent='Başlat';document.getElementById('sleepBtn').classList.remove('stop');document.getElementById('sleepStatus').style.display='none';document.getElementById('sleepSlider').disabled=false;document.querySelectorAll('.sleep-pre').forEach(b=>b.disabled=false);updSleepBadge(null);toast('İyi geceler 🌙 Müzik durduruldu');},ms);
+    sleepTimer=setTimeout(()=>{appPause();updPlayBtn(false);clearInterval(sleepTick);sleepTimer=null;document.getElementById('sleepBtn').textContent='Başlat';document.getElementById('sleepBtn').classList.remove('stop');document.getElementById('sleepStatus').style.display='none';document.getElementById('sleepSlider').disabled=false;document.querySelectorAll('.sleep-pre').forEach(b=>b.disabled=false);updSleepBadge(null);toast('İyi geceler 🌙 Müzik durduruldu');},ms);
     sleepTick=setInterval(()=>{const l=sleepEnd-Date.now();if(l<=0){clearInterval(sleepTick);return;}const h=Math.floor(l/3600000),m=Math.floor((l%3600000)/60000),s=Math.floor((l%60000)/1000);const txt=(h>0?h+'sa ':'')+( m>0?m+'dk ':'')+s+'sn';document.getElementById('sleepCD').textContent=txt;updSleepBadge(txt);},1000);
     document.getElementById('sleepBtn').textContent='İptal';document.getElementById('sleepBtn').classList.add('stop');document.getElementById('sleepStatus').style.display='flex';document.getElementById('sleepSlider').disabled=true;document.querySelectorAll('.sleep-pre').forEach(b=>b.disabled=true);toast('🌙 '+fmtSleep(sleepMin)+' sonra duracak');
   }
