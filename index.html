@@ -509,7 +509,7 @@ html.light .color-sw.on .color-dot{box-shadow:0 0 0 2px var(--card),0 0 0 4px va
 <div class="bg"></div>
 <div id="app">
   <div class="appheader">
-    <span class="appname">S — Müzik Çalar <span class="appver" id="appVer">Pro 2.0</span></span>
+    <span class="appname">S — Müzik Çalar <span class="appver" id="appVer">Pro 2.1</span></span>
     <span class="appcopy">©sebasmobil &nbsp;<a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" style="color:inherit;font-size:0.8em;opacity:0.75;text-decoration:none;">AGPL v3.0</a></span>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Tema">🌙</button>
   </div>
@@ -747,7 +747,7 @@ aud.addEventListener('error', () => {
 });
 
 // ── VERSİYON & DEPOLAMA ANAHTARLARI
-const APP_VER   = 'Pro 2.0';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
+const APP_VER   = 'Pro 2.1';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
 const STORE_VER = 'Pro 1.7';      // Depolama anahtarı etiketi — SABİT. Değiştirilirse çalma listeleri/ayarlar sıfırlanır
 const DB_NAME   = 'mzk_pro_1_7';  // IndexedDB adı — SABİT. Değiştirilirse şarkılar yeni boş veritabanına düşer
 const DB_VER  = 1;
@@ -1685,10 +1685,10 @@ function showTab(t){
 
 // ── ANİMASYON SEÇİCİ — müziğe tepki veren plak efektleri
 // 0 = Klasik (sade dönen plak, ses analizi yok) · 11–16 = müziğe tepkili efektler
-// 11–16: plak etrafında · 21–26: plaksız, yatay ses dalgası çizgileri (WIDE)
-const VIZ_MODES=[11,12,13,14,15,16,21,22,23,24,25,26];
+// 11–16: plak etrafında · 21–36: plaksız (WIDE): yatay ses dalgası ve yaratıcı efektler
+const VIZ_MODES=[11,12,13,14,16,21,22,23,25,27,28,29,30,31,32,33,34,35,36];
 const isViz=n=>VIZ_MODES.includes(n);
-const isWide=n=>n>=21&&n<=26;
+const isWide=n=>n>=21;
 let curAnim=parseInt(localStorage.getItem(LS.discAnim));
 const DEFAULT_ANIM=25; // varsayılan: Spektrum alanı
 if(curAnim!==0&&!isViz(curAnim))curAnim=DEFAULT_ANIM; // kayıt yok / eski / geçersiz seçim → varsayılan
@@ -1781,19 +1781,24 @@ function fillFromAnalysis(tm){
 }
 
 // ── Müzik özellikleri: bas / orta / tiz, genel seviye, vuruş (kick)
-const V={bass:0,mid:0,high:0,level:0,kick:0,live:0,lastBeat:0,beatNow:false,rot:0,t:0,beamRot:0,swing:0};
+const V={bass:0,mid:0,high:0,level:0,kick:0,live:0,lastBeat:0,beatNow:false,busy:false,rot:0,t:0};
 let _agc=0.3,_tdAgc=0.3,_bAvg=0,_pAcc=0,_vizRaf=null,_vizLast=0,_vizN=0,_acc=accentRGB(),_hue=rgbHue(_acc);
 let _shocks=[],_parts=[];const _bars=new Float32Array(36);
 // Yatay dalga modları için ortak veri
 const _S=new Float32Array(64);                 // yumuşatılmış, log aralıklı 64 bantlı spektrum (0..1)
 const _wx=new Float32Array(260),_wy=new Float32Array(260),_ph=new Float32Array(5),_pk=new Float32Array(128);
-const _hist=new Float32Array(96);              // 24: ses şiddeti geçmişi (sağdan girer, sola akar)
-const _rows=Array.from({length:10},()=>new Float32Array(48)); // 26: spektrum satırları
-let _hAcc=0,_rAcc=0;
+// Yaratıcı modların durumu
+const _ecg=new Float32Array(150),_QRS=[0.12,0.3,-0.18,-0.7,1,-0.9,0.25,0.18,0.34,0.12,0.03]; // 29 nabız
+const _spg=Array.from({length:48},()=>new Uint8Array(24));                                   // 35 spektrogram
+const _sk=(()=>{let sd=7;const rnd=()=>{sd=(sd*16807)%2147483647;return sd/2147483647;};
+  const a=[];let tot=0;for(let i=0;i<22;i++){const w=0.6+rnd()*1.0;a.push({w,h:0.35+rnd()*0.45});tot+=w;}
+  a.forEach(b=>b.w/=tot);return a;})();                                                      // 32 şehir silueti
+let _rip=[],_stars=[],_aur=0,_hx=0,_mr=0,_gAcc=0,_eAcc=0,_eQ=-1;
+function crReset(){_rip.length=0;_stars.length=0;_ecg.fill(0);_eQ=-1;_spg.forEach(c=>c.fill(0));_pk.fill(0);}
 let _vc=null,_vx=null,_vW=0,_vH=0,_vDpr=1,_discEl=null;
 
 const rgba=(r,g,b,a)=>`rgba(${r},${g},${b},${(Number.isFinite(a)?Math.max(0,Math.min(1,a)):0).toFixed(3)})`;
-const hsla=(h,s,l,a)=>`hsla(${Math.round(Number.isFinite(h)?h:0)},${s}%,${l}%,${(Number.isFinite(a)?Math.max(0,Math.min(1,a)):0).toFixed(3)})`;
+const hsla=(h,s,l,a)=>`hsla(${Math.round(Number.isFinite(h)?h:0)},${Math.round(s)}%,${Math.round(Number.isFinite(l)?l:50)}%,${(Number.isFinite(a)?Math.max(0,Math.min(1,a)):0).toFixed(3)})`;
 function accentRGB(){
   const v=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
   const m=/^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(v);
@@ -1935,34 +1940,18 @@ const VIZ_DRAW={
       ctx.closePath();ctx.strokeStyle=hsla(ly.hue,95,light?45:60,ly.a);ctx.lineWidth=ly.w+V.kick*1.5;ctx.stroke();
     });
   },
-  // 15 — Sahne Işıkları: çapraz dönen ışık huzmeleri, vuruşta parlar; plak ritimle sallanır
-  15(s){
-    const {ctx,cx,cy,R,W,dt}=s;
-    V.beamRot+=(0.35+2.0*V.level)*dt*V.live;
-    V.swing+=(1.2+3*V.level)*dt*V.live;
-    discT(9*Math.sin(V.swing)*(0.35+V.level),1+0.06*V.kick);
-    ctx.globalCompositeOperation=s.comp;
-    const hues=[-7,9,23,-13,3,17].map(x=>_hue+x),half=0.10+0.22*V.bass+0.1*V.kick;
-    for(let i=0;i<6;i++){
-      const a=(i%2?-1:1)*V.beamRot+i*Math.PI/3;
-      const gr=ctx.createRadialGradient(cx,cy,R*0.9,cx,cy,W/2);
-      gr.addColorStop(0,hsla(hues[i],100,s.light?50:60,(0.16+0.5*V.kick+0.2*V.level)*V.live));
-      gr.addColorStop(1,hsla(hues[i],100,60,0));
-      ctx.fillStyle=gr;ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,W/2,a-half,a+half);ctx.closePath();ctx.fill();
-    }
-  },
-  // 16 — Üç Halka: bas / orta / tiz her biri kendi halkasını doldurur
+  // 16 — Üç Halka: halkalar SABİT; her biri saat 9'dan başlayıp saatin tersi yönünde müzikle uzar-kısalır
   16(s){
     const {ctx,cx,cy,R,dt,light}=s;
     V.rot+=(18+110*V.level)*dt*V.live;
     discT(V.rot,1+0.03*V.kick);
     ctx.lineCap='round';
-    [{r:R*1.10,v:V.bass,hue:_hue-11,sp:0.6},{r:R*1.20,v:V.mid,hue:_hue+9,sp:-1.0},{r:R*1.30,v:V.high,hue:_hue+27,sp:1.5}].forEach(rg=>{
+    [{r:R*1.10,v:V.bass,hue:_hue-11},{r:R*1.20,v:V.mid,hue:_hue+9},{r:R*1.30,v:V.high,hue:_hue+27}].forEach(rg=>{
       ctx.lineWidth=5;ctx.strokeStyle=hsla(rg.hue,90,50,0.12);
       ctx.beginPath();ctx.arc(cx,cy,rg.r,0,6.2832);ctx.stroke();
-      const st=-Math.PI/2+rg.sp*V.rot*Math.PI/180;
+      const sweep=0.12+rg.v*5.6; // 9'dan (π) başlar, azalan açı = saatin tersi
       ctx.lineWidth=5+3*V.kick;ctx.strokeStyle=hsla(rg.hue,95,light?45:60,0.9);
-      ctx.beginPath();ctx.arc(cx,cy,rg.r,st,st+0.3+rg.v*5.4);ctx.stroke();
+      ctx.beginPath();ctx.arc(cx,cy,rg.r,Math.PI-sweep,Math.PI);ctx.stroke();
     });
   },
   // ───── PLAKSIZ · YATAY SES DALGASI MODLARI ─────
@@ -2016,28 +2005,6 @@ const VIZ_DRAW={
       if(ph>h+3){ctx.beginPath();ctx.moveTo(x,mid-ph);ctx.lineTo(x,mid-ph-1);ctx.moveTo(x,mid+ph);ctx.lineTo(x,mid+ph+1);ctx.stroke();}
     }
   },
-  // 24 — Akan Geçmiş: şiddet geçmişi sağdan girip sola akar (ses dosyası dalga formu gibi)
-  24(s){
-    const {ctx,W,H,dt,light}=s,mid=H/2,n=_hist.length,pitch=W/(n-1),step=1/30;
-    _hAcc+=dt;
-    while(_hAcc>=step){
-      _hAcc-=step;
-      const base=0.5*V.bass+0.32*V.mid+0.18*V.high;
-      _hist.copyWithin(0,1);_hist[n-1]=Math.min(1,base*(0.78+0.44*Math.random()))*V.live;
-    }
-    const off=-(_hAcc/step)*pitch;
-    wBase(s);ctx.globalCompositeOperation=s.comp;ctx.lineCap='round';ctx.lineWidth=Math.max(1.5,pitch*0.6);
-    let busy=false;
-    for(let i=0;i<n;i++){
-      const v=_hist[i];if(v>0.02)busy=true;
-      const x=i*pitch+off,h=1+v*H*0.46,age=i/(n-1);
-      ctx.strokeStyle=hsla(_hue-22+age*50,95,light?46:60,(0.18+0.82*age)*(0.5+0.5*Math.min(1,v*1.5)));
-      ctx.beginPath();ctx.moveTo(x,mid-h);ctx.lineTo(x,mid+h);ctx.stroke();
-    }
-    V.busy=busy;
-    ctx.fillStyle=hsla(_hue+20,100,light?45:70,0.35+0.4*V.kick); // "şimdi" noktası
-    ctx.beginPath();ctx.arc(W-2,mid,3+4*V.kick,0,6.2832);ctx.fill();
-  },
   // 25 — Spektrum Alanı: dolgulu frekans eğrisi + alttaki silik yansıması
   25(s){
     const {ctx,W,H,light}=s,mid=H/2,N=64;
@@ -2059,27 +2026,217 @@ const VIZ_DRAW={
     shape(1,0.55);fillArea(mid+H*0.25,mid,0.22);
     ctx.lineWidth=1.4;ctx.strokeStyle=wGrad(ctx,W,0.35,light);shape(1,0.55);ctx.stroke();
   },
-  // 26 — Çizgi Yığını: geçmiş spektrumlar üst üste dizilir, en yeni çizgi önde ("Unknown Pleasures" tarzı)
-  26(s){
-    const {ctx,W,H,dt,light}=s,ROWS=_rows.length,M=48,padX=W*0.06,y0=H*0.22,y1=H*0.86,amp=H*0.22;
-    _rAcc+=dt;
-    while(_rAcc>=0.085){
-      _rAcc-=0.085;
-      const r=_rows.shift();for(let j=0;j<M;j++)r[j]=_S[Math.floor(j*64/M)];
-      _rows.push(r);
+  // ───── YARATICI PLAKSIZ MODLAR (27–36) ─────
+  // 27 — Aurora: kuzey ışıkları perdeleri; her perde farklı frekans bölgesiyle dalgalanır
+  27(s){
+    const {ctx,W,H,dt,light}=s,N=40;
+    _aur+=dt*(0.25+0.6*V.level);
+    ctx.globalCompositeOperation=s.comp;
+    for(let k=0;k<4;k++){
+      const base=H*(0.82-0.12*k);
+      for(let i=0;i<=N;i++){
+        const t=i/N,v=_S[Math.min(63,Math.floor(t*34)+k*7)];
+        _wx[i]=t*W;
+        _wy[i]=base-v*H*0.55*(1-0.12*k)-Math.sin(t*5+_aur*(1+k*0.4)+k)*H*0.05*(0.3+V.level);
+      }
+      const hue=_hue-25+k*28,top=base-H*0.6;
+      smoothPath(ctx,N+1);ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();
+      const g=ctx.createLinearGradient(0,top,0,H);
+      g.addColorStop(0,hsla(hue,95,light?48:62,0.5-k*0.06));
+      g.addColorStop(0.6,hsla(hue+10,95,56,0.14));g.addColorStop(1,hsla(hue+20,95,56,0));
+      ctx.fillStyle=g;ctx.fill();
+      ctx.lineWidth=1.6;ctx.strokeStyle=hsla(hue,100,light?44:74,0.75);smoothPath(ctx,N+1);ctx.stroke();
+    }
+  },
+  // 28 — LED Matris: yanıp sönen LED sütunları, tepe noktaları yavaşça düşer
+  28(s){
+    const {ctx,W,H,dt,light}=s,cols=Math.min(28,Math.floor(W/12)),rows=12,cw=W/cols,ch=H/rows,r=Math.min(cw,ch)*0.34;
+    ctx.globalCompositeOperation=s.comp;
+    for(let c=0;c<cols;c++){
+      const v=Math.min(1,_S[Math.min(63,Math.floor(Math.pow(c/(cols-1),1.4)*62))]*1.05);
+      _pk[c]=Math.max(_pk[c]-dt*0.5,v);
+      const lit=Math.round(v*rows),pkRow=Math.min(rows,Math.round(_pk[c]*rows)),x=c*cw+cw/2;
+      for(let rr=0;rr<rows;rr++){
+        const f=rr/(rows-1);
+        if(rr<lit)ctx.fillStyle=hsla(_hue-20+f*70,95,light?46:60,0.95);
+        else if(rr===pkRow-1&&pkRow>lit)ctx.fillStyle=hsla(_hue+25,100,light?42:78,0.9);
+        else ctx.fillStyle=hsla(_hue,40,light?40:60,0.1);
+        ctx.beginPath();ctx.arc(x,H-(rr+0.5)*ch,r,0,6.2832);ctx.fill();
+      }
+    }
+  },
+  // 29 — Nabız: kalp monitörü çizgisi; her bas vuruşunda bir "kalp atışı" sivrilir
+  29(s){
+    const {ctx,W,H,dt,light}=s,mid=H/2,n=_ecg.length,pitch=W/(n-1),step=1/60;
+    if(V.beatNow)_eQ=0;
+    _eAcc+=dt;
+    while(_eAcc>=step){
+      _eAcc-=step;
+      let v=(Math.random()-0.5)*0.05*V.high;
+      if(_eQ>=0){v+=_QRS[_eQ]*(0.55+0.75*V.bass);_eQ++;if(_eQ>=_QRS.length)_eQ=-1;}
+      _ecg.copyWithin(0,1);_ecg[n-1]=v*V.live;
+    }
+    ctx.globalCompositeOperation='source-over';ctx.lineWidth=1;ctx.strokeStyle=hsla(_hue,60,50,light?0.12:0.07);
+    ctx.beginPath();
+    for(let i=1;i<14;i++){const x=W*i/14;ctx.moveTo(x,0);ctx.lineTo(x,H);}
+    for(let i=1;i<8;i++){const y=H*i/8;ctx.moveTo(0,y);ctx.lineTo(W,y);}
+    ctx.stroke();
+    const off=-(_eAcc/step)*pitch;let mx=0;
+    for(let i=0;i<n;i++){_wx[i]=i*pitch+off;_wy[i]=mid-_ecg[i]*H*0.40;mx=Math.max(mx,Math.abs(_ecg[i]));}
+    V.busy=mx>0.02;
+    ctx.globalCompositeOperation=s.comp;ctx.lineJoin='round';ctx.lineCap='round';
+    [[8,0.14],[4,0.3],[2+V.kick*1.5,1]].forEach(([w,a])=>{
+      const g=ctx.createLinearGradient(0,0,W,0);
+      g.addColorStop(0,hsla(_hue,95,light?46:62,0));g.addColorStop(1,hsla(_hue+10,95,light?46:64,a));
+      ctx.lineWidth=w;ctx.strokeStyle=g;smoothPath(ctx,n);ctx.stroke();
+    });
+    const hy=_wy[n-1];
+    ctx.fillStyle=hsla(_hue+20,100,light?45:78,0.25);ctx.beginPath();ctx.arc(W-2,hy,8+6*V.kick,0,6.2832);ctx.fill();
+    ctx.fillStyle=hsla(_hue+20,100,light?45:82,0.95);ctx.beginPath();ctx.arc(W-2,hy,3+2*V.kick,0,6.2832);ctx.fill();
+  },
+  // 30 — Su Damlaları: vuruşta büyük, tizlerde küçük damlalar; su yüzeyinde genişleyen halkalar
+  30(s){
+    const {ctx,W,H,dt,light}=s;
+    if(V.beatNow&&_rip.length<26)_rip.push({x:W*(0.2+0.6*Math.random()),y:H*(0.3+0.45*Math.random()),t:0,sp:1,a:1,hue:_hue-10+Math.random()*40});
+    if(_rip.length<26&&Math.random()<V.high*V.live*dt*7)_rip.push({x:Math.random()*W,y:H*(0.25+0.6*Math.random()),t:0,sp:1.6,a:0.6,hue:_hue+30+Math.random()*30});
+    ctx.globalCompositeOperation=s.comp;
+    for(let i=_rip.length-1;i>=0;i--){
+      const r=_rip[i];r.t+=dt*0.55*r.sp;
+      if(r.t>=1){_rip.splice(i,1);continue;}
+      const rad=Math.pow(r.t,0.7)*W*0.28*(r.a>0.9?1:0.55),al=(1-r.t)*0.85*r.a;
+      ctx.strokeStyle=hsla(r.hue,95,light?46:64,al);ctx.lineWidth=1+2.5*(1-r.t);
+      ctx.beginPath();ctx.ellipse(r.x,r.y,rad,rad*0.38,0,0,6.2832);ctx.stroke();
+      if(r.t>0.12){ctx.lineWidth=1;ctx.strokeStyle=hsla(r.hue,95,light?46:64,al*0.6);ctx.beginPath();ctx.ellipse(r.x,r.y,rad*0.62,rad*0.62*0.38,0,0,6.2832);ctx.stroke();}
+    }
+    V.busy=_rip.length>0;
+  },
+  // 31 — Yıldız Geçidi: ışık hızı; yıldızlar merkezden fışkırır, müzik hızlandırır, vuruş sıçratır
+  31(s){
+    const {ctx,W,H,dt,cx,cy,light}=s,Rx=W*0.56,Ry=H*0.62;
+    while(_stars.length<110)_stars.push({a:Math.random()*6.2832,d:Math.random(),v:0.6+Math.random()*0.8,hue:_hue-15+Math.random()*60});
+    const sp=(0.12+1.5*V.level)*V.live*(1+V.kick*2.4)+0.015;
+    ctx.globalCompositeOperation=s.comp;ctx.lineCap='round';
+    for(const st of _stars){
+      const grow=sp*st.v*(0.15+st.d*1.6);
+      st.d+=dt*grow;
+      if(st.d>1.05){st.d=0.02+Math.random()*0.06;st.a=Math.random()*6.2832;st.v=0.6+Math.random()*0.8;st.hue=_hue-15+Math.random()*60;}
+      const tail=Math.max(0,st.d-Math.min(0.35,0.012+grow*0.07)*(0.4+st.d)),ca=Math.cos(st.a),sa=Math.sin(st.a);
+      ctx.strokeStyle=hsla(st.hue,90,light?46:78,Math.min(1,st.d*1.1));ctx.lineWidth=0.5+st.d*2.4;
+      ctx.beginPath();ctx.moveTo(cx+ca*tail*Rx,cy+sa*tail*Ry);ctx.lineTo(cx+ca*st.d*Rx,cy+sa*st.d*Ry);ctx.stroke();
+    }
+  },
+  // 32 — Şehir Işıkları: gökdelenlerin pencereleri müzikle yanar, gökyüzü bas ile parlar
+  32(s){
+    const {ctx,W,H,light}=s,baseY=H*0.97;let x=0;
+    ctx.globalCompositeOperation='source-over';
+    const g=ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,hsla(_hue,80,50,0));g.addColorStop(1,hsla(_hue,80,50,0.14+0.2*V.bass));
+    ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+    _sk.forEach((b,i)=>{
+      const bw=b.w*W,v=Math.min(1,_S[Math.min(63,Math.floor(Math.pow(i/(_sk.length-1),1.3)*60))]);
+      const bh=H*b.h*0.9*(1+0.07*v);
+      ctx.fillStyle=light?hsla(_hue,20,78,0.95):hsla(_hue,30,10,0.95);
+      ctx.fillRect(x+1,baseY-bh,bw-2,bh);
+      const cols=Math.max(1,Math.floor((bw-6)/6)),rowsN=Math.floor((bh-6)/8),lit=Math.round(v*rowsN);
+      const wx=x+1+(bw-2-cols*6)/2+1;
+      for(let r=0;r<rowsN;r++)for(let c=0;c<cols;c++){
+        const on=r<lit&&((i*31+r*17+c*7)%11)>2;
+        ctx.fillStyle=on?hsla(_hue+35,100,light?40:72,0.9):hsla(_hue,20,light?60:30,0.25);
+        ctx.fillRect(wx+c*6,baseY-6-(r+1)*8+2,3,4);
+      }
+      x+=bw;
+    });
+    ctx.fillStyle=hsla(_hue,40,light?50:40,0.5);ctx.fillRect(0,baseY,W,1.5);
+  },
+  // 33 — Sarmal: DNA sarmalı; dönüş hızı orta seslerle, genlik müzik şiddetiyle artar
+  33(s){
+    const {ctx,W,H,dt,light}=s,mid=H/2,N=34,pitch=W/(N-1),Ls=light?46:62;
+    _hx+=dt*(0.9+2.8*V.mid)*V.live+dt*0.15;
+    const A=H*(0.12+0.30*V.level)*(1+0.25*V.kick);
+    ctx.globalCompositeOperation=s.comp;ctx.lineCap='round';
+    for(let i=0;i<N;i++){ // basamaklar
+      const sn=Math.sin(_hx+i*0.42),x=i*pitch,v=_S[Math.min(63,i*2)];
+      ctx.lineWidth=1+2.2*v;ctx.strokeStyle=hsla(_hue-10+(i/N)*50,95,Ls,0.12+0.7*v);
+      ctx.beginPath();ctx.moveTo(x,mid+sn*A);ctx.lineTo(x,mid-sn*A);ctx.stroke();
+    }
+    for(let st=0;st<2;st++){ // iki iplik + derinliğe göre düğümler
+      const sgn=st?-1:1,hue=_hue+st*40;
+      for(let i=0;i<N;i++){_wx[i]=i*pitch;_wy[i]=mid+Math.sin(_hx+i*0.42)*A*sgn;}
+      ctx.lineWidth=2.2;ctx.strokeStyle=hsla(hue,95,Ls,0.8);smoothPath(ctx,N);ctx.stroke();
+      for(let i=0;i<N;i++){
+        const z=0.5+0.5*Math.cos(_hx+i*0.42+(st?Math.PI:0));
+        ctx.fillStyle=hsla(hue,100,light?44:76,0.35+0.65*z);
+        ctx.beginPath();ctx.arc(_wx[i],_wy[i],1.8+3.4*z,0,6.2832);ctx.fill();
+      }
+    }
+  },
+  // 34 — Mandala: 12 kat simetrik çiçek; yaprakların boyu spektrumdan, dönüşü orta seslerden gelir
+  34(s){
+    const {ctx,H,dt,cx,cy,light}=s,SEC=12,R0=H*0.12,RM=H*0.47,M=40;
+    _mr+=dt*(0.15+0.9*V.mid)*V.live;
+    ctx.globalCompositeOperation=s.comp;ctx.lineJoin='round';
+    for(let k=0;k<SEC;k++){
+      ctx.save();ctx.translate(cx,cy);ctx.rotate(_mr+k*6.2832/SEC);
+      ctx.beginPath();
+      let a0=0;
+      for(let i=0;i<=M;i++){
+        const t=i/M,e=Math.abs(t-0.5)*2,v=_S[Math.min(63,Math.floor(e*58))];
+        const r=R0+(0.12+0.88*v)*(RM-R0)*(1-0.35*e),a=(t-0.5)*(6.2832/SEC)*0.92;
+        if(i===0){a0=a;ctx.moveTo(R0*Math.cos(a),R0*Math.sin(a));}
+        ctx.lineTo(r*Math.cos(a),r*Math.sin(a));
+        if(i===M)ctx.lineTo(R0*Math.cos(a),R0*Math.sin(a));
+      }
+      ctx.closePath();
+      const hue=_hue-20+k*(50/SEC);
+      ctx.fillStyle=hsla(hue,95,light?50:60,0.14);ctx.fill();
+      ctx.lineWidth=1.3;ctx.strokeStyle=hsla(hue,100,light?44:70,0.75);ctx.stroke();
+      ctx.restore();
+    }
+    ctx.fillStyle=hsla(_hue+20,100,light?48:75,0.35+0.45*V.kick);
+    ctx.beginPath();ctx.arc(cx,cy,R0*(0.7+0.5*V.kick),0,6.2832);ctx.fill();
+  },
+  // 35 — Spektrogram: zaman içinde akan sıcaklık haritası (bas altta, tiz üstte)
+  35(s){
+    const {ctx,W,H,dt,light}=s,cols=_spg.length,rows=24,step=1/20;
+    _gAcc+=dt;
+    while(_gAcc>=step){
+      _gAcc-=step;
+      const c=_spg.shift();
+      for(let r=0;r<rows;r++)c[r]=Math.round(Math.min(1,_S[Math.min(63,Math.floor(Math.pow(r/(rows-1),1.5)*62))])*255);
+      _spg.push(c);
+    }
+    const pitch=W/cols,off=-(_gAcc/step)*pitch,rh=H/rows,pal=[];
+    for(let q=0;q<32;q++){const v=q/31;pal.push(hsla(_hue-30+v*80,95,light?60-v*20:18+v*52,Math.min(1,0.15+v*0.9)));}
+    ctx.globalCompositeOperation='source-over';
+    let mx=0;
+    for(let c=0;c<cols;c++){
+      const col=_spg[c],x=c*pitch+off;
+      for(let r=0;r<rows;r++){
+        const v=col[r]/255;if(v<0.06)continue;
+        if(v>mx)mx=v;
+        ctx.fillStyle=pal[Math.round(v*31)];
+        ctx.fillRect(x,H-(r+1)*rh,pitch+0.6,rh-0.6);
+      }
+    }
+    V.busy=mx>0.08;
+  },
+  // 36 — Lissajous: dalga formunun kendisiyle çizdiği simetrik ışık figürü (XY osiloskop)
+  36(s){
+    const {ctx,W,H,dt,light,cx,cy}=s,L=_td.length,N=220;
+    let pk=0;for(let i=0;i<L;i+=4)pk=Math.max(pk,Math.abs(_td[i]-128)/128);
+    _tdAgc=Math.max(_tdAgc*Math.pow(0.8,dt),pk,0.12);
+    const d=(L>>3)+Math.floor(V.mid*20),gx=W*0.30*(0.15+0.85*V.live),gy=H*0.44*(0.15+0.85*V.live);
+    const cl=v=>Math.max(-1.2,Math.min(1.2,v));
+    for(let i=0;i<=N;i++){
+      const a=(_td[(i*2)%L]-128)/128/_tdAgc,b=(_td[(i*2+d)%L]-128)/128/_tdAgc;
+      _wx[i]=cx+cl(a)*gx;_wy[i]=cy+cl(b)*gy;
     }
     ctx.globalCompositeOperation=s.comp;ctx.lineJoin='round';ctx.lineCap='round';
-    let mx=0;
-    for(let r=0;r<ROWS;r++){
-      const row=_rows[r],f=r/(ROWS-1),base=y0+(y1-y0)*f;
-      for(let i=0;i<M;i++){
-        const t=i/(M-1);mx=Math.max(mx,row[i]);
-        _wx[i]=padX+t*(W-2*padX);_wy[i]=base-row[i]*amp*Math.pow(Math.sin(Math.PI*t),1.3);
-      }
-      ctx.lineWidth=1+1.1*f;ctx.strokeStyle=hsla(_hue-10+f*28,95,light?46:62,0.2+0.8*f);
-      smoothPath(ctx,M);ctx.stroke();
-    }
-    V.busy=mx>0.03;
+    [[9,0.12],[4.5,0.3],[1.8+V.kick*1.5,1]].forEach(([w,a])=>{
+      ctx.lineWidth=w;ctx.strokeStyle=hsla(_hue+5,95,light?46:62,a);smoothPath(ctx,N+1);ctx.stroke();
+    });
+    for(let i=0;i<=N;i++)_wx[i]=2*cx-_wx[i]; // ayna kopyası
+    ctx.lineWidth=1.4;ctx.strokeStyle=hsla(_hue+40,95,light?46:66,0.55);smoothPath(ctx,N+1);ctx.stroke();
   }
 };
 
@@ -2157,19 +2314,26 @@ window.addEventListener('resize',()=>{if(isViz(curAnim)){vizResize();vizStart();
 const ANIM_INFO=[
   {id:0, ico:'💿',name:'Klasik plak',g:0},
   {id:11,ico:'🥁',name:'Bas vuruşu',g:0},
-  {id:12,ico:'🌈',name:'Spektrum halkası',g:0},
+  {id:12,ico:'☀️',name:'Spektrum halkası',g:0},
   {id:13,ico:'✨',name:'Kıvılcım',g:0},
   {id:14,ico:'🌀',name:'Ses dalgası halkası',g:0},
-  {id:15,ico:'🔦',name:'Sahne ışıkları',g:0},
   {id:16,ico:'🎯',name:'Üç halka',g:0},
   {id:21,ico:'〰️',name:'Dalga çizgisi',g:1},
   {id:22,ico:'🌊',name:'Çoklu dalga',g:1},
   {id:23,ico:'🎚️',name:'Çubuk dalga',g:1},
-  {id:24,ico:'📈',name:'Akan geçmiş',g:1},
   {id:25,ico:'🏔️',name:'Spektrum alanı',g:1},
-  {id:26,ico:'🎼',name:'Çizgi yığını',g:1},
+  {id:27,ico:'🌌',name:'Aurora',g:2},
+  {id:28,ico:'💡',name:'LED matris',g:2},
+  {id:29,ico:'💓',name:'Nabız',g:2},
+  {id:30,ico:'💧',name:'Su damlaları',g:2},
+  {id:31,ico:'🚀',name:'Yıldız geçidi',g:2},
+  {id:32,ico:'🌃',name:'Şehir ışıkları',g:2},
+  {id:33,ico:'🧬',name:'Sarmal',g:2},
+  {id:34,ico:'🏵️',name:'Mandala',g:2},
+  {id:35,ico:'🌡️',name:'Spektrogram',g:2},
+  {id:36,ico:'♾️',name:'Lissajous',g:2},
 ];
-const ANIM_GROUPS=['Plaklı','Plaksız · yatay ses dalgası'];
+const ANIM_GROUPS=['Plaklı','Plaksız · yatay ses dalgası','Plaksız · yaratıcı'];
 function openFxSheet(){
   document.getElementById('fxBody').innerHTML=ANIM_GROUPS.map((gn,g)=>
     '<div class="fx-group">'+gn+'</div><div class="fx-grid">'+
@@ -2190,7 +2354,7 @@ function setAnim(n,fromUser){
   const info=ANIM_INFO.find(a=>a.id===n)||ANIM_INFO[0];
   const ti=document.getElementById('fxTrigIco');if(ti)ti.textContent=info.ico;
   const tb=document.getElementById('fxTrigger');if(tb)tb.title='Animasyon: '+info.name;
-  _shocks.length=0;_parts.length=0;
+  _shocks.length=0;_parts.length=0;crReset();
   const d=document.getElementById('disc');
   if((!isViz(n)||isWide(n))&&d)d.style.transform='';
   if(_vx)_vx.clearRect(0,0,_vW,_vH);
