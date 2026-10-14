@@ -104,7 +104,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .ctrls{display:flex;align-items:center;justify-content:space-between;width:100%;padding:0 2px;margin-bottom:6px;position:relative;z-index:2;flex-shrink:0;}
 .tinfo{width:100%;text-align:center;margin-bottom:8px;flex-shrink:0;}
 .prog-wrap{width:100%;margin-bottom:6px;flex-shrink:0;}
-.vol{width:100%;display:flex;align-items:center;gap:8px;position:relative;z-index:1;flex-shrink:0;}
 .anim-picker{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;flex-shrink:0;flex-wrap:wrap;}
 .anim-btn{width:32px;height:32px;border-radius:9px;border:1.5px solid var(--border);background:var(--card2);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .18s;flex-shrink:0;position:relative;}
 .anim-btn.active{border-color:var(--accent);background:rgba(var(--acc-rgb),.13);color:var(--accent);box-shadow:0 2px 10px var(--shadow);}
@@ -177,6 +176,12 @@ html.light .disc .center{background:#222;}
 .fx-item:active{transform:scale(.95);} /* dönüşü JS yönetir (müziğe göre hızlanır/yavaşlar) */
 .art-wrap .disc.spin.paused{animation-play-state:paused!important;}
 
+.vol{width:100%;max-width:240px;display:flex;align-items:center;gap:10px;margin:2px auto 0;flex-shrink:0;position:relative;z-index:1;}
+.vol-btn{background:none;border:none;color:var(--muted);padding:4px;cursor:pointer;display:flex;-webkit-tap-highlight-color:transparent;}
+.vol-btn svg{width:18px;height:18px;}
+.vol input[type=range]{flex:1;min-width:0;-webkit-appearance:none;appearance:none;height:3px;border-radius:2px;outline:none;background:linear-gradient(to right,var(--accent) var(--p,100%),rgba(128,128,128,.25) var(--p,100%));}
+.vol input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--accent);cursor:pointer;}
+.vol input[type=range]::-moz-range-thumb{width:12px;height:12px;border:none;border-radius:50%;background:var(--accent);cursor:pointer;}
 .tinfo{width:100%;text-align:center;margin-bottom:12px;}
 .tname{font-size:18px;font-weight:700;letter-spacing:-.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .tartist{font-size:13px;color:var(--muted);margin-top:2px;}
@@ -206,10 +211,6 @@ html.light .disc .center{background:#222;}
 .playbtn svg{width:24px;height:24px;color:#fff;}
 
 /* SES */
-.vol{width:100%;display:flex;align-items:center;gap:8px;position:relative;z-index:1;}
-.vol svg{width:16px;height:16px;color:var(--muted);flex-shrink:0;}
-.vol input[type=range]{flex:1;-webkit-appearance:none;height:3px;background:rgba(128,128,128,.2);border-radius:2px;outline:none;}
-.vol input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer;}
 
 /* ── KÜTÜPHANE ── */
 #lv{padding:0;}
@@ -509,7 +510,7 @@ html.light .color-sw.on .color-dot{box-shadow:0 0 0 2px var(--card),0 0 0 4px va
 <div class="bg"></div>
 <div id="app">
   <div class="appheader">
-    <span class="appname">S — Müzik Çalar <span class="appver" id="appVer">Pro 2.1</span></span>
+    <span class="appname">S — Müzik Çalar <span class="appver" id="appVer">Pro 2.2</span></span>
     <span class="appcopy">©sebasmobil &nbsp;<a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" style="color:inherit;font-size:0.8em;opacity:0.75;text-decoration:none;">AGPL v3.0</a></span>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Tema">🌙</button>
   </div>
@@ -573,10 +574,9 @@ html.light .color-sw.on .color-dot{box-shadow:0 0 0 2px var(--card),0 0 0 4px va
       <button class="cbtn" id="btnNext"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
       <button class="cbtn" id="btnRepeat"><svg viewBox="0 0 24 24" fill="currentColor" id="repeatIco"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg></button>
     </div>
-    <div class="vol">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
-      <input type="range" id="volBar" min="0" max="1" step=".01" value="1" oninput="aud.volume=+this.value;ps('vol',+this.value)">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM16.5 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+    <div class="vol" id="volRow" style="display:none">
+      <button class="vol-btn" id="volBtn" onclick="toggleMute()" aria-label="Sessiz"><svg viewBox="0 0 24 24" fill="currentColor"><path id="volIco" d=""/></svg></button>
+      <input type="range" id="volBar" min="0" max="1" step=".01" value="1" oninput="setVol(+this.value)" aria-label="Ses seviyesi">
     </div>
     <div class="tab-spacer"></div>
   </div>
@@ -747,7 +747,7 @@ aud.addEventListener('error', () => {
 });
 
 // ── VERSİYON & DEPOLAMA ANAHTARLARI
-const APP_VER   = 'Pro 2.1';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
+const APP_VER   = 'Pro 2.2';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
 const STORE_VER = 'Pro 1.7';      // Depolama anahtarı etiketi — SABİT. Değiştirilirse çalma listeleri/ayarlar sıfırlanır
 const DB_NAME   = 'mzk_pro_1_7';  // IndexedDB adı — SABİT. Değiştirilirse şarkılar yeni boş veritabanına düşer
 const DB_VER  = 1;
@@ -921,8 +921,8 @@ async function init(){
   const rows=await dbAll();
   tracks=rows.map(r=>{const blob=new Blob([r.blob],{type:r.mime});const url=URL.createObjectURL(blob);return{id:r.id,name:r.name,artist:r.artist,dur:r.dur,mime:r.mime,url};});
   shuffled=!!(await pg('sh')); repeat=(await pg('rp'))||0;
-  cur=(await pg('ci'))??-1; const vol=(await pg('vol'))??1;
-  aud.volume=vol; document.getElementById('volBar').value=vol;
+  cur=(await pg('ci'))??-1;
+  if(volSupported()){document.getElementById('volRow').style.display='flex';setVol((await pg('vol'))??1,false);}
   if(cur>=tracks.length)cur=-1;
   if(shuffled)buildShuf(); // kayıtlı 'karışık' durumunda sıra boş kalmasın
   updShuf();updRep();
@@ -1683,6 +1683,27 @@ function showTab(t){
   if(t==='p'&&typeof vizStart==='function')vizStart();
 }
 
+// ── SES SEVİYESİ — yalnızca tarayıcı izin veriyorsa gösterilir (iPhone'da ses seviyesini sayfa değiştiremez; orada gizli kalır)
+const VOL_ICO={
+  up:'M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM16.5 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z',
+  low:'M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z',
+  off:'M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z'
+};
+let _volBefore=1;
+function volSupported(){
+  const o=aud.volume;
+  try{aud.volume=0.5;const ok=Math.abs(aud.volume-0.5)<0.01;aud.volume=o;return ok;}catch{return false;}
+}
+function setVol(v,save=true){
+  v=Math.max(0,Math.min(1,+v||0));aud.volume=v;
+  const b=document.getElementById('volBar');
+  if(b){b.value=v;b.style.setProperty('--p',(v*100)+'%');}
+  const ic=document.getElementById('volIco');if(ic)ic.setAttribute('d',v===0?VOL_ICO.off:v<0.5?VOL_ICO.low:VOL_ICO.up);
+  if(save)ps('vol',v);
+}
+function toggleMute(){
+  if(aud.volume>0){_volBefore=aud.volume;setVol(0);}else setVol(_volBefore||1);
+}
 // ── ANİMASYON SEÇİCİ — müziğe tepki veren plak efektleri
 // 0 = Klasik (sade dönen plak, ses analizi yok) · 11–16 = müziğe tepkili efektler
 // 11–16: plak etrafında · 21–36: plaksız (WIDE): yatay ses dalgası ve yaratıcı efektler
