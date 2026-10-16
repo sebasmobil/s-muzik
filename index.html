@@ -76,8 +76,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 
 /* HEADER */
 .appheader{display:flex;align-items:center;gap:8px;padding:2px 16px 8px;flex-shrink:0;}
-.appname{font-size:15px;font-weight:700;color:var(--text);flex:1;}
-.appver{background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:7px;}
+.appname{font-family:'SF Pro Text',-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;font-size:13px;font-weight:500;letter-spacing:.3px;color:var(--text);flex:1;white-space:nowrap;}
+.appver{background:transparent;color:var(--accent);border:1px solid var(--accent);font-size:10px;font-weight:600;letter-spacing:.2px;padding:1px 6px;border-radius:6px;margin-left:4px;vertical-align:1px;}
 .appcopy{font-size:12px;color:var(--muted);}
 .theme-btn{background:var(--card2);border:none;color:var(--text);width:30px;height:30px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
 
@@ -99,7 +99,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 #pv{align-items:center;padding:0 20px 8px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 #pv::-webkit-scrollbar{display:none;}
 /* Küçük ekran: plak küçülsün */
-.art-wrap{position:relative;width:min(220px,55vw,42vh);height:min(220px,55vw,42vh);margin:4px 0 10px;flex-shrink:0;}
+.art-wrap{position:relative;width:min(180px,48vw,34vh);height:min(180px,48vw,34vh);margin:52px 0 56px;flex-shrink:0;} /* efektler taşabilsin diye üst/alt boşluk */
 /* Kontroller her zaman görünsün */
 .ctrls{display:flex;align-items:center;justify-content:space-between;width:100%;padding:0 2px;margin-bottom:6px;position:relative;z-index:2;flex-shrink:0;}
 .tinfo{width:100%;text-align:center;margin-bottom:8px;flex-shrink:0;}
@@ -109,7 +109,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .anim-btn.active{border-color:var(--accent);background:rgba(var(--acc-rgb),.13);color:var(--accent);box-shadow:0 2px 10px var(--shadow);}
 .anim-btn:active{transform:scale(.88);}
 .pv-infobar{display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:4px;}
-.pv-source{display:flex;align-items:center;gap:5px;background:rgba(var(--acc-rgb),.1);border:1px solid var(--border);border-radius:20px;padding:5px 10px;cursor:pointer;max-width:65%;}
+.pv-right{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.pv-source{display:flex;align-items:center;gap:5px;background:rgba(var(--acc-rgb),.1);border:1px solid var(--border);border-radius:20px;padding:5px 10px;cursor:pointer;max-width:55%;min-width:0;}
 .pv-source svg{width:12px;height:12px;color:var(--accent);flex-shrink:0;}
 .pv-source span{font-size:11px;font-weight:600;color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .pv-chevron{width:13px!important;height:13px!important;color:var(--muted)!important;}
@@ -355,6 +356,12 @@ html.light .disc .center{background:#222;}
 .stcard{background:var(--card);border-radius:16px;padding:14px;border:1px solid var(--border);}
 .stcard-title{display:flex;align-items:center;gap:7px;font-size:14px;font-weight:700;margin-bottom:3px;}
 .stcard-title svg{width:16px;height:16px;color:var(--accent);flex-shrink:0;}
+.fold-head{width:100%;display:flex;align-items:center;gap:8px;background:none;border:none;color:var(--text);cursor:pointer;padding:0;font-family:inherit;text-align:left;}
+.fold-chev{width:20px;height:20px;color:var(--muted);transition:transform .22s;flex-shrink:0;}
+.fold.open .fold-chev{transform:rotate(180deg);}
+.fold-body{display:none;padding-top:12px;}
+.fold.open .fold-body{display:block;}
+.fold-lbl{font-size:11px;color:var(--muted);margin-bottom:8px;}
 .stcard-sub{font-size:11px;color:var(--muted);margin-bottom:12px;padding-left:23px;}
 .strow{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
 .strow:last-child{margin-bottom:0;}
@@ -376,6 +383,10 @@ html.light .disc .center{background:#222;}
 .sleep-pre:active,.sleep-pre.sel{background:rgba(var(--acc-rgb),.12);color:var(--accent);border-color:var(--accent);}
 .sleep-slider{width:100%;-webkit-appearance:none;height:5px;border-radius:3px;outline:none;cursor:pointer;margin-bottom:4px;}
 .sleep-slider::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:white;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.3);}
+.sleep-custom{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px;font-size:12px;color:var(--muted);}
+.sleep-custom input{width:84px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:7px 8px;color:var(--text);font-size:16px;font-weight:600;text-align:center;outline:none;-moz-appearance:textfield;}
+.sleep-custom input:focus{border-color:var(--accent);}
+.sleep-custom input:disabled{opacity:.5;}
 .sleep-val{text-align:center;font-size:20px;font-weight:700;color:var(--accent);margin-bottom:10px;}
 /* tema toggle */
 .theme-toggle-row{display:flex;align-items:center;justify-content:space-between;}
@@ -510,7 +521,7 @@ html.light .color-sw.on .color-dot{box-shadow:0 0 0 2px var(--card),0 0 0 4px va
 <div class="bg"></div>
 <div id="app">
   <div class="appheader">
-    <span class="appname">S — Müzik Çalar <span class="appver" id="appVer">Pro 2.2</span></span>
+    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.7</span></span>
     <span class="appcopy">©sebasmobil &nbsp;<a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" style="color:inherit;font-size:0.8em;opacity:0.75;text-decoration:none;">AGPL v3.0</a></span>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Tema">🌙</button>
   </div>
@@ -523,9 +534,12 @@ html.light .color-sw.on .color-dot{box-shadow:0 0 0 2px var(--card),0 0 0 4px va
         <span id="pvSourceName">Kütüphane</span>
         <svg viewBox="0 0 24 24" fill="currentColor" class="pv-chevron"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
       </div>
-      <div class="pv-sleep" id="pvSleep" style="display:none">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
-        <span id="pvSleepVal">—</span>
+      <div class="pv-right">
+        <div class="pv-sleep" id="pvSleep" style="display:none">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+          <span id="pvSleepVal">—</span>
+        </div>
+        <button class="fx-trigger" id="fxTrigger" onclick="openFxSheet()" title="Animasyon seç" aria-label="Animasyon seç"><span id="fxTrigIco">🏔️</span><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></button>
       </div>
     </div>
     <div class="queue-panel" id="queuePanel" style="display:none">
@@ -543,9 +557,6 @@ html.light .color-sw.on .color-dot{box-shadow:0 0 0 2px var(--card),0 0 0 4px va
         <div class="center"></div>
         <div class="spin-ring" id="spinRing"></div>
       </div>
-    </div>
-    <div class="anim-picker" id="animPicker">
-      <button class="fx-trigger" id="fxTrigger" onclick="openFxSheet()" title="Animasyon seç" aria-label="Animasyon seç"><span id="fxTrigIco">🏔️</span><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></button>
     </div>
     <div class="tinfo">
       <div class="tname" id="tname"><span class="no-track">Şarkı seçin</span></div>
@@ -636,26 +647,30 @@ html.light .color-sw.on .color-dot{box-shadow:0 0 0 2px var(--card),0 0 0 4px va
     <div class="sthdr">Ayarlar</div>
     <div class="stscroll">
 
-      <!-- TEMA -->
-      <div class="stcard">
-        <div class="stcard-title"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1z"/></svg>Tema</div>
-        <div class="stcard-sub">Koyu veya açık arayüz seçin</div>
-        <div class="theme-toggle">
-          <button class="t-opt on" id="tDark" onclick="setTheme('dark')">🌙 Koyu</button>
-          <button class="t-opt" id="tLight" onclick="setTheme('light')">☀️ Açık</button>
+      <!-- GÖRÜNÜM: Tema + Renk Teması (açılır/kapanır) -->
+      <div class="stcard fold" id="foldLook">
+        <button class="fold-head" onclick="toggleFold('foldLook')" aria-expanded="false">
+          <span class="stcard-title" style="margin:0;flex:1"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 0 0 0 18c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>Görünüm</span>
+          <svg class="fold-chev" viewBox="0 0 24 24" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>
+        </button>
+        <div class="fold-body">
+          <div class="fold-lbl">Tema</div>
+          <div class="theme-toggle">
+            <button class="t-opt on" id="tDark" onclick="setTheme('dark')">🌙 Koyu</button>
+            <button class="t-opt" id="tLight" onclick="setTheme('light')">☀️ Açık</button>
+          </div>
+          <div class="fold-lbl" style="margin-top:14px">Renk Teması</div>
+          <div class="color-grid" id="colorGrid"></div>
         </div>
       </div>
 
-      <!-- RENK TEMASI -->
-      <div class="stcard">
-        <div class="stcard-title"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 0 0 0 18c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>Renk Teması</div>
-        <div class="stcard-sub">Uygulamanın vurgu rengini seçin</div>
-        <div class="color-grid" id="colorGrid"></div>
-      </div>
-
       <!-- TEKRAR SAYACI -->
-      <div class="stcard">
-        <div class="stcard-title"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>Şarkı Tekrar Sayacı</div>
+      <div class="stcard fold" id="foldRC">
+        <button class="fold-head" onclick="toggleFold('foldRC')" aria-expanded="false">
+          <span class="stcard-title" style="margin:0;flex:1"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>Şarkı Tekrar Sayacı</span>
+          <svg class="fold-chev" viewBox="0 0 24 24" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>
+        </button>
+        <div class="fold-body">
         <div class="stcard-sub">Aktif şarkı kaç kez tekrar edilsin?</div>
         <div class="rc-val-row"><span class="rc-big-val" id="rcVal">1</span><span style="font-size:12px;color:var(--muted)">kez</span></div>
         <input type="range" class="sleep-slider" id="rcSlider" min="1" max="100" value="1" oninput="onRCSlider(this.value)">
@@ -665,11 +680,16 @@ html.light .color-sw.on .color-dot{box-shadow:0 0 0 2px var(--card),0 0 0 4px va
           <span class="stbadge" id="rcLeft">—</span>
         </div>
         <button class="stbtn" id="rcBtn" onclick="toggleRC()">Başlat</button>
+        </div>
       </div>
 
       <!-- KUYRUK TEKRAR SAYACI (liste veya kütüphane) -->
-      <div class="stcard">
-        <div class="stcard-title"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M15 6H3v2h12V6zm0 4H3v2h12v-2zM3 16h8v-2H3v2zM17 6v8.18c-.31-.11-.65-.18-1-.18-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3V8h3V6h-5z"/></svg>Liste / Kütüphane Tekrar</div>
+      <div class="stcard fold" id="foldQRC">
+        <button class="fold-head" onclick="toggleFold('foldQRC')" aria-expanded="false">
+          <span class="stcard-title" style="margin:0;flex:1"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M15 6H3v2h12V6zm0 4H3v2h12v-2zM3 16h8v-2H3v2zM17 6v8.18c-.31-.11-.65-.18-1-.18-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3V8h3V6h-5z"/></svg>Liste / Kütüphane Tekrar</span>
+          <svg class="fold-chev" viewBox="0 0 24 24" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>
+        </button>
+        <div class="fold-body">
         <div class="stcard-sub" id="qrcSub">Çalar ne çalıyorsa (liste veya kütüphane) kaç kez tekrar edilsin?</div>
         <div class="rc-val-row"><span class="rc-big-val" id="qrcVal">1</span><span style="font-size:12px;color:var(--muted)">kez</span></div>
         <input type="range" class="sleep-slider" id="qrcSlider" min="1" max="100" value="1" oninput="onQRCSlider(this.value)">
@@ -679,11 +699,16 @@ html.light .color-sw.on .color-dot{box-shadow:0 0 0 2px var(--card),0 0 0 4px va
           <span class="stbadge" id="qrcLeft">—</span>
         </div>
         <button class="stbtn" id="qrcBtn" onclick="toggleQRC()">Başlat</button>
+        </div>
       </div>
 
       <!-- UYKU ZAMANLAYICI -->
-      <div class="stcard">
-        <div class="stcard-title"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>Uyku Zamanlayıcı</div>
+      <div class="stcard fold" id="foldSleep">
+        <button class="fold-head" onclick="toggleFold('foldSleep')" aria-expanded="false">
+          <span class="stcard-title" style="margin:0;flex:1"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>Uyku Zamanlayıcı</span>
+          <svg class="fold-chev" viewBox="0 0 24 24" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>
+        </button>
+        <div class="fold-body">
         <div class="stcard-sub">Seçilen süre sonra müzik durur</div>
         <div class="sleep-presets">
           <button class="sleep-pre" onclick="setSP(15)">15dk</button>
@@ -695,11 +720,13 @@ html.light .color-sw.on .color-dot{box-shadow:0 0 0 2px var(--card),0 0 0 4px va
         </div>
         <input type="range" class="sleep-slider" id="sleepSlider" min="1" max="180" value="30" oninput="onSS(this.value)">
         <div class="sleep-val" id="sleepVal">30 dk</div>
+        <div class="sleep-custom"><span>Özel süre</span><input type="number" id="sleepCustom" min="1" max="720" step="1" value="30" inputmode="numeric" oninput="if(this.value!=='')onSS(this.value,true)" onblur="this.value=sleepMin" onfocus="this.select()"><span>dk</span></div>
         <div class="strow" id="sleepStatus" style="display:none">
           <span class="stlabel" style="color:var(--accent)">🌙 Kalan</span>
           <span class="stbadge" id="sleepCD">—</span>
         </div>
         <button class="stbtn" id="sleepBtn" onclick="toggleSleep()">Başlat</button>
+        </div>
       </div>
       <div class="tab-spacer"></div>
     </div>
@@ -747,7 +774,7 @@ aud.addEventListener('error', () => {
 });
 
 // ── VERSİYON & DEPOLAMA ANAHTARLARI
-const APP_VER   = 'Pro 2.2';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
+const APP_VER   = 'Pro 2.7';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
 const STORE_VER = 'Pro 1.7';      // Depolama anahtarı etiketi — SABİT. Değiştirilirse çalma listeleri/ayarlar sıfırlanır
 const DB_NAME   = 'mzk_pro_1_7';  // IndexedDB adı — SABİT. Değiştirilirse şarkılar yeni boş veritabanına düşer
 const DB_VER  = 1;
@@ -2454,6 +2481,8 @@ function updDiscArt(){
 }
 
 
+function toggleFold(id){const el=document.getElementById(id);if(!el)return;const o=el.classList.toggle('open');const b=el.querySelector('.fold-head');if(b)b.setAttribute('aria-expanded',o);try{localStorage.setItem('smzk_fold_'+id,o?'1':'0');}catch{}}
+(function(){['foldLook','foldRC','foldQRC','foldSleep'].forEach(id=>{try{if(localStorage.getItem('smzk_fold_'+id)==='1'){const el=document.getElementById(id);if(el)el.classList.add('open');}}catch{}});})();
 // ── TEMA
 function setTheme(t,silent){
   document.documentElement.classList.toggle('light',t==='light');
@@ -2537,15 +2566,15 @@ function handleQRC(mode){
 }
 
 function fmtSleep(m){return m<60?m+' dk':Math.floor(m/60)+'sa'+(m%60?' '+(m%60)+'dk':'');}
-function onSS(v){if(sleepTimer)return;sleepMin=+v;document.getElementById('sleepVal').textContent=fmtSleep(sleepMin);const pct=((v-1)/179*100).toFixed(1)+'%';document.getElementById('sleepSlider').style.background=`linear-gradient(90deg,var(--accent) ${pct},rgba(128,128,128,.2) ${pct})`;document.querySelectorAll('.sleep-pre').forEach((b,i)=>{const ps=[15,30,45,60,90,120];b.classList.toggle('sel',ps[i]===sleepMin);});}
+function onSS(v,fromInput){if(sleepTimer)return;sleepMin=Math.max(1,Math.min(720,Math.round(+v)||1));document.getElementById('sleepVal').textContent=fmtSleep(sleepMin);const sv=Math.min(180,sleepMin),sl=document.getElementById('sleepSlider');sl.value=sv;const pct=((sv-1)/179*100).toFixed(1)+'%';sl.style.background=`linear-gradient(90deg,var(--accent) ${pct},rgba(128,128,128,.2) ${pct})`;document.querySelectorAll('.sleep-pre').forEach((b,i)=>{const ps=[15,30,45,60,90,120];b.classList.toggle('sel',ps[i]===sleepMin);});const c=document.getElementById('sleepCustom');if(c&&!fromInput)c.value=sleepMin;}
 function setSP(m){if(sleepTimer)return;sleepMin=m;document.getElementById('sleepSlider').value=m;onSS(m);}
 function toggleSleep(){
-  if(sleepTimer){clearTimeout(sleepTimer);clearInterval(sleepTick);sleepTimer=null;document.getElementById('sleepBtn').textContent='Başlat';document.getElementById('sleepBtn').classList.remove('stop');document.getElementById('sleepStatus').style.display='none';document.getElementById('sleepSlider').disabled=false;document.querySelectorAll('.sleep-pre').forEach(b=>b.disabled=false);updSleepBadge(null);toast('Uyku zamanlayıcı iptal');}
+  if(sleepTimer){clearTimeout(sleepTimer);clearInterval(sleepTick);sleepTimer=null;document.getElementById('sleepBtn').textContent='Başlat';document.getElementById('sleepBtn').classList.remove('stop');document.getElementById('sleepStatus').style.display='none';document.getElementById('sleepSlider').disabled=false;document.getElementById('sleepCustom').disabled=false;document.querySelectorAll('.sleep-pre').forEach(b=>b.disabled=false);updSleepBadge(null);toast('Uyku zamanlayıcı iptal');}
   else{
     const ms=sleepMin*60000;sleepEnd=Date.now()+ms;
-    sleepTimer=setTimeout(()=>{appPause();updPlayBtn(false);clearInterval(sleepTick);sleepTimer=null;document.getElementById('sleepBtn').textContent='Başlat';document.getElementById('sleepBtn').classList.remove('stop');document.getElementById('sleepStatus').style.display='none';document.getElementById('sleepSlider').disabled=false;document.querySelectorAll('.sleep-pre').forEach(b=>b.disabled=false);updSleepBadge(null);toast('İyi geceler 🌙 Müzik durduruldu');},ms);
+    sleepTimer=setTimeout(()=>{appPause();updPlayBtn(false);clearInterval(sleepTick);sleepTimer=null;document.getElementById('sleepBtn').textContent='Başlat';document.getElementById('sleepBtn').classList.remove('stop');document.getElementById('sleepStatus').style.display='none';document.getElementById('sleepSlider').disabled=false;document.getElementById('sleepCustom').disabled=false;document.querySelectorAll('.sleep-pre').forEach(b=>b.disabled=false);updSleepBadge(null);toast('İyi geceler 🌙 Müzik durduruldu');},ms);
     sleepTick=setInterval(()=>{const l=sleepEnd-Date.now();if(l<=0){clearInterval(sleepTick);return;}const h=Math.floor(l/3600000),m=Math.floor((l%3600000)/60000),s=Math.floor((l%60000)/1000);const txt=(h>0?h+'sa ':'')+( m>0?m+'dk ':'')+s+'sn';document.getElementById('sleepCD').textContent=txt;updSleepBadge(txt);},1000);
-    document.getElementById('sleepBtn').textContent='İptal';document.getElementById('sleepBtn').classList.add('stop');document.getElementById('sleepStatus').style.display='flex';document.getElementById('sleepSlider').disabled=true;document.querySelectorAll('.sleep-pre').forEach(b=>b.disabled=true);toast('🌙 '+fmtSleep(sleepMin)+' sonra duracak');
+    document.getElementById('sleepBtn').textContent='İptal';document.getElementById('sleepBtn').classList.add('stop');document.getElementById('sleepStatus').style.display='flex';document.getElementById('sleepSlider').disabled=true;document.getElementById('sleepCustom').disabled=true;document.querySelectorAll('.sleep-pre').forEach(b=>b.disabled=true);toast('🌙 '+fmtSleep(sleepMin)+' sonra duracak');
   }
 }
 function updSleepBadge(txt){const el=document.getElementById('pvSleep');if(txt){document.getElementById('pvSleepVal').textContent=txt;el.style.display='flex';}else el.style.display='none';}
