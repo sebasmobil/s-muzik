@@ -72,7 +72,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .bg::after{content:'';position:absolute;bottom:-30%;right:-20%;width:80%;height:80%;background:radial-gradient(circle,rgba(var(--acc2-rgb),.07) 0%,transparent 65%);animation:bg2 11s ease-in-out infinite alternate;}
 @keyframes bg1{to{transform:translate(8%,10%) scale(1.1);}}
 @keyframes bg2{to{transform:translate(-8%,-8%) scale(1.12);}}
-#app{position:relative;z-index:1;height:100dvh;display:flex;flex-direction:column;padding-top:calc(var(--st) + 10px);padding-bottom:0;}
+#app{position:relative;z-index:1;height:calc(100dvh + var(--tabgap,0px));display:flex;flex-direction:column;padding-top:calc(var(--st) + 10px);padding-bottom:0;}
 
 /* HEADER */
 .appheader{display:flex;align-items:center;gap:8px;padding:2px 16px 8px;flex-shrink:0;}
@@ -82,7 +82,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .theme-btn{background:var(--card2);border:none;color:var(--text);width:30px;height:30px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
 
 /* TABS — altta sabit */
-.tabs{position:fixed;bottom:0;left:0;right:0;z-index:50;padding:8px 12px calc(var(--sb) + 8px);background:var(--bg);border-top:1px solid var(--border);box-shadow:0 -4px 20px rgba(0,0,0,.12);}
+.tabs{position:fixed;bottom:calc(-1 * var(--tabgap,0px));left:0;right:0;z-index:50;padding:8px 12px calc(var(--sb) + 8px);background:var(--bg);border-top:1px solid var(--border);box-shadow:0 -4px 20px rgba(0,0,0,.12);}
 /* Kalıcı alt boşluk — tab bar yüksekliği + safe area + ekstra güvenlik */
 .tab-spacer{height:calc(var(--sb) + 110px);width:100%;flex-shrink:0;pointer-events:none;}
 .tabs-inner{display:flex;gap:5px;background:var(--card);border-radius:16px;padding:5px;flex:1;border:1px solid var(--border);}
@@ -455,10 +455,12 @@ html.light .color-sw.on .color-dot{box-shadow:0 0 0 2px var(--card),0 0 0 4px va
 .pl-drag{width:22px;height:30px;display:flex;align-items:center;justify-content:center;color:var(--muted);touch-action:none;cursor:grab;flex-shrink:0;font-size:17px;}
 .pl-track{transition:background .12s,transform .15s;}
 .pl-track.dragging{transition:none;position:relative;z-index:5;background:var(--card2);box-shadow:0 6px 18px rgba(0,0,0,.35);}
-.fs-exit{display:none;position:fixed;top:calc(var(--st) + 12px);right:14px;z-index:120;width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--card);color:var(--text);align-items:center;justify-content:center;font-size:16px;cursor:pointer;}
 body.fs .tabs,body.fs .appheader,body.fs .pv-infobar,body.fs .queue-panel{display:none!important;}
 body.fs .art-wrap{width:min(300px,74vw,40vh);height:min(300px,74vw,40vh);margin:70px 0;}
-body.fs .fs-exit{display:flex;}
+.fs-out{display:none;}
+body.fs .fs-in{display:none;}
+body.fs .fs-out{display:inline;}
+body.fs #fsBtn{border-color:var(--accent);color:var(--accent);background:rgba(var(--acc-rgb),.13);}
 </style>
 </head>
 <body>
@@ -551,7 +553,7 @@ body.fs .fs-exit{display:flex;}
 <div class="bg"></div>
 <div id="app">
   <div class="appheader">
-    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.9</span></span>
+    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.12</span></span>
     <span class="appcopy">©sebasmobil &nbsp;<a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" style="color:inherit;font-size:0.8em;opacity:0.75;text-decoration:none;">AGPL v3.0</a></span>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Tema">🌙</button>
   </div>
@@ -612,7 +614,7 @@ body.fs .fs-exit{display:flex;}
       <button class="tool-chip" id="rateBtn" onclick="cycleRate()" title="Çalma hızı">1x</button>
       <button class="tool-chip" id="abBtn" onclick="cycleAB()" title="A-B döngüsü">A–B</button>
       <button class="tool-chip" onclick="openLyrics()" title="Sözler">♪ Sözler</button>
-      <button class="tool-chip" onclick="toggleFS()" title="Tam ekran">⤢ Tam ekran</button>
+      <button class="tool-chip" id="fsBtn" onclick="toggleFS()" title="Tam ekran"><span class="fs-in">⤢ Tam ekran</span><span class="fs-out">✕ Tam ekrandan çık</span></button>
     </div>
     <div class="ctrls">
       <button class="cbtn" id="btnShuffle">
@@ -816,7 +818,6 @@ body.fs .fs-exit{display:flex;}
   </div>
 </div>
 <input type="file" id="lyrFile" accept=".lrc,.txt,text/plain" style="display:none">
-<button class="fs-exit" onclick="toggleFS()" aria-label="Tam ekrandan çık">✕</button>
 <div class="toast" id="toast"></div>
 <input type="file" id="fileInput" accept=".mp3,.m4a,.aac,.wav,.flac,.ogg,.opus" multiple>
 
@@ -850,7 +851,7 @@ aud.addEventListener('error', () => {
 });
 
 // ── VERSİYON & DEPOLAMA ANAHTARLARI
-const APP_VER   = 'Pro 2.9';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
+const APP_VER   = 'Pro 2.12';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
 const STORE_VER = 'Pro 1.7';      // Depolama anahtarı etiketi — SABİT. Değiştirilirse çalma listeleri/ayarlar sıfırlanır
 const DB_NAME   = 'mzk_pro_1_7';  // IndexedDB adı — SABİT. Değiştirilirse şarkılar yeni boş veritabanına düşer
 const DB_VER  = 1;
@@ -1150,7 +1151,7 @@ function loadTrack(idx, play=true){
 
   appPause();
   aud.currentTime=0;
-  _resumeAt=0;_counted=false;abA=abB=null;
+  _resumeAt=0;_counted=false;abA=abB=null;try{abTickStop();}catch{}
   aud.src=t.url;
   aud.load(); // ← Blob URL'nin tarayıcı tarafından kesin tanınması için
 
@@ -1276,7 +1277,7 @@ aud.addEventListener('pause',()=>{
 });
 aud.addEventListener('timeupdate',()=>{
   if(seeking||!aud.duration)return;
-  if(abB!==null&&aud.currentTime>=abB){aud.currentTime=abA;return;}
+  if(abCheck())return;
   const _n=Date.now();if(_n-_posSave>2500){_posSave=_n;savePos();}
   if(!_counted&&aud.currentTime>=Math.min(30,aud.duration*0.5)){_counted=true;countPlay();}
   if(lyrOpen)lyrTick();
@@ -2758,13 +2759,35 @@ function updAB(){
   const mk=(id,v)=>{const el=document.getElementById(id);if(!el)return;if(v===null||!d){el.style.display='none';}else{el.style.display='block';el.style.left=(v/d*100)+'%';}};
   mk('abMarkA',abA);mk('abMarkB',abB);
 }
+// ── A-B döngüsü: arka planda da çalışması için bağımsız sayaç
+// timeupdate arka planda seyrek gelir; Worker sayacı ve görünür olma olayı ek güvence sağlar.
+let _abW=null,_abI=null;
+function abCheck(){
+  if(abA===null||abB===null||!aud.duration)return false;
+  if(aud.paused)return false;
+  if(aud.currentTime>=abB-0.04||aud.currentTime<abA-0.6){aud.currentTime=abA;return true;}
+  return false;
+}
+function abTickStart(){
+  if(_abW||_abI)return;
+  try{
+    const u=URL.createObjectURL(new Blob(['setInterval(function(){postMessage(0)},60)'],{type:'text/javascript'}));
+    _abW=new Worker(u);_abW.onmessage=()=>{if(abB===null)abTickStop();else abCheck();};
+  }catch(e){_abW=null;_abI=setInterval(()=>{if(abB===null)abTickStop();else abCheck();},60);}
+}
+function abTickStop(){
+  if(_abW){try{_abW.terminate();}catch{}_abW=null;}
+  if(_abI){clearInterval(_abI);_abI=null;}
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)abCheck();});
+window.addEventListener('pageshow',()=>abCheck());
 function cycleAB(){
   if(cur<0||!aud.duration){toast('Önce bir şarkı çalın');return;}
   if(abA===null){abA=aud.currentTime;toast('A noktası: '+fmt(abA));}
   else if(abB===null){
     if(aud.currentTime<=abA+0.5){toast('B noktası A\'dan sonra olmalı');return;}
-    abB=aud.currentTime;aud.currentTime=abA;toast('A–B döngüsü açık');
-  }else{abA=abB=null;toast('A–B döngüsü kapalı');}
+    abB=aud.currentTime;aud.currentTime=abA;abTickStart();toast('A–B döngüsü açık');
+  }else{abA=abB=null;abTickStop();toast('A–B döngüsü kapalı');}
   updAB();
 }
 
@@ -3294,6 +3317,30 @@ init().catch(e=>{console.error(e);toastErr('Başlatma hatası: '+e.message);});
       document.querySelector('meta[name=theme-color]').content=t==='dark'?'#0d0d0d':'#f5f5f5';
     };
   }
+})();
+
+// ── Ana ekran (standalone) modunda alt boşluğu kapat
+// iPhone'da bazen sabit alt bar ekranın gerçek altının üstünde kalıyor; farkı ölçüp çubuğu aşağı alıyoruz.
+(function(){
+  const standalone=()=>navigator.standalone===true||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches);
+  let _t=null;
+  function fixTabGap(){
+    const root=document.documentElement,bar=document.querySelector('.tabs');
+    if(!bar)return;
+    if(!standalone()||window.innerWidth>window.innerHeight){root.style.removeProperty('--tabgap');return;}
+    root.style.setProperty('--tabgap','0px');
+    const sh=Math.max(screen.height,screen.width);
+    const gap=Math.round(sh-bar.getBoundingClientRect().bottom);
+    root.style.setProperty('--tabgap',(gap>2&&gap<=140?gap:0)+'px');
+    window.__tabGap=gap;
+  }
+  function sched(){clearTimeout(_t);_t=setTimeout(fixTabGap,120);}
+  window.addEventListener('resize',sched);
+  window.addEventListener('orientationchange',sched);
+  window.addEventListener('pageshow',sched);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)sched();});
+  window.fixTabGap=fixTabGap;
+  fixTabGap();setTimeout(fixTabGap,400);setTimeout(fixTabGap,1500);
 })();
 </script>
 </body>
