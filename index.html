@@ -47,11 +47,11 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="S-MüzikApp">
-<meta name="application-name" content="S-MüzikApp">
+<meta name="apple-mobile-web-app-title" content="S-Müzik">
+<meta name="application-name" content="S-Müzik">
 <link rel="manifest" id="pwaManifest">
 <link rel="apple-touch-icon" id="appleTouchIcon">
-<title>S-MüzikApp</title>
+<title>S-Müzik</title>
 <style>
 /* ── TEMALAR ── */
 :root {
@@ -554,7 +554,7 @@ body.fs #fsBtn{border-color:var(--accent);color:var(--accent);background:rgba(va
 <div class="bg"></div>
 <div id="app">
   <div class="appheader">
-    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.16</span></span>
+    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.17</span></span>
     <span class="appcopy">©sebasmobil &nbsp;<a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" style="color:inherit;font-size:0.8em;opacity:0.75;text-decoration:none;">AGPL v3.0</a></span>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Tema">🌙</button>
   </div>
@@ -868,7 +868,7 @@ aud.addEventListener('error', () => {
 });
 
 // ── VERSİYON & DEPOLAMA ANAHTARLARI
-const APP_VER   = 'Pro 2.16';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
+const APP_VER   = 'Pro 2.17';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
 const STORE_VER = 'Pro 1.7';      // Depolama anahtarı etiketi — SABİT. Değiştirilirse çalma listeleri/ayarlar sıfırlanır
 const DB_NAME   = 'mzk_pro_1_7';  // IndexedDB adı — SABİT. Değiştirilirse şarkılar yeni boş veritabanına düşer
 const DB_VER  = 1;
@@ -3293,8 +3293,8 @@ init().catch(e=>{console.error(e);toastErr('Başlatma hatası: '+e.message);});
     const base=location.origin+location.pathname;
     const manifest={
       id: base,
-      name: 'S-MüzikApp Pro',
-      short_name: 'S-MüzikApp',
+      name: 'S-Müzik',
+      short_name: 'S-Müzik',
       description: 'Yerel müzik çalar — S-MüzikApp Pro',
       start_url: base,
       scope: base.replace(/[^\/]*$/,''),
