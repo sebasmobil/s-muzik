@@ -554,7 +554,7 @@ body.fs #fsBtn{border-color:var(--accent);color:var(--accent);background:rgba(va
 <div class="bg"></div>
 <div id="app">
   <div class="appheader">
-    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.15</span></span>
+    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.16</span></span>
     <span class="appcopy">©sebasmobil &nbsp;<a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" style="color:inherit;font-size:0.8em;opacity:0.75;text-decoration:none;">AGPL v3.0</a></span>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Tema">🌙</button>
   </div>
@@ -868,7 +868,7 @@ aud.addEventListener('error', () => {
 });
 
 // ── VERSİYON & DEPOLAMA ANAHTARLARI
-const APP_VER   = 'Pro 2.15';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
+const APP_VER   = 'Pro 2.16';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
 const STORE_VER = 'Pro 1.7';      // Depolama anahtarı etiketi — SABİT. Değiştirilirse çalma listeleri/ayarlar sıfırlanır
 const DB_NAME   = 'mzk_pro_1_7';  // IndexedDB adı — SABİT. Değiştirilirse şarkılar yeni boş veritabanına düşer
 const DB_VER  = 1;
@@ -3229,30 +3229,31 @@ init().catch(e=>{console.error(e);toastErr('Başlatma hatası: '+e.message);});
   // ── SVG İkon üretici (turuncu nota teması)
   // maskable=true: tam kare zemin + içerik %80'e küçültülür (güvenli alan), işletim sistemi kendi maskesini uygular
   function iconColors(){const th=COLOR_THEMES.find(c=>c.id===curColor)||COLOR_THEMES[0];return th.d;}
-  function makeSVGIcon(size, maskable){
+  // İkon: "Play halkaları". mode: false = 'any' (yuvarlak köşeli), true = maskable (tam kare, içerik %80),
+  // 'apple' = iPhone ana ekranı (tam kare, içerik tam boyut; köşeleri iOS yuvarlar, şeffaf alan bırakılmaz)
+  function makeSVGIcon(size, mode){
     const [ac1,ac2]=iconColors();
-    const rx = maskable ? 0 : size*0.22;
-    const g0 = maskable ? `<g transform="translate(${size*0.1} ${size*0.1}) scale(0.8)">` : '<g>';
+    const maskable=mode===true, apple=mode==='apple';
+    const rx=(maskable||apple)?0:size*0.22;
+    const pad=maskable?size*0.1:0, sc=(size/100)*(maskable?0.8:1);
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-  <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#1c1c1e"/>
-      <stop offset="100%" style="stop-color:#0d0d0d"/>
-    </linearGradient>
-    <linearGradient id="ac" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:${ac1}"/>
-      <stop offset="100%" style="stop-color:${ac2}"/>
-    </linearGradient>
-  </defs>
-  <rect width="${size}" height="${size}" rx="${rx}" fill="url(#bg)"/>
-  ${g0}
-  <ellipse cx="${size*0.38}" cy="${size*0.68}" rx="${size*0.13}" ry="${size*0.09}" fill="url(#ac)"/>
-  <ellipse cx="${size*0.65}" cy="${size*0.60}" rx="${size*0.12}" ry="${size*0.085}" fill="url(#ac)"/>
-  <rect x="${size*0.495}" y="${size*0.28}" width="${size*0.045}" height="${size*0.40}" rx="${size*0.022}" fill="url(#ac)"/>
-  <rect x="${size*0.765}" y="${size*0.20}" width="${size*0.040}" height="${size*0.40}" rx="${size*0.020}" fill="url(#ac)"/>
-  <path d="M${size*0.495} ${size*0.28} Q${size*0.63} ${size*0.175} ${size*0.765} ${size*0.20}" stroke="url(#ac)" stroke-width="${size*0.045}" fill="none" stroke-linecap="round"/>
-  <circle cx="${size*0.28}" cy="${size*0.22}" r="${size*0.06}" fill="rgba(${hexRGB(ac1)},0.18)"/>
-  </g>
+<defs>
+ <radialGradient id="bgr" gradientUnits="userSpaceOnUse" cx="50" cy="36" r="80"><stop offset="0" stop-color="#2b2b30"/><stop offset="1" stop-color="#0c0c0e"/></radialGradient>
+ <radialGradient id="glow" gradientUnits="userSpaceOnUse" cx="50" cy="50" r="48"><stop offset="0" stop-color="${ac2}" stop-opacity=".34"/><stop offset=".6" stop-color="${ac2}" stop-opacity=".08"/><stop offset="1" stop-color="${ac2}" stop-opacity="0"/></radialGradient>
+ <linearGradient id="ac" gradientUnits="userSpaceOnUse" x1="30" y1="28" x2="72" y2="74"><stop offset="0" stop-color="${ac2}"/><stop offset="1" stop-color="${ac1}"/></linearGradient>
+ <linearGradient id="gloss" gradientUnits="userSpaceOnUse" x1="0" y1="28" x2="0" y2="52"><stop offset="0" stop-color="#fff" stop-opacity=".30"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+ <clipPath id="disc"><circle cx="50" cy="50" r="23"/></clipPath>
+</defs>
+<rect width="${size}" height="${size}" rx="${rx}" fill="#0c0c0e"/>
+<g transform="translate(${pad} ${pad}) scale(${sc})">
+ <rect width="100" height="100" fill="url(#bgr)"/>
+ <rect width="100" height="100" fill="url(#glow)"/>
+ <circle cx="50" cy="50" r="41" fill="none" stroke="${ac2}" stroke-opacity=".34" stroke-width="2.4"/>
+ <circle cx="50" cy="50" r="32" fill="none" stroke="${ac2}" stroke-opacity=".66" stroke-width="2.8"/>
+ <circle cx="50" cy="50" r="23" fill="url(#ac)"/>
+ <ellipse cx="50" cy="36" rx="22" ry="14" fill="url(#gloss)" clip-path="url(#disc)"/>
+ <path d="M45 39.5 L45 60.5 L62.5 50 Z" fill="#fff" stroke="#fff" stroke-width="3.6" stroke-linejoin="round"/>
+</g>
 </svg>`;
   }
   function svgToDataURL(svg){ return 'data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(svg))); }
@@ -3284,7 +3285,7 @@ init().catch(e=>{console.error(e);toastErr('Başlatma hatası: '+e.message);});
   let _mUrl=null;
   async function setupPWA(){
     const [apple,a192,a512,m192,m512]=await Promise.all([
-      icon(180,false), icon(192,false), icon(512,false), icon(192,true), icon(512,true)
+      icon(180,'apple'), icon(192,false), icon(512,false), icon(192,true), icon(512,true)
     ]);
     document.getElementById('appleTouchIcon').href=apple.src;
 
