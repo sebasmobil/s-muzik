@@ -60,6 +60,7 @@
   --text:#f5f5f5; --muted:#888; --border:rgba(var(--acc-rgb),.15);
   --shadow:rgba(var(--acc-rgb),.2); --st:env(safe-area-inset-top); --sb:env(safe-area-inset-bottom);
 }
+html.vp-short{--sb:0px;}
 html.light {
   --bg:#f5f5f5; --card:#ffffff; --card2:#eeeeee; --accent:#ea6c00;
   --accent2:#f97316; --acc-rgb:234,108,0; --acc2-rgb:249,115,22; --text:#1a1a1a; --muted:#888; --border:rgba(var(--acc-rgb),.18);
@@ -72,7 +73,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .bg::after{content:'';position:absolute;bottom:-30%;right:-20%;width:80%;height:80%;background:radial-gradient(circle,rgba(var(--acc2-rgb),.07) 0%,transparent 65%);animation:bg2 11s ease-in-out infinite alternate;}
 @keyframes bg1{to{transform:translate(8%,10%) scale(1.1);}}
 @keyframes bg2{to{transform:translate(-8%,-8%) scale(1.12);}}
-#app{position:relative;z-index:1;height:calc(100dvh + var(--tabgap,0px));display:flex;flex-direction:column;padding-top:calc(var(--st) + 10px);padding-bottom:0;}
+#app{position:relative;z-index:1;height:100dvh;display:flex;flex-direction:column;padding-top:calc(var(--st) + 10px);padding-bottom:0;}
 
 /* HEADER */
 .appheader{display:flex;align-items:center;gap:8px;padding:2px 16px 8px;flex-shrink:0;}
@@ -82,7 +83,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .theme-btn{background:var(--card2);border:none;color:var(--text);width:30px;height:30px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
 
 /* TABS — altta sabit */
-.tabs{position:fixed;bottom:calc(-1 * var(--tabgap,0px));left:0;right:0;z-index:50;padding:8px 12px calc(var(--sb) + 8px);background:var(--bg);border-top:1px solid var(--border);box-shadow:0 -4px 20px rgba(0,0,0,.12);}
+.tabs{position:fixed;bottom:0;left:0;right:0;z-index:50;padding:8px 12px calc(var(--sb) + 8px);background:var(--bg);border-top:1px solid var(--border);box-shadow:0 -4px 20px rgba(0,0,0,.12);}
 /* Kalıcı alt boşluk — tab bar yüksekliği + safe area + ekstra güvenlik */
 .tab-spacer{height:calc(var(--sb) + 110px);width:100%;flex-shrink:0;pointer-events:none;}
 .tabs-inner{display:flex;gap:5px;background:var(--card);border-radius:16px;padding:5px;flex:1;border:1px solid var(--border);}
@@ -553,7 +554,7 @@ body.fs #fsBtn{border-color:var(--accent);color:var(--accent);background:rgba(va
 <div class="bg"></div>
 <div id="app">
   <div class="appheader">
-    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.12</span></span>
+    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.13</span></span>
     <span class="appcopy">©sebasmobil &nbsp;<a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" style="color:inherit;font-size:0.8em;opacity:0.75;text-decoration:none;">AGPL v3.0</a></span>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Tema">🌙</button>
   </div>
@@ -780,6 +781,7 @@ body.fs #fsBtn{border-color:var(--accent);color:var(--accent);background:rgba(va
         <button class="stbtn" id="sleepBtn" onclick="toggleSleep()">Başlat</button>
         </div>
       </div>
+      <div id="vpInfo" style="font-size:10px;color:var(--muted);text-align:center;padding:4px 14px 0;line-height:1.5;user-select:text;"></div>
       <div class="tab-spacer"></div>
     </div>
   </div>
@@ -851,7 +853,7 @@ aud.addEventListener('error', () => {
 });
 
 // ── VERSİYON & DEPOLAMA ANAHTARLARI
-const APP_VER   = 'Pro 2.12';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
+const APP_VER   = 'Pro 2.13';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
 const STORE_VER = 'Pro 1.7';      // Depolama anahtarı etiketi — SABİT. Değiştirilirse çalma listeleri/ayarlar sıfırlanır
 const DB_NAME   = 'mzk_pro_1_7';  // IndexedDB adı — SABİT. Değiştirilirse şarkılar yeni boş veritabanına düşer
 const DB_VER  = 1;
@@ -3319,28 +3321,35 @@ init().catch(e=>{console.error(e);toastErr('Başlatma hatası: '+e.message);});
   }
 })();
 
-// ── Ana ekran (standalone) modunda alt boşluğu kapat
-// iPhone'da bazen sabit alt bar ekranın gerçek altının üstünde kalıyor; farkı ölçüp çubuğu aşağı alıyoruz.
+// ── Ana ekran (standalone) modunda çizim alanı ekran yüksekliğinden kısa olabiliyor.
+// Altına hiçbir şey çizilemediği için, güvenli alt boşluğu kapatıp bar'ı çizilebilen alanın dibine yerleştiriyoruz.
 (function(){
   const standalone=()=>navigator.standalone===true||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches);
-  let _t=null;
-  function fixTabGap(){
-    const root=document.documentElement,bar=document.querySelector('.tabs');
-    if(!bar)return;
-    if(!standalone()||window.innerWidth>window.innerHeight){root.style.removeProperty('--tabgap');return;}
-    root.style.setProperty('--tabgap','0px');
-    const sh=Math.max(screen.height,screen.width);
-    const gap=Math.round(sh-bar.getBoundingClientRect().bottom);
-    root.style.setProperty('--tabgap',(gap>2&&gap<=140?gap:0)+'px');
-    window.__tabGap=gap;
+  let _t=null,_probe=null;
+  function inset(side){
+    if(!_probe){_probe=document.createElement('div');_probe.style.cssText='position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);';document.body.appendChild(_probe);}
+    return Math.round(parseFloat(getComputedStyle(_probe)['padding'+side])||0);
   }
-  function sched(){clearTimeout(_t);_t=setTimeout(fixTabGap,120);}
+  function vpFix(){
+    const root=document.documentElement;
+    const portrait=window.innerHeight>=window.innerWidth;
+    const diff=Math.round(Math.max(screen.height,screen.width)-window.innerHeight);
+    const short=standalone()&&portrait&&diff>2&&diff<=140;
+    root.classList.toggle('vp-short',short);
+    window.__vp={inner:window.innerHeight,screenH:Math.max(screen.height,screen.width),diff,short};
+    const el=document.getElementById('vpInfo');
+    if(el){
+      const vv=window.visualViewport?Math.round(window.visualViewport.height):'-';
+      el.textContent='Ekran '+screen.width+'×'+Math.max(screen.height,screen.width)+' · alan '+window.innerWidth+'×'+window.innerHeight+' · görünür '+vv+' · üst '+inset('Top')+' · alt '+inset('Bottom')+' · fark '+diff+(short?' · kısa mod':'')+(standalone()?' · ana ekran':' · tarayıcı');
+    }
+  }
+  function sched(){clearTimeout(_t);_t=setTimeout(vpFix,120);}
   window.addEventListener('resize',sched);
   window.addEventListener('orientationchange',sched);
   window.addEventListener('pageshow',sched);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)sched();});
-  window.fixTabGap=fixTabGap;
-  fixTabGap();setTimeout(fixTabGap,400);setTimeout(fixTabGap,1500);
+  window.vpFix=vpFix;
+  vpFix();setTimeout(vpFix,400);setTimeout(vpFix,1500);
 })();
 </script>
 </body>
