@@ -554,7 +554,7 @@ body.fs #fsBtn{border-color:var(--accent);color:var(--accent);background:rgba(va
 <div class="bg"></div>
 <div id="app">
   <div class="appheader">
-    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.13</span></span>
+    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.14</span></span>
     <span class="appcopy">©sebasmobil &nbsp;<a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" style="color:inherit;font-size:0.8em;opacity:0.75;text-decoration:none;">AGPL v3.0</a></span>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Tema">🌙</button>
   </div>
@@ -781,6 +781,21 @@ body.fs #fsBtn{border-color:var(--accent);color:var(--accent);background:rgba(va
         <button class="stbtn" id="sleepBtn" onclick="toggleSleep()">Başlat</button>
         </div>
       </div>
+      <div class="stcard fold" id="foldLog">
+        <button class="fold-head" onclick="toggleFold('foldLog')" aria-expanded="false">
+          <span class="stcard-title" style="margin:0;flex:1"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v2H3zm0 6h18v2H3zm0 6h12v2H3z"/></svg>Teşhis kaydı</span>
+          <svg class="fold-chev" viewBox="0 0 24 24" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>
+        </button>
+        <div class="fold-body">
+          <div class="stcard-sub" style="padding-left:0">Çalma durduğunda burayı açıp kaydı kopyalayın ve gönderin. Uygulama baştan açıldıysa "AÇILDI" satırı görünür.</div>
+          <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+            <button class="tool-chip" onclick="logCopy()">Kopyala</button>
+            <button class="tool-chip" onclick="logRender()">Yenile</button>
+            <button class="tool-chip" onclick="logClear()">Temizle</button>
+          </div>
+          <pre id="logBox" style="font-size:10px;line-height:1.45;white-space:pre-wrap;word-break:break-word;max-height:300px;overflow:auto;user-select:text;-webkit-user-select:text;color:var(--text);background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:8px;font-family:ui-monospace,Menlo,monospace;"></pre>
+        </div>
+      </div>
       <div id="vpInfo" style="font-size:10px;color:var(--muted);text-align:center;padding:4px 14px 0;line-height:1.5;user-select:text;"></div>
       <div class="tab-spacer"></div>
     </div>
@@ -853,7 +868,7 @@ aud.addEventListener('error', () => {
 });
 
 // ── VERSİYON & DEPOLAMA ANAHTARLARI
-const APP_VER   = 'Pro 2.13';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
+const APP_VER   = 'Pro 2.14';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
 const STORE_VER = 'Pro 1.7';      // Depolama anahtarı etiketi — SABİT. Değiştirilirse çalma listeleri/ayarlar sıfırlanır
 const DB_NAME   = 'mzk_pro_1_7';  // IndexedDB adı — SABİT. Değiştirilirse şarkılar yeni boş veritabanına düşer
 const DB_VER  = 1;
@@ -3350,6 +3365,74 @@ init().catch(e=>{console.error(e);toastErr('Başlatma hatası: '+e.message);});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)sched();});
   window.vpFix=vpFix;
   vpFix();setTimeout(vpFix,400);setTimeout(vpFix,1500);
+})();
+
+// ── Teşhis kaydı: çalma neden duruyor? (localStorage'da halka tampon)
+(function(){
+  const KEY='smzk_log',MAX=140;
+  let L=[];try{L=JSON.parse(localStorage.getItem(KEY)||'[]')||[];}catch{L=[];}
+  const pad=n=>String(n).padStart(2,'0');
+  const hms=d=>pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
+  const stState=()=>'dur='+(aud.paused?'evet':'hayır')+' pos='+(aud.currentTime||0).toFixed(1)+'/'+(isFinite(aud.duration)?aud.duration.toFixed(1):'?')+' rs='+aud.readyState+' ns='+aud.networkState;
+  window.logRender=function(){
+    const b=document.getElementById('logBox');if(!b)return;
+    b.textContent=L.length?L.join('\n'):'(kayıt yok)';b.scrollTop=b.scrollHeight;
+  };
+  function dlog(m){
+    L.push(hms(new Date())+'  '+m);if(L.length>MAX)L=L.slice(-MAX);
+    try{localStorage.setItem(KEY,JSON.stringify(L));}catch{}
+    const b=document.getElementById('logBox');if(b)window.logRender();
+  }
+  window.dlog=dlog;
+  window.logClear=function(){L=[];try{localStorage.removeItem(KEY);}catch{}window.logRender();};
+  window.logCopy=function(){
+    const t=L.join('\n');
+    const done=()=>toast('Kayıt kopyalandı');
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done).catch(()=>{});
+    else{const b=document.getElementById('logBox');if(b){const r=document.createRange();r.selectNodeContents(b);const sel=getSelection();sel.removeAllRanges();sel.addRange(r);}}
+  };
+
+  // Açılış: önceki oturumdan ne kaldı?
+  let prevHb=null,prevVis=null,prevTrack=null;
+  try{prevHb=+localStorage.getItem('smzk_hb')||null;prevVis=localStorage.getItem('smzk_vis');prevTrack=localStorage.getItem('smzk_ptrack');}catch{}
+  const sa=navigator.standalone===true||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches);
+  dlog('══ AÇILDI ('+APP_VER+', '+(sa?'ana ekran':'tarayıcı')+') · önceki oturum son canlılık: '+(prevHb?hms(new Date(prevHb))+' ('+(prevVis||'?')+', '+(prevTrack||'-')+')':'yok'));
+  setTimeout(()=>{
+    let m='kütüphane: '+tracks.length+' şarkı';
+    try{if(navigator.storage&&navigator.storage.estimate)navigator.storage.estimate().then(e=>dlog(m+' · depolama '+Math.round((e.usage||0)/1048576)+' MB / '+Math.round((e.quota||0)/1048576)+' MB'));else dlog(m);}catch{dlog(m);}
+  },2500);
+
+  // Canlılık işareti
+  const trk=()=>{const t=cur>=0&&tracks[cur]?tracks[cur].name:'-';return t.slice(0,24)+' @'+(aud.currentTime||0).toFixed(0)+'s';};
+  setInterval(()=>{try{localStorage.setItem('smzk_hb',String(Date.now()));localStorage.setItem('smzk_ptrack',trk());}catch{}},4000);
+  setInterval(()=>{if(!aud.paused)dlog('çalıyor · '+trk()+' · rs='+aud.readyState+' ns='+aud.networkState);},45000);
+
+  // Ses olayları
+  aud.addEventListener('play',()=>dlog('▶ play · '+trk()));
+  aud.addEventListener('pause',()=>dlog('⏸ pause · '+(aud.ended?'şarkı sonu':(_interrupted?'SİSTEM KESİNTİSİ':'uygulama/kullanıcı'))+' · '+stState()));
+  aud.addEventListener('ended',()=>{
+    dlog('⏹ ended · '+trk());
+    setTimeout(()=>dlog('  geçiş +3sn → '+trk()+' · '+stState()),3000);
+  });
+  aud.addEventListener('loadedmetadata',()=>dlog('yüklendi · '+(cur>=0&&tracks[cur]?tracks[cur].name:'-')+' · süre '+(isFinite(aud.duration)?aud.duration.toFixed(0):'?')+'s'));
+  ['error','stalled','waiting','emptied','abort'].forEach(ev=>aud.addEventListener(ev,()=>{
+    dlog('! '+ev+(ev==='error'&&aud.error?' kod='+aud.error.code+' '+(aud.error.message||''):'')+' · '+stState());
+  }));
+  // play() reddedilmeleri
+  try{
+    const _p=aud.play.bind(aud);
+    aud.play=function(){const r=_p();if(r&&r.catch)r.catch(e=>dlog('! play() reddedildi: '+(e&&e.name)+' '+(e&&e.message)));return r;};
+  }catch{}
+  // Sayfa yaşam döngüsü
+  document.addEventListener('visibilitychange',()=>{try{localStorage.setItem('smzk_vis',document.hidden?'gizli':'görünür');}catch{}dlog('sayfa '+(document.hidden?'GİZLENDİ':'görünür')+' · '+stState());});
+  window.addEventListener('pagehide',e=>dlog('pagehide'+(e.persisted?' (önbelleğe)':'')));
+  window.addEventListener('pageshow',e=>dlog('pageshow'+(e.persisted?' (önbellekten)':'')));
+  document.addEventListener('freeze',()=>dlog('FREEZE (sayfa donduruldu)'));
+  document.addEventListener('resume',()=>dlog('resume (sayfa çözüldü)'));
+  // Kod hataları
+  window.addEventListener('error',e=>dlog('! JS hata: '+(e.message||'?')+' @'+(e.lineno||'?')));
+  window.addEventListener('unhandledrejection',e=>dlog('! söz reddi: '+(e.reason&&(e.reason.message||e.reason.name)||String(e.reason)).toString().slice(0,120)));
+  window.logRender();
 })();
 </script>
 </body>
