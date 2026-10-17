@@ -449,18 +449,16 @@ html.light .color-sw.on .color-dot{box-shadow:0 0 0 2px var(--card),0 0 0 4px va
 .sw i{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.3);}
 .sw.on{background:var(--accent);}
 .sw.on i{transform:translateX(18px);}
-.lyr-body{position:relative;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:6px 18px 14px;text-align:center;max-height:52vh;}
-.lyr-line{font-size:16px;line-height:1.75;color:var(--muted);transition:color .2s,transform .2s;}
-.lyr-line.cur{color:var(--accent);font-weight:700;transform:scale(1.04);}
-.lyr-empty{padding:26px 10px;color:var(--muted);font-size:13px;line-height:1.6;}
 .pl-drag{width:22px;height:30px;display:flex;align-items:center;justify-content:center;color:var(--muted);touch-action:none;cursor:grab;flex-shrink:0;font-size:17px;}
 .pl-track{transition:background .12s,transform .15s;}
 .pl-track.dragging{transition:none;position:relative;z-index:5;background:var(--card2);box-shadow:0 6px 18px rgba(0,0,0,.35);}
 body.fs .tabs,body.fs .appheader,body.fs .pv-infobar,body.fs .queue-panel{display:none!important;}
 body.fs .art-wrap{width:min(300px,74vw,40vh);height:min(300px,74vw,40vh);margin:70px 0;}
+.fs-in,.fs-out{display:inline-flex;align-items:center;}
+#fsBtn svg{width:17px;height:17px;}
 .fs-out{display:none;}
 body.fs .fs-in{display:none;}
-body.fs .fs-out{display:inline;}
+body.fs .fs-out{display:inline-flex;}
 body.fs #fsBtn{border-color:var(--accent);color:var(--accent);background:rgba(var(--acc-rgb),.13);}
 </style>
 </head>
@@ -554,7 +552,7 @@ body.fs #fsBtn{border-color:var(--accent);color:var(--accent);background:rgba(va
 <div class="bg"></div>
 <div id="app">
   <div class="appheader">
-    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.17</span></span>
+    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.19</span></span>
     <span class="appcopy">©sebasmobil &nbsp;<a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" style="color:inherit;font-size:0.8em;opacity:0.75;text-decoration:none;">AGPL v3.0</a></span>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Tema">🌙</button>
   </div>
@@ -614,8 +612,7 @@ body.fs #fsBtn{border-color:var(--accent);color:var(--accent);background:rgba(va
     <div class="pv-tools">
       <button class="tool-chip" id="rateBtn" onclick="cycleRate()" title="Çalma hızı">1x</button>
       <button class="tool-chip" id="abBtn" onclick="cycleAB()" title="A-B döngüsü">A–B</button>
-      <button class="tool-chip" onclick="openLyrics()" title="Sözler">♪ Sözler</button>
-      <button class="tool-chip" id="fsBtn" onclick="toggleFS()" title="Tam ekran"><span class="fs-in">⤢ Tam ekran</span><span class="fs-out">✕ Tam ekrandan çık</span></button>
+      <button class="tool-chip" id="fsBtn" onclick="toggleFS()" title="Tam ekran / Tam ekrandan çık" aria-label="Tam ekran"><span class="fs-in"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg></span><span class="fs-out"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg></span></button>
     </div>
     <div class="ctrls">
       <button class="cbtn" id="btnShuffle">
@@ -820,21 +817,6 @@ body.fs #fsBtn{border-color:var(--accent);color:var(--accent);background:rgba(va
   </div>
 </div>
 
-<div class="add-sheet" id="lyricsSheet" style="display:none">
-  <div class="add-bg" onclick="closeLyrics()"></div>
-  <div class="add-box" style="max-height:78vh;">
-    <div class="add-hdr">
-      <span class="add-title" id="lyrTitle">Sözler</span>
-      <button class="add-close" onclick="closeLyrics()" aria-label="Kapat"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
-    </div>
-    <div class="lyr-body" id="lyrBody"></div>
-    <div class="tp-footer">
-      <button class="lbtn" onclick="document.getElementById('lyrFile').click()">Söz dosyası yükle (.lrc / .txt)</button>
-      <button class="lbtn danger" onclick="lyrDelete()">Sil</button>
-    </div>
-  </div>
-</div>
-<input type="file" id="lyrFile" accept=".lrc,.txt,text/plain" style="display:none">
 <div class="toast" id="toast"></div>
 <input type="file" id="fileInput" accept=".mp3,.m4a,.aac,.wav,.flac,.ogg,.opus" multiple>
 
@@ -854,7 +836,6 @@ let userQueue=[], uqBase=null;            // "Sıraya ekle" kuyruğu (şarkı id
 let abA=null, abB=null;                   // A-B döngüsü
 let favSet=new Set(), plays={};           // favoriler ve çalma sayıları
 let stopAfter=false, sleepFade=true, _fading=false;
-let lyr=undefined, lyrIdx=-1, lyrOpen=false;
 let sortMode=localStorage.getItem('smzk_sort')||'added', favOnly=false;
 let animAuto=localStorage.getItem('smzk_animauto')==='1';
 let _resumeAt=0, _posSave=0, _counted=false;
@@ -868,7 +849,7 @@ aud.addEventListener('error', () => {
 });
 
 // ── VERSİYON & DEPOLAMA ANAHTARLARI
-const APP_VER   = 'Pro 2.17';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
+const APP_VER   = 'Pro 2.19';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
 const STORE_VER = 'Pro 1.7';      // Depolama anahtarı etiketi — SABİT. Değiştirilirse çalma listeleri/ayarlar sıfırlanır
 const DB_NAME   = 'mzk_pro_1_7';  // IndexedDB adı — SABİT. Değiştirilirse şarkılar yeni boş veritabanına düşer
 const DB_VER  = 1;
@@ -1195,7 +1176,7 @@ function loadTrack(idx, play=true){
     },80);
   }
 
-  applyRate();updAB();lyrOnTrack();if(animAuto)autoAnimFor(t);
+  applyRate();updAB();if(animAuto)autoAnimFor(t);
   updPlayer(); renderLib(); updMS(); updDiscArt();
 }
 function togglePlay(){
@@ -1297,7 +1278,6 @@ aud.addEventListener('timeupdate',()=>{
   if(abCheck())return;
   const _n=Date.now();if(_n-_posSave>2500){_posSave=_n;savePos();}
   if(!_counted&&aud.currentTime>=Math.min(30,aud.duration*0.5)){_counted=true;countPlay();}
-  if(lyrOpen)lyrTick();
   const p=aud.currentTime/aud.duration*100;
   document.getElementById('progFill').style.width=p+'%';
   document.getElementById('progThumb').style.left=p+'%';
@@ -1602,7 +1582,7 @@ async function removeTracks(idxs){
     ps('ci',cur);
     // Çalma listelerinden temizle
     playlists.forEach(pl=>{pl.trackIds=pl.trackIds.filter(id=>!removedIds.has(id));});
-    removedIds.forEach(id=>{favSet.delete(id);delete plays[id];thumbCache.delete(id);pd('lrc_'+id);});
+    removedIds.forEach(id=>{favSet.delete(id);delete plays[id];thumbCache.delete(id);});
     saveFav();savePlays();userQueue=userQueue.filter(id=>!removedIds.has(id));uqBase=null;syncAutoLists(false);
     savePlaylists();
     // Kuyruğu id'lerden yeniden kur
@@ -3020,113 +3000,6 @@ async function thumbPump(){
   }
   thumbRun=false;
 }
-
-// ── Şarkı sözleri (.lrc / .txt yükleme veya ID3 USLT)
-function decodeID3(bytes,enc){
-  try{
-    if(enc===1){
-      if(bytes[0]===0xFE&&bytes[1]===0xFF)return new TextDecoder('utf-16be').decode(bytes.subarray(2));
-      if(bytes[0]===0xFF&&bytes[1]===0xFE)return new TextDecoder('utf-16le').decode(bytes.subarray(2));
-      return new TextDecoder('utf-16le').decode(bytes);
-    }
-    if(enc===2)return new TextDecoder('utf-16be').decode(bytes);
-    try{return new TextDecoder('utf-8',{fatal:true}).decode(bytes);}
-    catch{return new TextDecoder('windows-1254').decode(bytes);}
-  }catch{return'';}
-}
-function readID3Lyrics(buf){
-  try{
-    const v=new DataView(buf);
-    if(v.getUint8(0)!==0x49||v.getUint8(1)!==0x44||v.getUint8(2)!==0x33)return null;
-    const ver=v.getUint8(3);
-    const tagSize=(v.getUint8(6)&0x7f)<<21|(v.getUint8(7)&0x7f)<<14|(v.getUint8(8)&0x7f)<<7|(v.getUint8(9)&0x7f);
-    let i=10;
-    while(i<tagSize+10&&i+10<buf.byteLength){
-      const fid=String.fromCharCode(v.getUint8(i),v.getUint8(i+1),v.getUint8(i+2),v.getUint8(i+3));
-      const fsize=ver>=4?(v.getUint8(i+4)&0x7f)<<21|(v.getUint8(i+5)&0x7f)<<14|(v.getUint8(i+6)&0x7f)<<7|(v.getUint8(i+7)&0x7f):(v.getUint8(i+4)<<24|v.getUint8(i+5)<<16|v.getUint8(i+6)<<8|v.getUint8(i+7));
-      if(fsize<=0||fid==='\x00\x00\x00\x00')break;
-      if(fid==='USLT'&&fsize>5){
-        const enc=v.getUint8(i+10),bytes=new Uint8Array(buf,i+14,fsize-4);
-        let p=0;
-        if(enc===1||enc===2){while(p+1<bytes.length&&!(bytes[p]===0&&bytes[p+1]===0))p+=2;p+=2;}
-        else{while(p<bytes.length&&bytes[p]!==0)p++;p+=1;}
-        return decodeID3(bytes.subarray(p),enc).replace(/\x00/g,'').trim()||null;
-      }
-      i+=10+fsize;
-    }
-  }catch(e){}
-  return null;
-}
-function parseLyrics(raw){
-  const re=/\[(\d{1,3}):(\d{2})(?:[.:](\d{1,3}))?\]/g,lines=[];let timed=0;
-  String(raw).split(/\r?\n/).forEach(ln=>{
-    const ts=[];let m;re.lastIndex=0;
-    while((m=re.exec(ln))){ts.push(+m[1]*60+ +m[2]+(m[3]?+('0.'+m[3]):0));}
-    const text=ln.replace(re,'').trim();
-    if(ts.length){timed++;ts.forEach(t=>lines.push({t,text}));}
-    else if(!/^\[[a-z]+:/i.test(ln.trim()))lines.push({t:-1,text:ln.trim()});
-  });
-  if(timed){return{synced:true,lines:lines.filter(l=>l.t>=0).sort((a,b)=>a.t-b.t)};}
-  return{synced:false,lines};
-}
-function lyrOnTrack(){lyr=undefined;lyrIdx=-1;if(lyrOpen)fetchLyrics();}
-async function fetchLyrics(){
-  const t=cur>=0?tracks[cur]:null;
-  if(!t){lyr=null;renderLyrics();return;}
-  const id=t.id;lyr=undefined;lyrIdx=-1;renderLyrics();
-  let raw=await pg('lrc_'+id);
-  if(raw==='NONE')raw=null;
-  else if(!raw){
-    raw=await new Promise(ok=>{
-      try{
-        const r=db.transaction('tracks','readonly').objectStore('tracks').get(id);
-        r.onsuccess=()=>{const row=r.result;ok(row&&row.blob?readID3Lyrics(row.blob):null);};
-        r.onerror=()=>ok(null);
-      }catch{ok(null);}
-    });
-  }
-  if(cur<0||!tracks[cur]||tracks[cur].id!==id)return;
-  lyr=raw?parseLyrics(raw):null;lyrIdx=-1;renderLyrics();
-}
-function renderLyrics(){
-  const body=document.getElementById('lyrBody');if(!body)return;
-  const t=cur>=0?tracks[cur]:null;
-  document.getElementById('lyrTitle').textContent=t?('♪ '+t.name):'Sözler';
-  if(lyr===undefined){body.innerHTML='<div class="lyr-empty">Yükleniyor…</div>';return;}
-  if(!lyr||!lyr.lines.length){body.innerHTML='<div class="lyr-empty">Bu şarkı için söz bulunamadı.<br>Aşağıdan bir <b>.lrc</b> (zaman damgalı) ya da <b>.txt</b> dosyası yükleyebilirsiniz.</div>';return;}
-  body.innerHTML=lyr.lines.map((l,k)=>'<div class="lyr-line" data-i="'+k+'"'+(lyr.synced?' onclick="aud.currentTime='+l.t+'"':'')+'>'+(esc(l.text)||'&nbsp;')+'</div>').join('');
-  if(lyr.synced)lyrTick();
-}
-function lyrTick(){
-  if(!lyr||!lyr.synced)return;
-  const tm=aud.currentTime+0.2;let k=-1;
-  for(let i=0;i<lyr.lines.length;i++){if(lyr.lines[i].t<=tm)k=i;else break;}
-  if(k===lyrIdx)return;lyrIdx=k;
-  const body=document.getElementById('lyrBody');
-  body.querySelectorAll('.lyr-line.cur').forEach(e=>e.classList.remove('cur'));
-  const el=body.querySelector('[data-i="'+k+'"]');
-  if(el){el.classList.add('cur');body.scrollTo({top:el.offsetTop-body.clientHeight/2+el.clientHeight/2,behavior:'smooth'});}
-}
-function openLyrics(){
-  if(cur<0){toast('Önce bir şarkı seçin');return;}
-  lyrOpen=true;document.getElementById('lyricsSheet').style.display='flex';fetchLyrics();
-}
-function closeLyrics(){lyrOpen=false;document.getElementById('lyricsSheet').style.display='none';}
-function lyrDelete(){
-  if(cur<0||!tracks[cur])return;
-  ps('lrc_'+tracks[cur].id,'NONE');lyr=null;renderLyrics();toast('Sözler silindi');
-}
-document.getElementById('lyrFile').addEventListener('change',async e=>{
-  const f=e.target.files[0];e.target.value='';
-  if(!f||cur<0||!tracks[cur])return;
-  try{
-    const u8=new Uint8Array(await f.arrayBuffer());let txt;
-    try{txt=new TextDecoder('utf-8',{fatal:true}).decode(u8);}catch{txt=new TextDecoder('windows-1254').decode(u8);}
-    txt=txt.replace(/^﻿/,'');
-    if(!txt.trim()){toastErr('Dosya boş');return;}
-    ps('lrc_'+tracks[cur].id,txt);lyr=parseLyrics(txt);lyrIdx=-1;renderLyrics();toast('Sözler kaydedildi');
-  }catch{toastErr('Dosya okunamadı');}
-});
 
 // ── Tam ekran çalar
 function toggleFS(){
