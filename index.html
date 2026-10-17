@@ -72,7 +72,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .bg::after{content:'';position:absolute;bottom:-30%;right:-20%;width:80%;height:80%;background:radial-gradient(circle,rgba(var(--acc2-rgb),.07) 0%,transparent 65%);animation:bg2 11s ease-in-out infinite alternate;}
 @keyframes bg1{to{transform:translate(8%,10%) scale(1.1);}}
 @keyframes bg2{to{transform:translate(-8%,-8%) scale(1.12);}}
-#app{position:relative;z-index:1;height:100dvh;display:flex;flex-direction:column;padding-top:calc(var(--st)+10px);padding-bottom:0;}
+#app{position:relative;z-index:1;height:100dvh;display:flex;flex-direction:column;padding-top:calc(var(--st) + 10px);padding-bottom:0;}
 
 /* HEADER */
 .appheader{display:flex;align-items:center;gap:8px;padding:2px 16px 8px;flex-shrink:0;}
@@ -280,7 +280,7 @@ html.light .disc .center{background:#222;}
 .pl-act svg{width:16px;height:16px;}
 
 /* PLAYLİST PANEL */
-.pl-panel{position:fixed;inset:0;background:var(--bg);z-index:150;display:flex;flex-direction:column;padding-top:calc(var(--st)+10px);padding-bottom:var(--sb);transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);pointer-events:none;}
+.pl-panel{position:fixed;inset:0;background:var(--bg);z-index:150;display:flex;flex-direction:column;padding-top:calc(var(--st) + 10px);padding-bottom:var(--sb);transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);pointer-events:none;}
 .pl-panel.open{transform:translateX(0);pointer-events:all;}
 .pl-panel-hdr{display:flex;align-items:center;gap:10px;padding:0 14px 10px;flex-shrink:0;}
 .pl-back{background:none;border:none;color:var(--accent);cursor:pointer;padding:6px;border-radius:10px;display:flex;}
@@ -306,7 +306,7 @@ html.light .disc .center{background:#222;}
 .pl-tremove svg{width:14px;height:14px;}
 
 /* ŞARKIYA EKLE SHEET */
-.add-sheet{position:fixed;inset:0;z-index:250;display:flex;align-items:flex-end;justify-content:center;padding-bottom:calc(var(--sb)+8px);}
+.add-sheet{position:fixed;inset:0;z-index:250;display:flex;align-items:flex-end;justify-content:center;padding-bottom:calc(var(--sb) + 8px);}
 .add-bg{position:absolute;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);}
 .add-box{position:relative;background:var(--card);border-radius:20px 20px 16px 16px;width:100%;max-width:440px;max-height:70vh;display:flex;flex-direction:column;border:1px solid var(--border);}
 .add-hdr{padding:14px 14px 8px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
@@ -406,12 +406,12 @@ html.light .color-sw.on .color-dot{box-shadow:0 0 0 2px var(--card),0 0 0 4px va
 .color-sw:active .color-dot{transform:scale(.9);}
 
 /* TOAST */
-.toast{position:fixed;bottom:calc(var(--sb)+75px);left:50%;transform:translateX(-50%) translateY(14px);background:rgba(28,28,30,.95);backdrop-filter:blur(20px);color:var(--text);padding:8px 14px;border-radius:11px;font-size:12px;font-weight:500;pointer-events:none;opacity:0;transition:all .22s;z-index:300;white-space:nowrap;border:1px solid var(--border);}
+.toast{position:fixed;bottom:calc(var(--sb) + 75px);left:50%;transform:translateX(-50%) translateY(14px);background:rgba(28,28,30,.95);backdrop-filter:blur(20px);color:var(--text);padding:8px 14px;border-radius:11px;font-size:12px;font-weight:500;pointer-events:none;opacity:0;transition:all .22s;z-index:300;white-space:nowrap;border:1px solid var(--border);}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .toast.err{background:rgba(239,68,68,.95);border-color:rgba(239,68,68,.3);color:#fff;}
 
 /* SETUP */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(20px);z-index:200;display:flex;align-items:flex-end;justify-content:center;padding:0 0 calc(var(--sb)+12px);}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(20px);z-index:200;display:flex;align-items:flex-end;justify-content:center;padding:0 0 calc(var(--sb) + 12px);}
 .sheet{background:var(--card);border-radius:22px 22px 18px 18px;padding:20px 20px 0;width:100%;max-width:420px;border:1px solid var(--border);max-height:calc(100dvh - var(--st) - 24px);display:flex;flex-direction:column;}
 .sheet-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:16px;}
 .sheet-scroll::-webkit-scrollbar{display:none;}
@@ -551,7 +551,7 @@ body.fs .fs-exit{display:flex;}
 <div class="bg"></div>
 <div id="app">
   <div class="appheader">
-    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.8</span></span>
+    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.9</span></span>
     <span class="appcopy">©sebasmobil &nbsp;<a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" style="color:inherit;font-size:0.8em;opacity:0.75;text-decoration:none;">AGPL v3.0</a></span>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Tema">🌙</button>
   </div>
@@ -850,7 +850,7 @@ aud.addEventListener('error', () => {
 });
 
 // ── VERSİYON & DEPOLAMA ANAHTARLARI
-const APP_VER   = 'Pro 2.8';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
+const APP_VER   = 'Pro 2.9';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
 const STORE_VER = 'Pro 1.7';      // Depolama anahtarı etiketi — SABİT. Değiştirilirse çalma listeleri/ayarlar sıfırlanır
 const DB_NAME   = 'mzk_pro_1_7';  // IndexedDB adı — SABİT. Değiştirilirse şarkılar yeni boş veritabanına düşer
 const DB_VER  = 1;
