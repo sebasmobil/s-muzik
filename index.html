@@ -460,6 +460,27 @@ body.fs .art-wrap{width:min(300px,74vw,40vh);height:min(300px,74vw,40vh);margin:
 body.fs .fs-in{display:none;}
 body.fs .fs-out{display:inline-flex;}
 body.fs #fsBtn{border-color:var(--accent);color:var(--accent);background:rgba(var(--acc-rgb),.13);}
+
+/* ── v2.20 ── */
+.stbar{height:8px;background:rgba(128,128,128,.2);border-radius:4px;overflow:hidden;margin:6px 0 4px;}
+.stbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:4px;transition:width .4s;}
+.st-note{font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:10px;}
+.st-btns{display:flex;gap:8px;margin-top:10px;}
+.st-btns .stbtn{flex:1;}
+.stbtn.alt{background:var(--card2);color:var(--accent);border:1px solid var(--border);}
+.stbtn:disabled{opacity:.5;}
+.seg{display:flex;background:var(--card2);border-radius:10px;padding:3px;gap:3px;margin-bottom:12px;}
+.seg button{flex:1;border:none;background:none;color:var(--muted);font-size:12px;font-weight:700;padding:7px;border-radius:8px;cursor:pointer;font-family:inherit;}
+.seg button.on{background:var(--accent);color:#fff;}
+.seg button:disabled{opacity:.55;}
+.sleep-custom input[type=time]{width:112px;}
+.ed-in{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px;color:var(--text);font-size:16px;font-family:inherit;outline:none;user-select:text;-webkit-user-select:text;}
+.ed-in:focus{border-color:var(--accent);}
+.ed-lbl{font-size:11px;color:var(--muted);margin:10px 0 4px;}
+.ed-body{padding:2px 16px 4px;}
+.ed-foot{display:flex;gap:8px;padding:12px 16px 16px;}
+.ed-foot .stbtn{flex:1;}
+body.dragover::after{content:'Şarkıları bırakın';position:fixed;inset:12px;border:2px dashed var(--accent);border-radius:18px;background:rgba(var(--acc-rgb),.08);display:flex;align-items:center;justify-content:center;color:var(--accent);font-weight:700;font-size:16px;z-index:300;pointer-events:none;}
 </style>
 </head>
 <body>
@@ -537,6 +558,25 @@ body.fs #fsBtn{border-color:var(--accent);color:var(--accent);background:rgba(va
     <div class="add-list" id="addList"></div>
   </div>
 </div>
+<div class="add-sheet" id="editSheet" style="display:none">
+  <div class="add-bg" onclick="closeEdit()"></div>
+  <div class="add-box">
+    <div class="add-hdr">
+      <span class="add-title">Şarkı bilgileri</span>
+      <button class="add-close" onclick="closeEdit()" aria-label="Kapat"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+    </div>
+    <div class="ed-body">
+      <div class="ed-lbl">Şarkı adı</div>
+      <input class="ed-in" id="edName" maxlength="200" autocomplete="off">
+      <div class="ed-lbl">Sanatçı</div>
+      <input class="ed-in" id="edArtist" maxlength="200" autocomplete="off" placeholder="Bilinmeyen sanatçı">
+    </div>
+    <div class="ed-foot">
+      <button class="stbtn alt" onclick="closeEdit()">Vazgeç</button>
+      <button class="stbtn" onclick="saveEdit()">Kaydet</button>
+    </div>
+  </div>
+</div>
 
 <div class="add-sheet" id="fxSheet" style="display:none">
   <div class="add-bg" onclick="closeFxSheet()"></div>
@@ -552,7 +592,7 @@ body.fs #fsBtn{border-color:var(--accent);color:var(--accent);background:rgba(va
 <div class="bg"></div>
 <div id="app">
   <div class="appheader">
-    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.19</span></span>
+    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.20</span></span>
     <span class="appcopy">©sebasmobil &nbsp;<a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" style="color:inherit;font-size:0.8em;opacity:0.75;text-decoration:none;">AGPL v3.0</a></span>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Tema">🌙</button>
   </div>
@@ -703,9 +743,11 @@ body.fs #fsBtn{border-color:var(--accent);color:var(--accent);background:rgba(va
         <div class="fold-body">
           <div class="fold-lbl">Tema</div>
           <div class="theme-toggle">
-            <button class="t-opt on" id="tDark" onclick="setTheme('dark')">🌙 Koyu</button>
-            <button class="t-opt" id="tLight" onclick="setTheme('light')">☀️ Açık</button>
+            <button class="t-opt on" id="tDark" onclick="themeManual('dark')">🌙 Koyu</button>
+            <button class="t-opt" id="tLight" onclick="themeManual('light')">☀️ Açık</button>
           </div>
+          <div class="strow" style="margin-top:12px"><span class="stlabel">Telefonun temasını izle</span><button class="sw" id="swThemeAuto" onclick="toggleThemeAuto()" aria-label="Telefonun temasını izle"><i></i></button></div>
+          <div class="st-note" style="margin:-2px 0 0">Açıkken telefon açık/koyu değişince uygulama da kendiliğinden değişir.</div>
           <div class="fold-lbl" style="margin-top:14px">Renk Teması</div>
           <div class="color-grid" id="colorGrid"></div>
         </div>
@@ -756,6 +798,8 @@ body.fs #fsBtn{border-color:var(--accent);color:var(--accent);background:rgba(va
           <svg class="fold-chev" viewBox="0 0 24 24" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>
         </button>
         <div class="fold-body">
+        <div class="seg" id="sleepSeg"><button id="slModeDur" class="on" onclick="setSleepMode('dur')">Süre</button><button id="slModeClk" onclick="setSleepMode('clock')">Saat</button></div>
+        <div id="sleepDurBox">
         <div class="stcard-sub">Seçilen süre sonra müzik durur</div>
         <div class="sleep-presets">
           <button class="sleep-pre" onclick="setSP(15)">15dk</button>
@@ -768,6 +812,13 @@ body.fs #fsBtn{border-color:var(--accent);color:var(--accent);background:rgba(va
         <input type="range" class="sleep-slider" id="sleepSlider" min="1" max="180" value="30" oninput="onSS(this.value)">
         <div class="sleep-val" id="sleepVal">30 dk</div>
         <div class="sleep-custom"><span>Özel süre</span><input type="number" id="sleepCustom" min="1" max="720" step="1" value="30" inputmode="numeric" oninput="if(this.value!=='')onSS(this.value,true)" onblur="this.value=sleepMin" onfocus="this.select()"><span>dk</span></div>
+        </div>
+        <div id="sleepClkBox" style="display:none">
+          <div class="stcard-sub">Seçilen saatte müzik durur</div>
+          <div class="sleep-custom"><span>Durdurma saati</span><input type="time" id="sleepClock" value="23:30" oninput="onClockChange(this.value)"></div>
+          <div class="strow"><span class="stlabel">Her gün tekrarla</span><button class="sw" id="swDaily" onclick="toggleDaily()" aria-label="Her gün tekrarla"><i></i></button></div>
+          <div class="st-note">Her gün tekrar, uygulama açık kaldığı sürece çalışır. Uygulamayı tamamen kapatırsanız zamanlayıcı da gider; yeniden açınca kendiliğinden kurulur.</div>
+        </div>
         <div class="strow" id="sleepStatus" style="display:none">
           <span class="stlabel" style="color:var(--accent)">🌙 Kalan</span>
           <span class="stbadge" id="sleepCD">—</span>
@@ -776,6 +827,32 @@ body.fs #fsBtn{border-color:var(--accent);color:var(--accent);background:rgba(va
         <div class="stcard-sub" style="padding-left:0;margin:-2px 0 10px">iPhone'da ses seviyesi sayfadan değiştirilemediği için bu seçenek orada etkisizdir.</div>
         <div class="strow"><span class="stlabel">Bu şarkı bitince durdur</span><button class="sw" id="swStop" onclick="toggleStopAfter()" aria-label="Şarkı bitince durdur"><i></i></button></div>
         <button class="stbtn" id="sleepBtn" onclick="toggleSleep()">Başlat</button>
+        </div>
+      </div>
+      <div class="stcard fold" id="foldPlay">
+        <button class="fold-head" onclick="toggleFold('foldPlay')" aria-expanded="false">
+          <span class="stcard-title" style="margin:0;flex:1"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>Çalma</span>
+          <svg class="fold-chev" viewBox="0 0 24 24" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>
+        </button>
+        <div class="fold-body">
+          <div class="strow"><span class="stlabel">Karışıkta her turda yeni sıra</span><button class="sw" id="swReshuf" onclick="toggleReshuf()" aria-label="Her turda yeniden karıştır"><i></i></button></div>
+          <div class="st-note" style="margin:-2px 0 0">Karışık modda liste bitince sıra yeniden karıştırılır ve çalma durmadan sürer; aynı şarkılar hep aynı sırayla dönmez.</div>
+        </div>
+      </div>
+      <div class="stcard fold" id="foldData">
+        <button class="fold-head" onclick="toggleFold('foldData')" aria-expanded="false">
+          <span class="stcard-title" style="margin:0;flex:1"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>Veri ve yedek</span>
+          <svg class="fold-chev" viewBox="0 0 24 24" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>
+        </button>
+        <div class="fold-body">
+          <div class="stlabel">Depolama</div>
+          <div class="stbar"><i id="stBarFill"></i></div>
+          <div class="st-note" id="stInfo">Hesaplanıyor…</div>
+          <div class="strow"><span class="stlabel">Kalıcı depolama</span><span class="stbadge" id="stPersist">—</span></div>
+          <div class="st-note">Kalıcı depolama verilirse iPhone, yer azaldığında şarkılarınızı kendiliğinden silmez.</div>
+          <button class="stbtn alt" id="stPersistBtn" onclick="askPersist(true)">Kalıcı depolama iste</button>
+          <div class="st-btns"><button class="stbtn" onclick="backupExport()">Yedek al</button><button class="stbtn alt" onclick="document.getElementById('backupFile').click()">Geri yükle</button></div>
+          <div class="st-note" style="margin-top:8px">Yedek çalma listelerini, favorileri, çalma sayılarını ve ayarları içerir; şarkı dosyalarını içermez. Geri yüklerken şarkılar ad ve sanatçıya göre eşleştirilir.</div>
         </div>
       </div>
       <div class="stcard fold" id="foldLog">
@@ -818,7 +895,8 @@ body.fs #fsBtn{border-color:var(--accent);color:var(--accent);background:rgba(va
 </div>
 
 <div class="toast" id="toast"></div>
-<input type="file" id="fileInput" accept=".mp3,.m4a,.aac,.wav,.flac,.ogg,.opus" multiple>
+<input type="file" id="fileInput" accept="audio/*,.mp3,.m4a,.aac,.wav,.flac,.ogg,.opus" multiple>
+<input type="file" id="backupFile" accept=".json,application/json" style="display:none">
 
 <script>
 // ── STATE
@@ -840,6 +918,14 @@ let sortMode=localStorage.getItem('smzk_sort')||'added', favOnly=false;
 let animAuto=localStorage.getItem('smzk_animauto')==='1';
 let _resumeAt=0, _posSave=0, _counted=false;
 let playRate=parseFloat(localStorage.getItem('smzk_rate'))||1;
+// v2.20 durumları
+let themeAuto=localStorage.getItem('smzk_themeauto')==='1';
+const _mq=window.matchMedia?matchMedia('(prefers-color-scheme: light)'):null;
+let reshuf=localStorage.getItem('smzk_reshuf')!=='0';
+let sleepMode=localStorage.getItem('smzk_sleepmode')==='clock'?'clock':'dur';
+let sleepClock=localStorage.getItem('smzk_sleepclock')||'23:30';
+let sleepDaily=localStorage.getItem('smzk_sleepdaily')==='1';
+let editIdx=-1;
 
 const aud = new Audio();
 aud.preload = 'none';
@@ -849,7 +935,7 @@ aud.addEventListener('error', () => {
 });
 
 // ── VERSİYON & DEPOLAMA ANAHTARLARI
-const APP_VER   = 'Pro 2.19';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
+const APP_VER   = 'Pro 2.20';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
 const STORE_VER = 'Pro 1.7';      // Depolama anahtarı etiketi — SABİT. Değiştirilirse çalma listeleri/ayarlar sıfırlanır
 const DB_NAME   = 'mzk_pro_1_7';  // IndexedDB adı — SABİT. Değiştirilirse şarkılar yeni boş veritabanına düşer
 const DB_VER  = 1;
@@ -1034,7 +1120,7 @@ async function init(){
   let _sp=null;try{_sp=JSON.parse(localStorage.getItem('smzk_pos')||'null');}catch{}
   if(cur>=0){loadTrack(cur,false);restorePos(_sp);}
   updPlayer();  // ← pvSource etiketini kuyrukla güncelle
-  const theme=localStorage.getItem(LS.theme)||'dark';
+  const theme=themeAuto&&_mq?(_mq.matches?'light':'dark'):(localStorage.getItem(LS.theme)||'dark');
   setTheme(theme,true);
   onRCSlider(1);onQRCSlider(1);onSS(30);
   setAnim(curAnim);
@@ -1047,8 +1133,8 @@ async function init(){
 }
 
 // ── DOSYA EKLE
-document.getElementById('fileInput').addEventListener('change',async e=>{
-  const files=[...e.target.files];if(!files.length)return;
+async function importFiles(files,inputEl){
+  files=[...files];if(!files.length)return;
   toast('Ekleniyor...');let n=0,skip=0,fail=0,quota=false;
   const added=[];
   for(const f of files){
@@ -1071,7 +1157,7 @@ document.getElementById('fileInput').addEventListener('change',async e=>{
     }
     tracks.push({id,name:meta.name,artist:meta.artist,dur,mime,url});added.push(tracks.length-1);n++;
   }
-  e.target.value='';
+  if(inputEl)inputEl.value='';
   if(shuffled&&added.length)addToShuf(added);
   renderLib();
   if(quota)toastErr('⚠️ Depolama alanı doldu — '+n+' şarkı eklendi, kalanlar kaydedilemedi');
@@ -1080,7 +1166,8 @@ document.getElementById('fileInput').addEventListener('change',async e=>{
   else if(n)toast(n+' şarkı eklendi');
   else if(skip)toastErr('Tüm şarkılar zaten kütüphanede mevcut');
   else toastErr('Eklenemedi');
-});
+}
+document.getElementById('fileInput').addEventListener('change',e=>importFiles(e.target.files,e.target));
 function getDur(url){return new Promise(res=>{const a=new Audio();a.preload='metadata';a.onloadedmetadata=()=>res(isFinite(a.duration)?a.duration:0);a.onerror=()=>res(0);a.src=url;setTimeout(()=>res(0),5000);});}
 
 // ID3v2 metin frame'i oku
@@ -1227,7 +1314,8 @@ function next(fromEnded=false){
     }
   } else if(shuffled){
     ensureShuf();
-    shufPos=(shufPos+1)%shufOrder.length;
+    if(shufPos+1>=shufOrder.length&&reshuf&&tracks.length>2){reshuffleLap();}
+    else shufPos=(shufPos+1)%shufOrder.length;
     loadTrack(shufOrder[shufPos],true);
   } else {
     const ord=getLibOrder(),base=(uqBase!==null)?uqBase:cur;uqBase=null;
@@ -1768,7 +1856,7 @@ function playFromPl(plId,pos){uqBase=null;
 // ── ŞARKIYA EKLE SHEET
 function openAddSheet(idx){
   addSheetIdx=idx;const t=tracks[idx];
-  document.getElementById('addTitle').textContent='"'+t.name.slice(0,20)+(t.name.length>20?'…':'')+'" → Listeye Ekle';
+  document.getElementById('addTitle').textContent='"'+t.name.slice(0,20)+(t.name.length>20?'…':'')+'"';
   renderAddSheet();
   document.getElementById('addSheet').style.display='flex';
 }
@@ -1777,6 +1865,8 @@ function renderAddSheet(){
   const el=document.getElementById('addList'),t=tracks[addSheetIdx];
   if(!t)return;el.innerHTML='';
   const mkQ=(txt,fn)=>{const r=document.createElement('div');r.className='add-new';r.textContent=txt;r.onclick=fn;return r;};
+  el.appendChild(mkQ('✏️  Bilgileri düzenle',()=>openEditTrack(addSheetIdx)));
+  el.appendChild(mkQ('↗️  Paylaş',()=>{const i=addSheetIdx;closeAddSheet();shareTrack(i);}));
   el.appendChild(mkQ('▶  Sıradaki olarak çal',()=>{closeAddSheet();queueTrack(t.id,true);}));
   el.appendChild(mkQ('➕  Sıraya ekle',()=>{closeAddSheet();queueTrack(t.id,false);}));
   const newRow=document.createElement('div');
@@ -2588,8 +2678,8 @@ function updDiscArt(){
 }
 
 
-function toggleFold(id){const el=document.getElementById(id);if(!el)return;const o=el.classList.toggle('open');const b=el.querySelector('.fold-head');if(b)b.setAttribute('aria-expanded',o);try{localStorage.setItem('smzk_fold_'+id,o?'1':'0');}catch{}}
-(function(){['foldLook','foldRC','foldQRC','foldSleep'].forEach(id=>{try{if(localStorage.getItem('smzk_fold_'+id)==='1'){const el=document.getElementById(id);if(el)el.classList.add('open');}}catch{}});})();
+function toggleFold(id){const el=document.getElementById(id);if(!el)return;const o=el.classList.toggle('open');if(o&&id==='foldData'&&window.renderStorage)renderStorage();const b=el.querySelector('.fold-head');if(b)b.setAttribute('aria-expanded',o);try{localStorage.setItem('smzk_fold_'+id,o?'1':'0');}catch{}}
+(function(){['foldLook','foldRC','foldQRC','foldSleep','foldPlay','foldData'].forEach(id=>{try{if(localStorage.getItem('smzk_fold_'+id)==='1'){const el=document.getElementById(id);if(el)el.classList.add('open');}}catch{}});})();
 // ── TEMA
 function setTheme(t,silent){
   document.documentElement.classList.toggle('light',t==='light');
@@ -2675,14 +2765,76 @@ function handleQRC(mode){
 function fmtSleep(m){return m<60?m+' dk':Math.floor(m/60)+'sa'+(m%60?' '+(m%60)+'dk':'');}
 function onSS(v,fromInput){if(sleepTimer)return;sleepMin=Math.max(1,Math.min(720,Math.round(+v)||1));document.getElementById('sleepVal').textContent=fmtSleep(sleepMin);const sv=Math.min(180,sleepMin),sl=document.getElementById('sleepSlider');sl.value=sv;const pct=((sv-1)/179*100).toFixed(1)+'%';sl.style.background=`linear-gradient(90deg,var(--accent) ${pct},rgba(128,128,128,.2) ${pct})`;document.querySelectorAll('.sleep-pre').forEach((b,i)=>{const ps=[15,30,45,60,90,120];b.classList.toggle('sel',ps[i]===sleepMin);});const c=document.getElementById('sleepCustom');if(c&&!fromInput)c.value=sleepMin;}
 function setSP(m){if(sleepTimer)return;sleepMin=m;document.getElementById('sleepSlider').value=m;onSS(m);}
-function toggleSleep(){
-  if(sleepTimer){clearTimeout(sleepTimer);clearInterval(sleepTick);sleepTimer=null;sleepFadeReset();document.getElementById('sleepBtn').textContent='Başlat';document.getElementById('sleepBtn').classList.remove('stop');document.getElementById('sleepStatus').style.display='none';document.getElementById('sleepSlider').disabled=false;document.getElementById('sleepCustom').disabled=false;document.querySelectorAll('.sleep-pre').forEach(b=>b.disabled=false);updSleepBadge(null);toast('Uyku zamanlayıcı iptal');}
-  else{
-    const ms=sleepMin*60000;sleepEnd=Date.now()+ms;
-    sleepTimer=setTimeout(()=>{appPause();updPlayBtn(false);clearInterval(sleepTick);sleepTimer=null;sleepFadeReset();document.getElementById('sleepBtn').textContent='Başlat';document.getElementById('sleepBtn').classList.remove('stop');document.getElementById('sleepStatus').style.display='none';document.getElementById('sleepSlider').disabled=false;document.getElementById('sleepCustom').disabled=false;document.querySelectorAll('.sleep-pre').forEach(b=>b.disabled=false);updSleepBadge(null);toast('İyi geceler 🌙 Müzik durduruldu');},ms);
-    sleepTick=setInterval(()=>{const l=sleepEnd-Date.now();if(l<=0){clearInterval(sleepTick);return;}sleepFadeStep(l);const h=Math.floor(l/3600000),m=Math.floor((l%3600000)/60000),s=Math.floor((l%60000)/1000);const txt=(h>0?h+'sa ':'')+( m>0?m+'dk ':'')+s+'sn';document.getElementById('sleepCD').textContent=txt;updSleepBadge(txt);},1000);
-    document.getElementById('sleepBtn').textContent='İptal';document.getElementById('sleepBtn').classList.add('stop');document.getElementById('sleepStatus').style.display='flex';document.getElementById('sleepSlider').disabled=true;document.getElementById('sleepCustom').disabled=true;document.querySelectorAll('.sleep-pre').forEach(b=>b.disabled=true);toast('🌙 '+fmtSleep(sleepMin)+' sonra duracak');
+function sleepUI(on){
+  ['sleepSlider','sleepCustom','sleepClock'].forEach(id=>{const e=document.getElementById(id);if(e)e.disabled=on;});
+  document.querySelectorAll('.sleep-pre').forEach(b=>b.disabled=on);
+  document.querySelectorAll('#sleepSeg button').forEach(b=>b.disabled=on);
+  const btn=document.getElementById('sleepBtn');btn.textContent=on?'İptal':'Başlat';btn.classList.toggle('stop',on);
+  document.getElementById('sleepStatus').style.display=on?'flex':'none';
+}
+function nextClockMs(hhmm){
+  const m=/^(\d{1,2}):(\d{2})$/.exec(hhmm||'');const h=m?+m[1]:23,mi=m?+m[2]:30;
+  const d=new Date();d.setHours(h,mi,0,0);
+  if(d.getTime()<=Date.now()+1000)d.setDate(d.getDate()+1);
+  return d.getTime();
+}
+function sleepTickFn(){
+  const l=sleepEnd-Date.now();
+  if(l<=0){sleepFire();return;}
+  sleepFadeStep(l);
+  const h=Math.floor(l/3600000),m=Math.floor((l%3600000)/60000),s=Math.floor((l%60000)/1000);
+  const txt=(h>0?h+'sa ':'')+(m>0?m+'dk ':'')+s+'sn';
+  document.getElementById('sleepCD').textContent=txt;updSleepBadge(txt);
+}
+function startSleep(auto){
+  const ms=sleepMode==='clock'?Math.max(1000,nextClockMs(sleepClock)-Date.now()):sleepMin*60000;
+  clearTimeout(sleepTimer);clearInterval(sleepTick);
+  sleepEnd=Date.now()+ms;
+  sleepTimer=setTimeout(sleepFire,ms);
+  sleepTick=setInterval(sleepTickFn,1000);
+  sleepUI(true);sleepTickFn();
+  const left=Math.round(ms/60000);
+  if(sleepMode==='clock')toast('🌙 '+sleepClock+(auto?' için kuruldu':'\'de duracak')+' ('+fmtSleep(Math.max(1,left))+' sonra)');
+  else toast('🌙 '+fmtSleep(sleepMin)+' sonra duracak');
+}
+function sleepStop(msg){
+  clearTimeout(sleepTimer);clearInterval(sleepTick);sleepTimer=null;sleepTick=null;
+  sleepFadeReset();sleepUI(false);updSleepBadge(null);
+  if(msg)toast(msg);
+}
+function sleepFire(){
+  if(!sleepTimer&&!sleepTick)return;               // zaten tetiklendi
+  clearTimeout(sleepTimer);clearInterval(sleepTick);sleepTimer=null;sleepTick=null;
+  appPause();updPlayBtn(false);sleepFadeReset();
+  if(sleepMode==='clock'&&sleepDaily){
+    updSleepBadge(null);startSleep(true);
+    toast('İyi geceler 🌙 Müzik durduruldu · yarın '+sleepClock+' yine durur');
+    return;
   }
+  sleepUI(false);updSleepBadge(null);
+  toast('İyi geceler 🌙 Müzik durduruldu');
+}
+function toggleSleep(){
+  if(sleepTimer||sleepTick)sleepStop('Uyku zamanlayıcı iptal');
+  else startSleep(false);
+}
+// Sayfa arka plandan dönünce süre dolmuşsa hemen durdur (arka planda zamanlayıcı gecikebilir)
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&(sleepTimer||sleepTick)&&Date.now()>=sleepEnd)sleepFire();});
+function lsSet(k,v){try{localStorage.setItem(k,v);}catch{}}
+function setSleepMode(m){if(sleepTimer)return;sleepMode=m==='clock'?'clock':'dur';lsSet('smzk_sleepmode',sleepMode);syncSleepMode();}
+function onClockChange(v){if(!/^\d{1,2}:\d{2}$/.test(v||''))return;sleepClock=v;lsSet('smzk_sleepclock',v);}
+function toggleDaily(){
+  sleepDaily=!sleepDaily;lsSet('smzk_sleepdaily',sleepDaily?'1':'0');syncSleepMode();
+  toast(sleepDaily?'Her gün tekrar açık':'Her gün tekrar kapalı');
+}
+function syncSleepMode(){
+  const set=(id,fn)=>{const e=document.getElementById(id);if(e)fn(e);};
+  set('sleepDurBox',e=>e.style.display=sleepMode==='dur'?'':'none');
+  set('sleepClkBox',e=>e.style.display=sleepMode==='clock'?'':'none');
+  set('slModeDur',e=>e.classList.toggle('on',sleepMode==='dur'));
+  set('slModeClk',e=>e.classList.toggle('on',sleepMode==='clock'));
+  set('sleepClock',e=>e.value=sleepClock);
+  set('swDaily',e=>e.classList.toggle('on',sleepDaily));
 }
 function updSleepBadge(txt){const el=document.getElementById('pvSleep');if(txt){document.getElementById('pvSleepVal').textContent=txt;el.style.display='flex';}else el.style.display='none';}
 
@@ -3369,6 +3521,170 @@ init().catch(e=>{console.error(e);toastErr('Başlatma hatası: '+e.message);});
     check(2.5);check(6);
   });
 })();
+
+// ── v2.20: tema, karışık, düzenleme, paylaşma, dosya ekleme, depolama ve yedek
+// Telefon temasını izle
+function syncThemeAuto(){const e=document.getElementById('swThemeAuto');if(e)e.classList.toggle('on',themeAuto);}
+function themeManual(t){themeAuto=false;lsSet('smzk_themeauto','0');syncThemeAuto();setTheme(t);}
+function toggleTheme(){themeManual(document.documentElement.classList.contains('light')?'dark':'light');}
+function toggleThemeAuto(){
+  themeAuto=!themeAuto;lsSet('smzk_themeauto',themeAuto?'1':'0');syncThemeAuto();
+  if(themeAuto&&_mq)setTheme(_mq.matches?'light':'dark');
+  else toast('Telefon temasını izleme kapalı');
+}
+try{if(_mq){const h=()=>{if(themeAuto)setTheme(_mq.matches?'light':'dark',true);};_mq.addEventListener?_mq.addEventListener('change',h):_mq.addListener(h);}}catch{}
+
+// Karışıkta her turda yeni sıra
+function reshuffleLap(){
+  const last=cur;buildShuf();
+  if(shufOrder.length>1&&shufOrder[0]===last){const j=1+Math.floor(Math.random()*(shufOrder.length-1));[shufOrder[0],shufOrder[j]]=[shufOrder[j],shufOrder[0]];}
+  shufPos=0;
+}
+function syncReshuf(){const e=document.getElementById('swReshuf');if(e)e.classList.toggle('on',reshuf);}
+function toggleReshuf(){reshuf=!reshuf;lsSet('smzk_reshuf',reshuf?'1':'0');syncReshuf();toast(reshuf?'Her turda yeni sıra':'Aynı sırayla döner');}
+
+// Şarkı bilgisi düzenleme
+function openEditTrack(idx){
+  const t=tracks[idx];if(!t)return;
+  editIdx=idx;closeAddSheet();
+  document.getElementById('edName').value=t.name;
+  document.getElementById('edArtist').value=t.artist||'';
+  document.getElementById('editSheet').style.display='flex';
+}
+function closeEdit(){document.getElementById('editSheet').style.display='none';editIdx=-1;}
+async function saveEdit(){
+  const t=tracks[editIdx];if(!t)return;
+  const name=document.getElementById('edName').value.trim().slice(0,200);
+  const artist=document.getElementById('edArtist').value.trim().slice(0,200);
+  if(!name){toastErr('Şarkı adı boş olamaz');return;}
+  if(tracks.some((x,i)=>i!==editIdx&&x.name===name&&(x.artist||'')===artist)){toastErr('Aynı ad ve sanatçıyla başka bir şarkı var');return;}
+  const ok=await new Promise(res=>{
+    try{
+      const tr=db.transaction('tracks','readwrite'),st=tr.objectStore('tracks'),r=st.get(t.id);
+      r.onsuccess=()=>{const row=r.result;if(!row){res(false);return;}row.name=name;row.artist=artist;st.put(row);};
+      tr.oncomplete=()=>res(true);tr.onabort=tr.onerror=()=>res(false);
+    }catch{res(false);}
+  });
+  if(!ok){toastErr('Kaydedilemedi');return;}
+  t.name=name;t.artist=artist;
+  closeEdit();renderLib();updPlayer();updMS();renderQueue();renderPlaylists();renderPlPanel();
+  toast('Güncellendi');
+}
+
+// Şarkıyı paylaş (iPhone paylaş menüsü); olmazsa indir
+async function shareTrack(idx){
+  const t=tracks[idx];if(!t)return;
+  try{
+    const b=await (await fetch(t.url)).blob();
+    const exts={'audio/mpeg':'mp3','audio/mp3':'mp3','audio/mp4':'m4a','audio/x-m4a':'m4a','audio/aac':'aac','audio/wav':'wav','audio/x-wav':'wav','audio/flac':'flac','audio/ogg':'ogg','audio/opus':'opus'};
+    const fname=((t.artist?t.artist+' - ':'')+t.name).replace(/[\\\/:*?"<>|]+/g,'_').slice(0,120)+'.'+(exts[t.mime]||'mp3');
+    const file=new File([b],fname,{type:t.mime||b.type||'audio/mpeg'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:t.name});return;}
+    const a=document.createElement('a');a.href=URL.createObjectURL(file);a.download=fname;document.body.appendChild(a);a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},4000);toast('Şarkı indirildi');
+  }catch(e){if(e&&e.name==='AbortError')return;toastErr('Paylaşılamadı');}
+}
+
+// Sürükle-bırak ile şarkı ekleme (masaüstü tarayıcı)
+const _isAudioFile=f=>/^audio\//.test(f.type)||/\.(mp3|m4a|aac|wav|flac|ogg|opus)$/i.test(f.name||'');
+['dragenter','dragover'].forEach(ev=>document.addEventListener(ev,e=>{
+  if(e.dataTransfer&&[...(e.dataTransfer.types||[])].includes('Files')){e.preventDefault();document.body.classList.add('dragover');}
+}));
+document.addEventListener('dragleave',e=>{if(!e.relatedTarget)document.body.classList.remove('dragover');});
+document.addEventListener('drop',e=>{
+  document.body.classList.remove('dragover');
+  const fs=[...((e.dataTransfer&&e.dataTransfer.files)||[])].filter(_isAudioFile);
+  if(e.dataTransfer&&[...(e.dataTransfer.types||[])].includes('Files')){e.preventDefault();if(fs.length)importFiles(fs);}
+});
+
+// Depolama ve kalıcı depolama
+async function askPersist(user){
+  try{
+    if(navigator.storage&&navigator.storage.persist){
+      const was=navigator.storage.persisted?await navigator.storage.persisted():false;
+      const ok=was||await navigator.storage.persist();
+      if(window.dlog)dlog('· kalıcı depolama: '+(ok?'verildi':'verilmedi'));
+      renderStorage();
+      if(user)toast(ok?'Kalıcı depolama etkin ✓':'Tarayıcı kalıcı depolamayı vermedi');
+      return ok;
+    }
+  }catch{}
+  if(user)toast('Bu tarayıcı kalıcı depolamayı desteklemiyor');
+  return false;
+}
+async function renderStorage(){
+  const info=document.getElementById('stInfo');if(!info)return;
+  let usage=0,quota=0,persisted=null;
+  try{if(navigator.storage&&navigator.storage.estimate){const e=await navigator.storage.estimate();usage=e.usage||0;quota=e.quota||0;}}catch{}
+  try{if(navigator.storage&&navigator.storage.persisted)persisted=await navigator.storage.persisted();}catch{}
+  const fmtB=n=>n>=1073741824?(n/1073741824).toFixed(1)+' GB':Math.max(0,Math.round(n/1048576))+' MB';
+  info.textContent=quota?(tracks.length+' şarkı · '+fmtB(usage)+' kullanılıyor · '+fmtB(Math.max(0,quota-usage))+' boş'):'Depolama bilgisi bu tarayıcıda alınamadı';
+  document.getElementById('stBarFill').style.width=quota?Math.max(1,Math.min(100,usage/quota*100))+'%':'0';
+  const pe=document.getElementById('stPersist');
+  pe.textContent=persisted===null?'Desteklenmiyor':(persisted?'Etkin ✓':'Kapalı');
+  const pb=document.getElementById('stPersistBtn');if(pb)pb.style.display=persisted===true||persisted===null?'none':'';
+}
+window.renderStorage=renderStorage;
+setTimeout(()=>askPersist(false),3500);
+
+// Yedek al / geri yükle
+async function buildBackup(){
+  let vol=1;try{const v=await pg('vol');if(v!=null)vol=v;}catch{}
+  const g=k=>{try{return localStorage.getItem(k);}catch{return null;}};
+  return{
+    app:'S-Müzik',format:1,created:new Date().toISOString(),version:APP_VER,
+    settings:{theme:g(LS.theme),color:g(LS.color),anim:g(LS.discAnim),sort:g('smzk_sort'),animauto:g('smzk_animauto'),rate:g('smzk_rate'),sleepfade:g('smzk_sleepfade'),themeauto:g('smzk_themeauto'),reshuf:g('smzk_reshuf'),sleepmode:g('smzk_sleepmode'),sleepclock:g('smzk_sleepclock'),sleepdaily:g('smzk_sleepdaily')},
+    prefs:{sh:!!shuffled,rp:repeat,vol},
+    tracks:tracks.map(t=>({id:t.id,name:t.name,artist:t.artist||''})),
+    playlists:playlists.filter(p=>!p.auto).map(p=>({id:p.id,name:p.name,trackIds:[...p.trackIds]})),
+    fav:[...favSet],plays:{...plays}
+  };
+}
+async function backupExport(){
+  const data=await buildBackup();
+  const d=new Date(),pad=n=>String(n).padStart(2,'0');
+  const name='smuzik-yedek-'+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'.json';
+  const file=new File([JSON.stringify(data)],name,{type:'application/json'});
+  try{
+    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'S-Müzik yedeği'});toast('Yedek hazır');return;}
+  }catch(e){if(e&&e.name==='AbortError')return;}
+  const a=document.createElement('a');a.href=URL.createObjectURL(file);a.download=name;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},4000);toast('Yedek indirildi');
+}
+const psWait=(k,v)=>new Promise(res=>{try{const t=db.transaction('prefs','readwrite');t.objectStore('prefs').put(v,k);t.oncomplete=()=>res();t.onerror=t.onabort=()=>res();}catch{res();}});
+async function backupImport(file){
+  let data;
+  try{data=JSON.parse(await file.text());}catch{toastErr('Dosya okunamadı');return;}
+  if(!data||data.app!=='S-Müzik'||data.format!==1||!Array.isArray(data.tracks)||!Array.isArray(data.playlists)){toastErr('Geçerli bir S-Müzik yedeği değil');return;}
+  const norm=x=>String(x||'').trim().toLocaleLowerCase('tr');
+  const key=t=>norm(t.name)+'|'+norm(t.artist);
+  const byKey=new Map(),haveId=new Set(tracks.map(t=>t.id));
+  tracks.forEach(t=>{if(!byKey.has(key(t)))byKey.set(key(t),t.id);});
+  const map=new Map();let missing=0;
+  data.tracks.forEach(b=>{const id=byKey.get(key(b))||(haveId.has(b.id)?b.id:null);if(id)map.set(b.id,id);else missing++;});
+  const pls=data.playlists.map((p,i)=>({id:String(p.id||('pl_'+Date.now()+'_'+i)),name:String(p.name||'Liste').slice(0,80),trackIds:[...new Set((p.trackIds||[]).map(i=>map.get(i)).filter(Boolean))]}));
+  const fav=[...new Set((data.fav||[]).map(i=>map.get(i)).filter(Boolean))];
+  const pl2={};Object.entries(data.plays||{}).forEach(([i,n])=>{const id=map.get(i);if(id&&n>0)pl2[id]=Math.max(pl2[id]||0,+n||0);});
+  const msg='Yedek: '+pls.length+' liste, '+fav.length+' favori.\nMevcut listeleriniz ve favorileriniz bu yedekle DEĞİŞTİRİLİR.'+(missing?'\n'+missing+' şarkı kütüphanenizde bulunamadı; listelerden atlanacak.':'')+'\n\nDevam edilsin mi?';
+  if(!confirm(msg))return;
+  lsSet(LS.playlists,JSON.stringify(pls));
+  lsSet('smzk_fav',JSON.stringify(fav));
+  lsSet('smzk_plays',JSON.stringify(pl2));
+  const st=data.settings||{};
+  const setMap={theme:LS.theme,color:LS.color,anim:LS.discAnim,sort:'smzk_sort',animauto:'smzk_animauto',rate:'smzk_rate',sleepfade:'smzk_sleepfade',themeauto:'smzk_themeauto',reshuf:'smzk_reshuf',sleepmode:'smzk_sleepmode',sleepclock:'smzk_sleepclock',sleepdaily:'smzk_sleepdaily'};
+  Object.entries(setMap).forEach(([k,lk])=>{if(st[k]!=null)lsSet(lk,String(st[k]));});
+  const pf=data.prefs||{};
+  if(pf.sh!=null)await psWait('sh',!!pf.sh);
+  if(Number.isInteger(pf.rp))await psWait('rp',pf.rp);
+  if(typeof pf.vol==='number')await psWait('vol',pf.vol);
+  toast('Geri yüklendi, yeniden başlatılıyor…');
+  setTimeout(()=>location.reload(),900);
+}
+document.getElementById('backupFile').addEventListener('change',e=>{const f=e.target.files[0];e.target.value='';if(f)backupImport(f);});
+
+// Açılışta arayüzü eşitle
+syncThemeAuto();syncReshuf();syncSleepMode();
+if(sleepMode==='clock'&&sleepDaily)startSleep(true);
 </script>
 </body>
 </html>
