@@ -592,7 +592,7 @@ body.dragover::after{content:'Şarkıları bırakın';position:fixed;inset:12px;
 <div class="bg"></div>
 <div id="app">
   <div class="appheader">
-    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.20</span></span>
+    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.21</span></span>
     <span class="appcopy">©sebasmobil &nbsp;<a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" style="color:inherit;font-size:0.8em;opacity:0.75;text-decoration:none;">AGPL v3.0</a></span>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Tema">🌙</button>
   </div>
@@ -935,7 +935,7 @@ aud.addEventListener('error', () => {
 });
 
 // ── VERSİYON & DEPOLAMA ANAHTARLARI
-const APP_VER   = 'Pro 2.20';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
+const APP_VER   = 'Pro 2.21';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
 const STORE_VER = 'Pro 1.7';      // Depolama anahtarı etiketi — SABİT. Değiştirilirse çalma listeleri/ayarlar sıfırlanır
 const DB_NAME   = 'mzk_pro_1_7';  // IndexedDB adı — SABİT. Değiştirilirse şarkılar yeni boş veritabanına düşer
 const DB_VER  = 1;
@@ -1928,8 +1928,8 @@ function toggleMute(){
 }
 // ── ANİMASYON SEÇİCİ — müziğe tepki veren plak efektleri
 // 0 = Klasik (sade dönen plak, ses analizi yok) · 11–16 = müziğe tepkili efektler
-// 11–16: plak etrafında · 21–36: plaksız (WIDE): yatay ses dalgası ve yaratıcı efektler
-const VIZ_MODES=[11,12,13,14,16,21,22,23,25,27,28,29,30,31,32,33,34,35,36,37,38];
+// 11–16: plaklı (plak etrafında) · 21–37: plaksız (WIDE): yatay ses dalgası ve yaratıcı efektler
+const VIZ_MODES=[11,12,13,14,16,21,22,23,25,27,28,32,33,34,36,37];
 const isViz=n=>VIZ_MODES.includes(n);
 const isWide=n=>n>=21;
 let curAnim=parseInt(localStorage.getItem(LS.discAnim));
@@ -1999,11 +1999,39 @@ async function analyseTrack(t,decodeFn){
       }
       if(f%160===159){await new Promise(r=>setTimeout(r,0));if(tok!==_anTok)return;} // arayüzü kilitleme
     }
-    const res={id:t.id,frames,pcm,nF};
+    const res={id:t.id,frames,pcm,nF,pace:anPaceCurve(frames,nF)};
     _anCache.set(t.id,res);if(_anCache.size>2)_anCache.delete(_anCache.keys().next().value);
     if(tok===_anTok)_anCur=res;
   }catch(e){_anFail.add(t.id);}
   finally{if(_anBusy===t.id)_anBusy=null;}
+}
+// Şarkının "tempo hissi": ses başlangıçlarının (onset) sıklığı → saniye başına 0..255 (0 = sakin/yavaş, 255 = hareketli).
+// Plak dönüş hızı buna göre ölçeklenir; yavaş, duygusal şarkılarda sakin döner.
+function anPaceCurve(frames,nF){
+  const FPS=AN_RATE/AN_N,K1=64,M=3,W=Math.max(2,Math.round(FPS));
+  const env=new Float32Array(nF);                                   // spektral akı: bantlardaki ani artışların toplamı
+  for(let f=1;f<nF;f++){let sm=0;const a=f*AN_BINS,b=a-AN_BINS;for(let k=1;k<K1;k++){const d=frames[a+k]-frames[b+k];if(d>0)sm+=d;}env[f]=sm/(K1-1);}
+  const pre=new Float64Array(nF+1);for(let i=0;i<nF;i++)pre[i+1]=pre[i]+env[i];
+  const gmean=pre[nF]/nF,cnt=new Int32Array(nF+1);let last=-1e9;
+  for(let f=0;f<nF;f++){
+    let pk=0;
+    if(f>=M&&f<nF-M&&env[f]>0){
+      let mx=true;for(let j=-M;j<=M;j++){if(j&&env[f+j]>env[f]){mx=false;break;}}
+      if(mx){
+        const lo=Math.max(0,f-W),hi=Math.min(nF,f+W+1),lm=(pre[hi]-pre[lo])/(hi-lo);
+        if(env[f]>lm*2+gmean*0.3&&f-last>=M){pk=1;last=f;}
+      }
+    }
+    cnt[f+1]=cnt[f]+pk;
+  }
+  const secs=Math.ceil(nF/FPS)+1,out=new Uint8Array(secs),HW=Math.round(4*FPS);
+  for(let sc=0;sc<secs;sc++){                                       // ±4 sn'lik pencerede saniyedeki başlangıç sayısı
+    const c=Math.round((sc+0.5)*FPS),lo=Math.max(0,c-HW),hi=Math.min(nF,c+HW+1),span=(hi-lo)/FPS;
+    const r=span>1?(cnt[hi]-cnt[lo])/span:0;
+    const t=Math.max(0,Math.min(1,(r-2)/4));                         // 2/sn ve altı: sakin · 6/sn ve üstü: hareketli
+    out[sc]=Math.round(t*t*(3-2*t)*255);
+  }
+  return out;
 }
 function ensureAnalysis(){
   if(!isViz(curAnim)||cur<0||!tracks[cur])return;
@@ -2024,20 +2052,18 @@ function fillFromAnalysis(tm){
 }
 
 // ── Müzik özellikleri: bas / orta / tiz, genel seviye, vuruş (kick)
-const V={bass:0,mid:0,high:0,level:0,kick:0,live:0,lastBeat:0,beatNow:false,busy:false,rot:0,t:0};
+const V={bass:0,mid:0,high:0,level:0,kick:0,live:0,lastBeat:0,beatNow:false,busy:false,rot:0,t:0,pace:0.7,sc:0.775};
 let _agc=0.3,_tdAgc=0.3,_bAvg=0,_pAcc=0,_vizRaf=null,_vizLast=0,_vizN=0,_acc=accentRGB(),_hue=rgbHue(_acc);
 let _shocks=[],_parts=[];const _bars=new Float32Array(36);
 // Yatay dalga modları için ortak veri
 const _S=new Float32Array(64);                 // yumuşatılmış, log aralıklı 64 bantlı spektrum (0..1)
 const _wx=new Float32Array(260),_wy=new Float32Array(260),_ph=new Float32Array(5),_pk=new Float32Array(128);
 // Yaratıcı modların durumu
-const _ecg=new Float32Array(150),_QRS=[0.12,0.3,-0.18,-0.7,1,-0.9,0.25,0.18,0.34,0.12,0.03]; // 29 nabız
-const _spg=Array.from({length:48},()=>new Uint8Array(24));                                   // 35 spektrogram
 const _sk=(()=>{let sd=7;const rnd=()=>{sd=(sd*16807)%2147483647;return sd/2147483647;};
   const a=[];let tot=0;for(let i=0;i<22;i++){const w=0.6+rnd()*1.0;a.push({w,h:0.35+rnd()*0.45});tot+=w;}
   a.forEach(b=>b.w/=tot);return a;})();                                                      // 32 şehir silueti
-let _rip=[],_stars=[],_aur=0,_hx=0,_mr=0,_gAcc=0,_eAcc=0,_eQ=-1;
-function crReset(){_bub.length=0;_rip.length=0;_stars.length=0;_ecg.fill(0);_eQ=-1;_spg.forEach(c=>c.fill(0));_pk.fill(0);}
+let _aur=0,_hx=0,_mr=0;
+function crReset(){_pk.fill(0);}
 let _vc=null,_vx=null,_vW=0,_vH=0,_vDpr=1,_discEl=null;
 
 const rgba=(r,g,b,a)=>`rgba(${r},${g},${b},${(Number.isFinite(a)?Math.max(0,Math.min(1,a)):0).toFixed(3)})`;
@@ -2071,6 +2097,13 @@ function vizAnalyse(now,dt){
   const playing=!aud.paused;
   V.live+=((playing?1:0)-V.live)*Math.min(1,dt*(playing?6:2.2)); // plak yavaşça hızlanır/yavaşlar
   V.t+=dt;
+  {
+    const A=_anCur,tk=cur>=0?tracks[cur]:null;
+    let tg=0.7;                                                      // analiz yoksa orta hız
+    if(A&&tk&&A.id===tk.id&&A.pace&&A.pace.length)tg=A.pace[Math.min(A.pace.length-1,Math.max(0,Math.floor(aud.currentTime||0)))]/255;
+    V.pace+=(tg-V.pace)*Math.min(1,dt*0.7);                          // ~1,5 sn'de yumuşak geçiş
+    V.sc=0.25+0.75*V.pace;                                           // 0,25x (sakin) … 1x (hareketli)
+  }
   if(playing){
     if(!fillFromAnalysis(aud.currentTime+0.03))fakeSpectrum(V.t); // analiz hazır değilse benzetim
   }else{
@@ -2099,7 +2132,7 @@ const VIZ_DRAW={
   // 11 — Bas Vuruşu: her vuruşta plak zıplar, çevreye şok dalgaları yayılır
   11(s){
     const {ctx,cx,cy,R,dt}=s,[r,g,b]=_acc;
-    V.rot+=(20+150*V.level)*dt*V.live;
+    V.rot+=(20+150*V.level)*dt*V.live*V.sc;
     discT(V.rot,1+0.07*V.kick+0.02*V.bass);
     ctx.globalCompositeOperation=s.comp;
     const hr=R*(1.15+0.4*V.bass);
@@ -2118,7 +2151,7 @@ const VIZ_DRAW={
   // 12 — Spektrum Halkası: frekans çubukları plağı sarar (soğuktan sıcağa renk)
   12(s){
     const {ctx,cx,cy,R,dt,light}=s;
-    V.rot+=(10+60*V.mid)*dt*V.live;
+    V.rot+=(10+60*V.mid)*dt*V.live*V.sc;
     discT(V.rot,1+0.025*V.bass+0.02*V.kick);
     const N=36,base=R+7,spin=V.rot*Math.PI/180*0.12;
     ctx.globalCompositeOperation=s.comp;ctx.lineCap='round';
@@ -2138,7 +2171,7 @@ const VIZ_DRAW={
   // 13 — Kıvılcım: vuruşta plak kenarından kıvılcımlar fırlar, tizler ince serpinti yapar
   13(s){
     const {ctx,cx,cy,R,dt,light}=s;
-    V.rot+=(30+100*V.level)*dt*V.live;
+    V.rot+=(30+100*V.level)*dt*V.live*V.sc;
     discT(V.rot,1+0.045*V.kick);
     const emit=(n,mul)=>{
       for(let i=0;i<n&&_parts.length<240;i++){
@@ -2165,7 +2198,7 @@ const VIZ_DRAW={
   // 14 — Osiloskop Halkası: ses dalgası plağın etrafında canlı bir halka çizer; plak ters yöne döner
   14(s){
     const {ctx,cx,cy,R,dt,light}=s;
-    V.rot+=(15+90*V.mid)*dt*V.live;
+    V.rot+=(15+90*V.mid)*dt*V.live*V.sc;
     discT(-V.rot,1+0.03*V.bass);
     const L=_td.length,N=96,H=N/2;
     let pk=0;for(let i=0;i<L;i+=4)pk=Math.max(pk,Math.abs(_td[i]-128)/128);
@@ -2186,8 +2219,8 @@ const VIZ_DRAW={
   // 16 — Üç Halka: halkalar SABİT; her biri saat 9'dan başlayıp saatin tersi yönünde müzikle uzar-kısalır
   16(s){
     const {ctx,cx,cy,R,dt,light}=s;
-    V.rot+=(18+110*V.level)*dt*V.live;
-    discT(V.rot,1+0.03*V.kick);
+    V.rot+=(18+110*V.level)*dt*V.live*V.sc;
+    discT(-V.rot,1+0.03*V.kick);   // ters yön (saatin tersi)
     ctx.lineCap='round';
     [{r:R*1.10,v:V.bass,hue:_hue-11},{r:R*1.20,v:V.mid,hue:_hue+9},{r:R*1.30,v:V.high,hue:_hue+27}].forEach(rg=>{
       ctx.lineWidth=5;ctx.strokeStyle=hsla(rg.hue,90,50,0.12);
@@ -2308,66 +2341,6 @@ const VIZ_DRAW={
       }
     }
   },
-  // 29 — Nabız: kalp monitörü çizgisi; her bas vuruşunda bir "kalp atışı" sivrilir
-  29(s){
-    const {ctx,W,H,dt,light}=s,mid=H/2,n=_ecg.length,pitch=W/(n-1),step=1/60;
-    if(V.beatNow)_eQ=0;
-    _eAcc+=dt;
-    while(_eAcc>=step){
-      _eAcc-=step;
-      let v=(Math.random()-0.5)*0.05*V.high;
-      if(_eQ>=0){v+=_QRS[_eQ]*(0.55+0.75*V.bass);_eQ++;if(_eQ>=_QRS.length)_eQ=-1;}
-      _ecg.copyWithin(0,1);_ecg[n-1]=v*V.live;
-    }
-    ctx.globalCompositeOperation='source-over';ctx.lineWidth=1;ctx.strokeStyle=hsla(_hue,60,50,light?0.12:0.07);
-    ctx.beginPath();
-    for(let i=1;i<14;i++){const x=W*i/14;ctx.moveTo(x,0);ctx.lineTo(x,H);}
-    for(let i=1;i<8;i++){const y=H*i/8;ctx.moveTo(0,y);ctx.lineTo(W,y);}
-    ctx.stroke();
-    const off=-(_eAcc/step)*pitch;let mx=0;
-    for(let i=0;i<n;i++){_wx[i]=i*pitch+off;_wy[i]=mid-_ecg[i]*H*0.40;mx=Math.max(mx,Math.abs(_ecg[i]));}
-    V.busy=mx>0.02;
-    ctx.globalCompositeOperation=s.comp;ctx.lineJoin='round';ctx.lineCap='round';
-    [[8,0.14],[4,0.3],[2+V.kick*1.5,1]].forEach(([w,a])=>{
-      const g=ctx.createLinearGradient(0,0,W,0);
-      g.addColorStop(0,hsla(_hue,95,light?46:62,0));g.addColorStop(1,hsla(_hue+10,95,light?46:64,a));
-      ctx.lineWidth=w;ctx.strokeStyle=g;smoothPath(ctx,n);ctx.stroke();
-    });
-    const hy=_wy[n-1];
-    ctx.fillStyle=hsla(_hue+20,100,light?45:78,0.25);ctx.beginPath();ctx.arc(W-2,hy,8+6*V.kick,0,6.2832);ctx.fill();
-    ctx.fillStyle=hsla(_hue+20,100,light?45:82,0.95);ctx.beginPath();ctx.arc(W-2,hy,3+2*V.kick,0,6.2832);ctx.fill();
-  },
-  // 30 — Su Damlaları: vuruşta büyük, tizlerde küçük damlalar; su yüzeyinde genişleyen halkalar
-  30(s){
-    const {ctx,W,H,dt,light}=s;
-    if(V.beatNow&&_rip.length<26)_rip.push({x:W*(0.2+0.6*Math.random()),y:H*(0.3+0.45*Math.random()),t:0,sp:1,a:1,hue:_hue-10+Math.random()*40});
-    if(_rip.length<26&&Math.random()<V.high*V.live*dt*7)_rip.push({x:Math.random()*W,y:H*(0.25+0.6*Math.random()),t:0,sp:1.6,a:0.6,hue:_hue+30+Math.random()*30});
-    ctx.globalCompositeOperation=s.comp;
-    for(let i=_rip.length-1;i>=0;i--){
-      const r=_rip[i];r.t+=dt*0.55*r.sp;
-      if(r.t>=1){_rip.splice(i,1);continue;}
-      const rad=Math.pow(r.t,0.7)*W*0.28*(r.a>0.9?1:0.55),al=(1-r.t)*0.85*r.a;
-      ctx.strokeStyle=hsla(r.hue,95,light?46:64,al);ctx.lineWidth=1+2.5*(1-r.t);
-      ctx.beginPath();ctx.ellipse(r.x,r.y,rad,rad*0.38,0,0,6.2832);ctx.stroke();
-      if(r.t>0.12){ctx.lineWidth=1;ctx.strokeStyle=hsla(r.hue,95,light?46:64,al*0.6);ctx.beginPath();ctx.ellipse(r.x,r.y,rad*0.62,rad*0.62*0.38,0,0,6.2832);ctx.stroke();}
-    }
-    V.busy=_rip.length>0;
-  },
-  // 31 — Yıldız Geçidi: ışık hızı; yıldızlar merkezden fışkırır, müzik hızlandırır, vuruş sıçratır
-  31(s){
-    const {ctx,W,H,dt,cx,cy,light}=s,Rx=W*0.56,Ry=H*0.62;
-    while(_stars.length<110)_stars.push({a:Math.random()*6.2832,d:Math.random(),v:0.6+Math.random()*0.8,hue:_hue-15+Math.random()*60});
-    const sp=(0.12+1.5*V.level)*V.live*(1+V.kick*2.4)+0.015;
-    ctx.globalCompositeOperation=s.comp;ctx.lineCap='round';
-    for(const st of _stars){
-      const grow=sp*st.v*(0.15+st.d*1.6);
-      st.d+=dt*grow;
-      if(st.d>1.05){st.d=0.02+Math.random()*0.06;st.a=Math.random()*6.2832;st.v=0.6+Math.random()*0.8;st.hue=_hue-15+Math.random()*60;}
-      const tail=Math.max(0,st.d-Math.min(0.35,0.012+grow*0.07)*(0.4+st.d)),ca=Math.cos(st.a),sa=Math.sin(st.a);
-      ctx.strokeStyle=hsla(st.hue,90,light?46:78,Math.min(1,st.d*1.1));ctx.lineWidth=0.5+st.d*2.4;
-      ctx.beginPath();ctx.moveTo(cx+ca*tail*Rx,cy+sa*tail*Ry);ctx.lineTo(cx+ca*st.d*Rx,cy+sa*st.d*Ry);ctx.stroke();
-    }
-  },
   // 32 — Şehir Işıkları: gökdelenlerin pencereleri müzikle yanar, gökyüzü bas ile parlar
   32(s){
     const {ctx,W,H,light}=s,baseY=H*0.97;let x=0;
@@ -2437,31 +2410,6 @@ const VIZ_DRAW={
     }
     ctx.fillStyle=hsla(_hue+20,100,light?48:75,0.35+0.45*V.kick);
     ctx.beginPath();ctx.arc(cx,cy,R0*(0.7+0.5*V.kick),0,6.2832);ctx.fill();
-  },
-  // 35 — Spektrogram: zaman içinde akan sıcaklık haritası (bas altta, tiz üstte)
-  35(s){
-    const {ctx,W,H,dt,light}=s,cols=_spg.length,rows=24,step=1/20;
-    _gAcc+=dt;
-    while(_gAcc>=step){
-      _gAcc-=step;
-      const c=_spg.shift();
-      for(let r=0;r<rows;r++)c[r]=Math.round(Math.min(1,_S[Math.min(63,Math.floor(Math.pow(r/(rows-1),1.5)*62))])*255);
-      _spg.push(c);
-    }
-    const pitch=W/cols,off=-(_gAcc/step)*pitch,rh=H/rows,pal=[];
-    for(let q=0;q<32;q++){const v=q/31;pal.push(hsla(_hue-30+v*80,95,light?60-v*20:18+v*52,Math.min(1,0.15+v*0.9)));}
-    ctx.globalCompositeOperation='source-over';
-    let mx=0;
-    for(let c=0;c<cols;c++){
-      const col=_spg[c],x=c*pitch+off;
-      for(let r=0;r<rows;r++){
-        const v=col[r]/255;if(v<0.06)continue;
-        if(v>mx)mx=v;
-        ctx.fillStyle=pal[Math.round(v*31)];
-        ctx.fillRect(x,H-(r+1)*rh,pitch+0.6,rh-0.6);
-      }
-    }
-    V.busy=mx>0.08;
   },
   // 36 — Lissajous: dalga formunun kendisiyle çizdiği simetrik ışık figürü (XY osiloskop)
   36(s){
@@ -2565,20 +2513,15 @@ const ANIM_INFO=[
   {id:22,ico:'🌊',name:'Çoklu dalga',g:1},
   {id:23,ico:'🎚️',name:'Çubuk dalga',g:1},
   {id:25,ico:'🏔️',name:'Spektrum alanı',g:1},
-  {id:27,ico:'🌌',name:'Aurora',g:2},
-  {id:28,ico:'💡',name:'LED matris',g:2},
-  {id:29,ico:'💓',name:'Nabız',g:2},
-  {id:30,ico:'💧',name:'Su damlaları',g:2},
-  {id:31,ico:'🚀',name:'Yıldız geçidi',g:2},
-  {id:32,ico:'🌃',name:'Şehir ışıkları',g:2},
-  {id:33,ico:'🧬',name:'Sarmal',g:2},
-  {id:34,ico:'🏵️',name:'Mandala',g:2},
-  {id:35,ico:'🌡️',name:'Spektrogram',g:2},
-  {id:36,ico:'♾️',name:'Lissajous',g:2},
-  {id:37,ico:'🌅',name:'Neon ızgara',g:2},
-  {id:38,ico:'🫧',name:'Kabarcıklar',g:2},
+  {id:27,ico:'🌌',name:'Aurora',g:1},
+  {id:28,ico:'💡',name:'LED matris',g:1},
+  {id:32,ico:'🌃',name:'Şehir ışıkları',g:1},
+  {id:33,ico:'🧬',name:'Sarmal',g:1},
+  {id:34,ico:'🏵️',name:'Mandala',g:1},
+  {id:36,ico:'♾️',name:'Lissajous',g:1},
+  {id:37,ico:'🌅',name:'Neon ızgara',g:1},
 ];
-const ANIM_GROUPS=['Plaklı','Plaksız · yatay ses dalgası','Plaksız · yaratıcı'];
+const ANIM_GROUPS=['Plaklı','Plaksız'];
 function openFxSheet(){
   document.getElementById('fxBody').innerHTML=fxAutoRow()+ANIM_GROUPS.map((gn,g)=>
     '<div class="fx-group">'+gn+'</div><div class="fx-grid">'+
@@ -3189,7 +3132,7 @@ function toggleAnimAuto(){
   }
   openFxSheet();
 }
-const _bub=[];let _gO=0,_bAcc2=0;
+let _gO=0;
 // 37 — Neon Izgara: güneş basla atar, ızgara müzikle hızlanır, ufukta spektrum silueti
 VIZ_DRAW[37]=function(s){
   const {ctx,W,H,dt,cx,light}=s,hz=H*0.5;
@@ -3217,27 +3160,6 @@ VIZ_DRAW[37]=function(s){
     ctx.strokeStyle=hsla(_hue+20,95,light?46:62,0.35-Math.abs(i)*0.015);
     ctx.beginPath();ctx.moveTo(cx+i*W*0.012,hz);ctx.lineTo(cx+i*W*0.14,H);ctx.stroke();
   }
-};
-// 38 — Kabarcıklar: vuruşta iri, tizlerde ufak kabarcıklar yükselir
-VIZ_DRAW[38]=function(s){
-  const {ctx,W,H,dt,light}=s;
-  const mk=(r,vy,hue)=>{if(_bub.length<110)_bub.push({x:Math.random()*W,y:H+r,r,vy,ph:Math.random()*6.28,hue,w:0.6+Math.random()*1.2});};
-  if(V.beatNow){const n=3+Math.floor(V.bass*5);for(let i=0;i<n;i++)mk(8+Math.random()*(10+H*0.1*V.bass),H*(0.35+Math.random()*0.45),_hue-10+Math.random()*40);}
-  _bAcc2+=V.high*V.live*dt*16;
-  const n2=Math.floor(_bAcc2);
-  if(n2>0){for(let i=0;i<n2;i++)mk(2+Math.random()*5,H*(0.4+Math.random()*0.6),_hue+25+Math.random()*50);_bAcc2-=n2;}
-  ctx.globalCompositeOperation=s.comp;
-  for(let i=_bub.length-1;i>=0;i--){
-    const b=_bub[i];
-    b.y-=b.vy*(0.5+V.level*1.4)*dt;b.ph+=dt*b.w*2;b.x+=Math.sin(b.ph)*14*dt;
-    if(b.y<-b.r){_bub.splice(i,1);continue;}
-    const a=Math.min(1,(b.y+b.r)/(H*0.25));
-    ctx.lineWidth=1.4;ctx.strokeStyle=hsla(b.hue,95,light?46:68,0.85*a);ctx.fillStyle=hsla(b.hue,95,light?55:62,0.12*a);
-    ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,6.2832);ctx.fill();ctx.stroke();
-    ctx.fillStyle=hsla(b.hue,100,85,0.5*a);
-    ctx.beginPath();ctx.arc(b.x-b.r*0.35,b.y-b.r*0.35,Math.max(0.8,b.r*0.18),0,6.2832);ctx.fill();
-  }
-  V.busy=_bub.length>0;
 };
 
 // ── BUTON BAĞLANTILARI (onclick yerine addEventListener — kesin çalışır)
