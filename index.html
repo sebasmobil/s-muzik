@@ -69,10 +69,6 @@ html.light {
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;overflow:hidden;user-select:none;transition:background .3s,color .3s;}
 .bg{position:fixed;inset:0;pointer-events:none;}
-.bg::before{content:'';position:absolute;top:-30%;left:-20%;width:70%;height:70%;background:radial-gradient(circle,rgba(var(--acc-rgb),.1) 0%,transparent 65%);animation:bg1 9s ease-in-out infinite alternate;}
-.bg::after{content:'';position:absolute;bottom:-30%;right:-20%;width:80%;height:80%;background:radial-gradient(circle,rgba(var(--acc2-rgb),.07) 0%,transparent 65%);animation:bg2 11s ease-in-out infinite alternate;}
-@keyframes bg1{to{transform:translate(8%,10%) scale(1.1);}}
-@keyframes bg2{to{transform:translate(-8%,-8%) scale(1.12);}}
 #app{position:relative;z-index:1;height:100dvh;display:flex;flex-direction:column;padding-top:calc(var(--st) + 10px);padding-bottom:0;}
 
 /* HEADER */
@@ -97,7 +93,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .view.active{display:flex;}
 
 /* ── ÇALAR ── */
-#pv{align-items:center;padding:0 20px 8px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+#pv{align-items:center;padding:0 20px 8px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
 #pv::-webkit-scrollbar{display:none;}
 /* Küçük ekran: plak küçülsün */
 .art-wrap{position:relative;width:min(180px,48vw,34vh);height:min(180px,48vw,34vh);margin:52px 0 56px;flex-shrink:0;} /* efektler taşabilsin diye üst/alt boşluk */
@@ -592,7 +588,7 @@ body.dragover::after{content:'Şarkıları bırakın';position:fixed;inset:12px;
 <div class="bg"></div>
 <div id="app">
   <div class="appheader">
-    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.21</span></span>
+    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.22</span></span>
     <span class="appcopy">©sebasmobil &nbsp;<a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" style="color:inherit;font-size:0.8em;opacity:0.75;text-decoration:none;">AGPL v3.0</a></span>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Tema">🌙</button>
   </div>
@@ -935,7 +931,7 @@ aud.addEventListener('error', () => {
 });
 
 // ── VERSİYON & DEPOLAMA ANAHTARLARI
-const APP_VER   = 'Pro 2.21';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
+const APP_VER   = 'Pro 2.22';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
 const STORE_VER = 'Pro 1.7';      // Depolama anahtarı etiketi — SABİT. Değiştirilirse çalma listeleri/ayarlar sıfırlanır
 const DB_NAME   = 'mzk_pro_1_7';  // IndexedDB adı — SABİT. Değiştirilirse şarkılar yeni boş veritabanına düşer
 const DB_VER  = 1;
@@ -2453,10 +2449,9 @@ function vizTarget(){
   const wrap=document.getElementById('artWrap');if(!wrap)return null;
   const w=wrap.offsetWidth,h=wrap.offsetHeight;if(!w)return null;
   if(isWide(curAnim)){
-    const par=wrap.parentElement,cs=par?getComputedStyle(par):null;
-    const pad=cs?((parseFloat(cs.paddingLeft)||0)+(parseFloat(cs.paddingRight)||0)):0;
-    const inner=par?par.clientWidth-pad:w;
-    return [Math.round(Math.max(w,Math.min(inner,560))),Math.round(h||w)];
+    const pv=document.getElementById('pv');   // plaksız modlar: ekranın tam genişliği (kenardan kenara)
+    const full=Math.max(w,(pv&&pv.clientWidth)||document.documentElement.clientWidth||w);
+    return [full,Math.round(h||w)];
   }
   const d=Math.round(w*1.7);return [d,d];
 }
