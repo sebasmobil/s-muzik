@@ -468,7 +468,7 @@ html.light .color-sw.on .color-dot{box-shadow:0 0 0 2px var(--card),0 0 0 4px va
 .pl-track.dragging{transition:none;position:relative;z-index:5;background:var(--card2);box-shadow:0 6px 18px rgba(0,0,0,.35);}
 body.fs .tabs,body.fs .appheader,body.fs .pv-infobar,body.fs .queue-panel{display:none!important;}
 body.fs .art-wrap{width:min(300px,74vw,40vh);height:min(300px,74vw,40vh);margin:70px 0;}
-body.fs .art-wrap.viz:not(.wide){width:min(180px,48vw,34vh);height:min(180px,48vw,34vh);margin:52px 0 56px;} /* plaklı efektler tam ekranda büyümesin, taşmasın */
+body.fs .art-wrap.viz:not(.wide){width:min(220px,56vw,30vh);height:min(220px,56vw,30vh);margin:60px 0 104px;} /* plaklı efektler tam ekranda büyümesin, taşmasın */
 .fs-in,.fs-out{display:inline-flex;align-items:center;}
 #fsBtn svg{width:17px;height:17px;}
 .fs-out{display:none;}
@@ -607,7 +607,7 @@ body.dragover::after{content:'Şarkıları bırakın';position:fixed;inset:12px;
 <div class="bg"></div>
 <div id="app">
   <div class="appheader">
-    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.27</span></span>
+    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.28</span></span>
     <span class="appcopy">©sebasmobil &nbsp;<a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" style="color:inherit;font-size:0.8em;opacity:0.75;text-decoration:none;">AGPL v3.0</a></span>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Tema">🌙</button>
   </div>
@@ -971,7 +971,7 @@ aud.addEventListener('error', () => {
 });
 
 // ── VERSİYON & DEPOLAMA ANAHTARLARI
-const APP_VER   = 'Pro 2.27';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
+const APP_VER   = 'Pro 2.28';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
 const STORE_VER = 'Pro 1.7';      // Depolama anahtarı etiketi — SABİT. Değiştirilirse çalma listeleri/ayarlar sıfırlanır
 const DB_NAME   = 'mzk_pro_1_7';  // IndexedDB adı — SABİT. Değiştirilirse şarkılar yeni boş veritabanına düşer
 const DB_VER  = 1;
