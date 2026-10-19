@@ -427,6 +427,24 @@ html.light .color-sw.on .color-dot{box-shadow:0 0 0 2px var(--card),0 0 0 4px va
 .sbtn{width:100%;padding:13px;border-radius:13px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:14px;font-weight:700;cursor:pointer;}
 #fileInput{display:none;}
 /* ── v2.8 ── */
+/* A–B: B noktasını seçerken büyük süre göstergesi, tüm şarkıyı gösteren kalın çubuk ve ince ayar düğmeleri */
+.ab-sel{width:100%;margin-bottom:8px;padding:8px 10px 10px;border-radius:14px;background:var(--card2);border:1.5px solid var(--accent);flex-shrink:0;position:relative;z-index:2;display:none;}
+.ab-sel.show{display:block;}
+.ab-row{display:flex;align-items:center;justify-content:space-between;gap:6px;}
+.ab-n{height:30px;min-width:38px;padding:0 6px;border-radius:9px;border:1.5px solid var(--border);background:transparent;color:var(--text);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;}
+.ab-n:active{transform:scale(.92);}
+.ab-n.set{background:var(--accent);border-color:var(--accent);color:#fff;padding:0 12px;}
+.ab-now{text-align:center;line-height:1.15;flex:1;min-width:0;}
+.ab-now b{display:block;font-size:20px;font-variant-numeric:tabular-nums;color:var(--text);}
+.ab-now small{font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums;}
+.ab-bar{position:relative;height:10px;border-radius:5px;background:rgba(128,128,128,.25);margin-top:9px;}
+.ab-bar i{position:absolute;top:0;bottom:0;border-radius:5px;background:var(--accent);opacity:.55;}
+.ab-bar u{position:absolute;top:-4px;width:3px;height:18px;border-radius:2px;background:var(--accent2);transform:translateX(-50%);}
+.ab-bar s{position:absolute;top:-3px;width:4px;height:16px;border-radius:2px;background:var(--text);transform:translateX(-50%);}
+.ab-ed .ab-l{width:22px;font-size:14px;font-weight:800;color:var(--accent);text-align:center;}
+.ab-ed .ab-t{flex:1;text-align:center;font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text);}
+.ab-ed .ab-row+.ab-row{margin-top:6px;}
+.ab-n.close{background:transparent;color:var(--muted);padding:0 10px;}
 .pv-tools{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin-bottom:8px;flex-shrink:0;position:relative;z-index:2;}
 .tool-chip{height:28px;padding:0 11px;border-radius:14px;border:1.5px solid var(--border);background:var(--card2);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;font-family:inherit;white-space:nowrap;}
 .tool-chip:active{transform:scale(.94);}
@@ -450,6 +468,7 @@ html.light .color-sw.on .color-dot{box-shadow:0 0 0 2px var(--card),0 0 0 4px va
 .pl-track.dragging{transition:none;position:relative;z-index:5;background:var(--card2);box-shadow:0 6px 18px rgba(0,0,0,.35);}
 body.fs .tabs,body.fs .appheader,body.fs .pv-infobar,body.fs .queue-panel{display:none!important;}
 body.fs .art-wrap{width:min(300px,74vw,40vh);height:min(300px,74vw,40vh);margin:70px 0;}
+body.fs .art-wrap.viz:not(.wide){width:min(180px,48vw,34vh);height:min(180px,48vw,34vh);margin:52px 0 56px;} /* plaklı efektler tam ekranda büyümesin, taşmasın */
 .fs-in,.fs-out{display:inline-flex;align-items:center;}
 #fsBtn svg{width:17px;height:17px;}
 .fs-out{display:none;}
@@ -588,7 +607,7 @@ body.dragover::after{content:'Şarkıları bırakın';position:fixed;inset:12px;
 <div class="bg"></div>
 <div id="app">
   <div class="appheader">
-    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.22</span></span>
+    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.27</span></span>
     <span class="appcopy">©sebasmobil &nbsp;<a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" style="color:inherit;font-size:0.8em;opacity:0.75;text-decoration:none;">AGPL v3.0</a></span>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Tema">🌙</button>
   </div>
@@ -649,6 +668,27 @@ body.dragover::after{content:'Şarkıları bırakın';position:fixed;inset:12px;
       <button class="tool-chip" id="rateBtn" onclick="cycleRate()" title="Çalma hızı">1x</button>
       <button class="tool-chip" id="abBtn" onclick="cycleAB()" title="A-B döngüsü">A–B</button>
       <button class="tool-chip" id="fsBtn" onclick="toggleFS()" title="Tam ekran / Tam ekrandan çık" aria-label="Tam ekran"><span class="fs-in"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg></span><span class="fs-out"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg></span></button>
+    </div>
+    <div class="ab-sel" id="abSel">
+      <div class="ab-row">
+        <button class="ab-n" onclick="abNudge(-5)">−5s</button><button class="ab-n" onclick="abNudge(-1)">−1s</button>
+        <div class="ab-now"><b id="abNow">0:00</b><small id="abInfo"></small></div>
+        <button class="ab-n" onclick="abNudge(1)">+1s</button><button class="ab-n" onclick="abNudge(5)">+5s</button>
+        <button class="ab-n set" onclick="cycleAB()">B ✓</button>
+      </div>
+      <div class="ab-bar"><i id="abRange"></i><u id="abPinA"></u><s id="abHead"></s></div>
+    </div>
+    <div class="ab-sel ab-ed" id="abEd">
+      <div class="ab-row"><span class="ab-l">A</span>
+        <button class="ab-n" onclick="abAdj('A',-1)">−1s</button><button class="ab-n" onclick="abAdj('A',-0.1)">−.1</button>
+        <span class="ab-t" id="abTA">0:00.0</span>
+        <button class="ab-n" onclick="abAdj('A',0.1)">+.1</button><button class="ab-n" onclick="abAdj('A',1)">+1s</button></div>
+      <div class="ab-row"><span class="ab-l">B</span>
+        <button class="ab-n" onclick="abAdj('B',-1)">−1s</button><button class="ab-n" onclick="abAdj('B',-0.1)">−.1</button>
+        <span class="ab-t" id="abTB">0:00.0</span>
+        <button class="ab-n" onclick="abAdj('B',0.1)">+.1</button><button class="ab-n" onclick="abAdj('B',1)">+1s</button></div>
+      <div class="ab-bar"><i id="abRange2"></i><u id="abPinA2"></u><u id="abPinB2"></u><s id="abHead2"></s></div>
+      <div class="ab-row" style="margin-top:9px"><small class="ab-now" style="text-align:left" id="abLen"></small><button class="ab-n close" onclick="abClear()">Döngüyü kapat</button><button class="ab-n set" onclick="abEditOpen=false;updAB()">Tamam</button></div>
     </div>
     <div class="ctrls">
       <button class="cbtn" id="btnShuffle">
@@ -907,7 +947,7 @@ let qrcTarget=1, qrcLeft=0, qrcActive=false;
 let sleepMin=30, sleepTimer=null, sleepEnd=0, sleepTick=null;
 // v2.8 durumları
 let userQueue=[], uqBase=null;            // "Sıraya ekle" kuyruğu (şarkı id'leri) ve kütüphanede dönüş noktası
-let abA=null, abB=null;                   // A-B döngüsü
+let abA=null, abB=null, abEditOpen=false;                   // A-B döngüsü
 let favSet=new Set(), plays={};           // favoriler ve çalma sayıları
 let stopAfter=false, sleepFade=true, _fading=false;
 let sortMode=localStorage.getItem('smzk_sort')||'added', favOnly=false;
@@ -931,7 +971,7 @@ aud.addEventListener('error', () => {
 });
 
 // ── VERSİYON & DEPOLAMA ANAHTARLARI
-const APP_VER   = 'Pro 2.22';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
+const APP_VER   = 'Pro 2.27';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
 const STORE_VER = 'Pro 1.7';      // Depolama anahtarı etiketi — SABİT. Değiştirilirse çalma listeleri/ayarlar sıfırlanır
 const DB_NAME   = 'mzk_pro_1_7';  // IndexedDB adı — SABİT. Değiştirilirse şarkılar yeni boş veritabanına düşer
 const DB_VER  = 1;
@@ -1232,7 +1272,7 @@ function loadTrack(idx, play=true){
 
   appPause();
   aud.currentTime=0;
-  _resumeAt=0;_counted=false;abA=abB=null;try{abTickStop();}catch{}
+  _resumeAt=0;_counted=false;abA=abB=null;abEditOpen=false;try{abTickStop();}catch{}
   aud.src=t.url;
   aud.load(); // ← Blob URL'nin tarayıcı tarafından kesin tanınması için
 
@@ -1358,6 +1398,7 @@ aud.addEventListener('pause',()=>{
   updPlayBtn(false);updDisc(false);updPlayingIndicator();renderQueue();renderPlPanel();
 });
 aud.addEventListener('timeupdate',()=>{
+  if(abA!==null&&abB===null)updAB();
   if(seeking||!aud.duration)return;
   if(abCheck())return;
   const _n=Date.now();if(_n-_posSave>2500){_posSave=_n;savePos();}
@@ -2840,11 +2881,49 @@ function cycleRate(){
 // ── A-B döngüsü
 function updAB(){
   const b=document.getElementById('abBtn');if(!b)return;
-  b.textContent=abA===null?'A–B':(abB===null?'A ▸ B?':fmt(abA)+' – '+fmt(abB));
+  b.textContent=abA===null?'A–B':(abB===null?'A '+fmt(abA)+' ▸ '+fmt(aud.currentTime)+' B?':fmt(abA)+' – '+fmt(abB)); // B seçilirken canlı süre
   b.classList.toggle('on',abA!==null);
   const d=aud.duration||(cur>=0&&tracks[cur]?tracks[cur].dur:0);
   const mk=(id,v)=>{const el=document.getElementById(id);if(!el)return;if(v===null||!d){el.style.display='none';}else{el.style.display='block';el.style.left=(v/d*100)+'%';}};
   mk('abMarkA',abA);mk('abMarkB',abB);
+  // Döngü açıkken A ve B'yi kaydırarak düzenleme paneli
+  const ed=document.getElementById('abEd');
+  if(ed){
+    const eo=abEditOpen&&abA!==null&&abB!==null&&d>0;ed.classList.toggle('show',eo);
+    if(eo){
+      const t=aud.currentTime||0,f=v=>fmt(v)+'.'+Math.floor((v%1)*10);
+      document.getElementById('abTA').textContent=f(abA);document.getElementById('abTB').textContent=f(abB);
+      document.getElementById('abLen').textContent='Süre '+(abB-abA).toFixed(1)+' sn';
+      const r=document.getElementById('abRange2');r.style.left=abA/d*100+'%';r.style.width=(abB-abA)/d*100+'%';
+      document.getElementById('abPinA2').style.left=abA/d*100+'%';document.getElementById('abPinB2').style.left=abB/d*100+'%';
+      document.getElementById('abHead2').style.left=Math.min(100,t/d*100)+'%';
+    }
+  }
+  // B seçimi sırasında ayrıntılı panel
+  const sel=document.getElementById('abSel');
+  if(sel){
+    const open=abA!==null&&abB===null&&d>0;sel.classList.toggle('show',open);
+    if(open){
+      const t=aud.currentTime||0,pa=abA/d*100,pt=Math.min(100,t/d*100);
+      document.getElementById('abNow').textContent=fmt(t)+'.'+Math.floor((t%1)*10);
+      document.getElementById('abInfo').textContent='A '+fmt(abA)+' · '+(t>=abA?'+'+(t-abA).toFixed(1)+' sn':'A\'dan önce')+' · /'+fmt(d);
+      const r=document.getElementById('abRange');r.style.left=Math.min(pa,pt)+'%';r.style.width=Math.abs(pt-pa)+'%';
+      document.getElementById('abPinA').style.left=pa+'%';document.getElementById('abHead').style.left=pt+'%';
+    }
+  }
+}
+function abAdj(which,dl){ // döngü noktalarını kaydır; duyabilmen için yeni noktaya git
+  if(abA===null||abB===null||!aud.duration)return;
+  const D=aud.duration;
+  if(which==='A'){abA=Math.max(0,Math.min(abB-0.5,abA+dl));aud.currentTime=abA;}
+  else{abB=Math.max(abA+0.5,Math.min(D,abB+dl));aud.currentTime=Math.max(abA,abB-2);}   // B'yi değiştirince son 2 sn'yi dinlet
+  updAB();
+}
+function abClear(){abA=abB=null;abEditOpen=false;abTickStop();toast('A–B döngüsü kapalı');updAB();}
+function abNudge(dl){ // B seçerken ince ayar: konumu ileri/geri oynat
+  if(!aud.duration)return;
+  aud.currentTime=Math.max(0,Math.min(aud.duration-0.05,(aud.currentTime||0)+dl));
+  updAB();
 }
 // ── A-B döngüsü: arka planda da çalışması için bağımsız sayaç
 // timeupdate arka planda seyrek gelir; Worker sayacı ve görünür olma olayı ek güvence sağlar.
@@ -2873,8 +2952,8 @@ function cycleAB(){
   if(abA===null){abA=aud.currentTime;toast('A noktası: '+fmt(abA));}
   else if(abB===null){
     if(aud.currentTime<=abA+0.5){toast('B noktası A\'dan sonra olmalı');return;}
-    abB=aud.currentTime;aud.currentTime=abA;abTickStart();toast('A–B döngüsü açık');
-  }else{abA=abB=null;abTickStop();toast('A–B döngüsü kapalı');}
+    abB=aud.currentTime;aud.currentTime=abA;abTickStart();toast('A–B döngüsü açık · düğmeye dokunup A/B ayarlayabilirsin');
+  }else{abEditOpen=!abEditOpen;}   // döngü açıkken düğme: ayar panelini aç/kapat (kapatmak için panelde 'Döngüyü kapat')
   updAB();
 }
 
@@ -3416,7 +3495,11 @@ init().catch(e=>{console.error(e);toastErr('Başlatma hatası: '+e.message);});
   document.addEventListener('touchend',unlock,{once:true,passive:true});
   document.addEventListener('click',unlock,{once:true});
 
-  aud.addEventListener('play',()=>{_pausedAt=0;startKA();});
+  // Sessiz döngü müzikle birlikte çalarsa kilit ekranı ilerlemesi her saniye sıfırlanıyor (iOS "Şu an çalıyor" 1 sn'lik döngüyü izler).
+  // Bu yüzden: dokunuşta başlat (izin için), müzik gerçekten çalmaya başlayınca durdur; yalnızca şarkılar arası geçişte (ended) açık tut.
+  aud.addEventListener('play',()=>{_pausedAt=0;});
+  aud.addEventListener('playing',()=>{if(ka&&!ka.paused){try{ka.pause();if(window.dlog)dlog('· sessiz döngü bırakıldı (müzik çalıyor)');}catch{}}});
+  aud.addEventListener('ended',()=>{startKA();});
   aud.addEventListener('pause',()=>{
     _pausedAt=Date.now();
     // Şarkı sonu değilse (kullanıcı/sistem duraklattı) hemen durdur; şarkı sonunda geçişi beklemek için açık kalır
