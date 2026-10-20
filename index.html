@@ -608,7 +608,7 @@ body.dragover::after{content:'Şarkıları bırakın';position:fixed;inset:12px;
 <div class="bg"></div>
 <div id="app">
   <div class="appheader">
-    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.32</span></span>
+    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.33</span></span>
     <span class="appcopy">©sebasmobil &nbsp;<a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" style="color:inherit;font-size:0.8em;opacity:0.75;text-decoration:none;">AGPL v3.0</a></span>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Tema">🌙</button>
   </div>
@@ -974,7 +974,7 @@ aud.addEventListener('error', () => {
 });
 
 // ── VERSİYON & DEPOLAMA ANAHTARLARI
-const APP_VER   = 'Pro 2.32';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
+const APP_VER   = 'Pro 2.33';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
 const STORE_VER = 'Pro 1.7';      // Depolama anahtarı etiketi — SABİT. Değiştirilirse çalma listeleri/ayarlar sıfırlanır
 const DB_NAME   = 'mzk_pro_1_7';  // IndexedDB adı — SABİT. Değiştirilirse şarkılar yeni boş veritabanına düşer
 const DB_VER  = 1;
@@ -1401,13 +1401,20 @@ function resumeSoon(){wakeTry();if(!_interrupted)return;tryAutoResume();setTimeo
 //  3) Ses kaynağı bozulmuşsa/boşaltılmışsa şarkıyı kaldığı saniyeden yeniden yükleyip çalar.
 let autoRes=true;try{autoRes=localStorage.getItem('smzk_autores')!=='0';}catch{}
 let _arTimer=null,_arStep=0,_arStart=0,_arTried=false,_arLastOk=0,_arFight=0;
-const AR_FIGHT=[0,10,25,45,60];   // başka uygulama sesi sürüyorsa (otomatik devamdan hemen sonra yine kesildiyse) bekleme büyür
-const AR_DELAYS=[2,4,8,15,30,60,90,120];   // sn; sonra 120 sn'de bir, en çok ~40 dk
+const AR_FIGHT=[0,15,30,60,90];   // başka uygulama sesi sürüyorsa (otomatik devamdan hemen sonra yine kesildiyse) bekleme büyür
+const AR_DELAYS=[15,30,60,90,120];   // sn; başka uygulamanın sesini (video) bozmamak için ilk deneme geç; sonra 120 sn'de bir, en çok ~40 dk
 function dl(m){try{if(window.dlog)dlog(m);}catch{}}
+// Ses Oturumu API'si (Safari 16.4+): başka uygulama sesi bitince 'interrupted' durumundan çıkılır → o an devam et
+const _AS=(typeof navigator!=='undefined'&&navigator.audioSession)||null;
+function asState(){try{return _AS?String(_AS.state||''):'';}catch{return '';}}
+try{if(_AS&&_AS.addEventListener)_AS.addEventListener('statechange',()=>{
+  const st=asState();dl('🔊 ses oturumu: '+st);
+  if(st!=='interrupted'&&wantPlay&&aud.paused&&autoRes){setTimeout(()=>{if(wantPlay&&aud.paused&&asState()!=='interrupted'){_arTried=true;try{const p=robustPlay();if(p&&p.catch)p.catch(()=>{});}catch{}}},400);}
+});}catch{}
 function arStop(){if(_arTimer){clearTimeout(_arTimer);_arTimer=null;}_arStep=0;}
 function arBegin(why){
   if(!autoRes||!wantPlay)return;
-  arStop();_arStart=Date.now();
+  arStop();_arStart=Date.now();dl('🔊 ses oturumu durumu: '+(asState()||'desteklenmiyor'));
   _arFight=(Date.now()-_arLastOk<45000)?Math.min(AR_FIGHT.length-1,_arFight+1):0;   // devamdan hemen sonra yine kesildi → karşıda ses çalıyor
   dl('↻ otomatik devam denemeleri başladı ('+why+(_arFight?', ısrar '+_arFight+' → bekleme '+AR_FIGHT[_arFight]+' sn+':'')+')');arSchedule();
 }
@@ -1418,6 +1425,7 @@ function arSchedule(){
 function arTry(){
   if(!autoRes||!wantPlay||!aud.paused||cur<0){arStop();return;}
   if(Date.now()-_arStart>40*60*1000){arStop();dl('↻ otomatik devam: süre doldu');return;}
+  if(asState()==='interrupted'){dl('↻ başka uygulama ses çalıyor, bekleniyor');arSchedule();return;}   // Ses Oturumu API'si destekleniyorsa araya girme
   _arStep++;dl('↻ deneme '+_arStep);_arTried=true;
   try{const p=robustPlay();if(p&&p.catch)p.catch(()=>{});}catch{}
   arSchedule();
