@@ -608,7 +608,7 @@ body.dragover::after{content:'Şarkıları bırakın';position:fixed;inset:12px;
 <div class="bg"></div>
 <div id="app">
   <div class="appheader">
-    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.31</span></span>
+    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.32</span></span>
     <span class="appcopy">©sebasmobil &nbsp;<a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" style="color:inherit;font-size:0.8em;opacity:0.75;text-decoration:none;">AGPL v3.0</a></span>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Tema">🌙</button>
   </div>
@@ -974,7 +974,7 @@ aud.addEventListener('error', () => {
 });
 
 // ── VERSİYON & DEPOLAMA ANAHTARLARI
-const APP_VER   = 'Pro 2.31';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
+const APP_VER   = 'Pro 2.32';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
 const STORE_VER = 'Pro 1.7';      // Depolama anahtarı etiketi — SABİT. Değiştirilirse çalma listeleri/ayarlar sıfırlanır
 const DB_NAME   = 'mzk_pro_1_7';  // IndexedDB adı — SABİT. Değiştirilirse şarkılar yeni boş veritabanına düşer
 const DB_VER  = 1;
@@ -1166,6 +1166,7 @@ async function init(){
   if(cur>=0&&animAuto)autoAnimFor(tracks[cur]);
   updSortUI();updRate();updAB();updSwitches();
   if(cur>=0)updDiscArt();
+  try{bootResume();}catch{}
   if(!localStorage.getItem(LS.setupDone)&&!navigator.standalone)document.getElementById('setupOverlay').style.display='flex';
   // Eski versiyonlardan MP3 taşı (arka planda, 1 sn sonra)
   setTimeout(()=>migrateFromOldDBs().catch(()=>{}), 1200);
@@ -1379,6 +1380,7 @@ aud.addEventListener('ended',()=>{
 // ── Sistem kesintisi (başka uygulama, arama, Siri…) ve otomatik devam
 // Uygulamanın kendi duraklatmaları appPause() ile yapılır; ondan gelmeyen 'pause' olayı kesinti sayılır.
 let _expectPause=0,_interrupted=false;
+const _bootWant=(()=>{try{return +localStorage.getItem('smzk_want')||0;}catch{return 0;}})();   // açılışta okunur: başlangıçtaki loadTrack/appPause kaydı silmeden önce
 let wantPlay=false;   // "çalmak istiyorum" niyeti: yalnızca kullanıcı/uygulama duraklatınca false olur (sistem kesintisi niyeti değiştirmez)
 function appPause(){
   wantPlay=false;try{arStop();}catch{}lsSet('smzk_want','0');
@@ -1442,14 +1444,26 @@ document.addEventListener('resume',wakeTry);
 document.addEventListener('touchend',()=>{if(wantPlay&&aud.paused)wakeTry();},{passive:true,capture:true});
 function toggleAutoRes(){autoRes=!autoRes;lsSet('smzk_autores',autoRes?'1':'0');if(!autoRes)arStop();syncAutoRes();toast(autoRes?'Kesintiden sonra otomatik devam açık':'Kesintiden sonra otomatik devam kapalı');}
 function syncAutoRes(){const e=document.getElementById('swAutoRes');if(e)e.classList.toggle('on',autoRes);}
-// Uygulama tamamen kapanıp yeniden açıldıysa (son 2 saatte çalıyorduysa) kaldığı yerden devam etmeyi dene; izin verilmezse ilk dokunuşta çal
-window.addEventListener('load',()=>setTimeout(()=>{
-  let w=0;try{w=+localStorage.getItem('smzk_want')||0;}catch{}
-  if(!autoRes||!w||Date.now()-w>2*3600e3||cur<0||!aud.paused||wantPlay)return;
-  const go=()=>{if(aud.paused&&cur>=0){try{const p=robustPlay();if(p&&p.catch)p.catch(()=>{});}catch{}}};
-  let ok=true;try{const p=robustPlay();if(p&&p.catch)p.catch(()=>{ok=false;});}catch{ok=false;}
-  setTimeout(()=>{if(aud.paused){toast('▶ Devam etmek için ekrana dokun');document.addEventListener('touchend',go,{once:true,passive:true});document.addEventListener('click',go,{once:true});}},1500);
-},2500));
+// Uygulama iOS tarafından kapatılıp yeniden açıldıysa (örn. başka bir ana ekran uygulaması kapatılınca süreç yenilenir):
+// son 2 saatte çalıyorduysa, kütüphane yüklenir yüklenmez kaldığı saniyeden devam etmeyi dener; izin verilmezse ilk dokunuşta çalar.
+function bootResume(){
+  const w=_bootWant;
+  if(!autoRes||!w||Date.now()-w>2*3600e3||cur<0||!aud.paused)return;
+  wantPlay=true;lsSet('smzk_want',String(Date.now()));let n=0;
+  const tick=()=>{
+    if(!aud.paused||!wantPlay||n>=10)return;
+    n++;dl('↻ açılışta devam denemesi '+n);
+    try{const p=robustPlay();if(p&&p.catch)p.catch(()=>{});}catch{}
+    setTimeout(tick,1500);
+  };
+  tick();
+  setTimeout(()=>{
+    if(!aud.paused||!wantPlay)return;
+    toast('▶ Devam etmek için ekrana dokun');
+    const go=()=>{if(aud.paused&&cur>=0){try{const p=robustPlay();if(p&&p.catch)p.catch(()=>{});}catch{}}};
+    document.addEventListener('touchend',go,{once:true,passive:true});document.addEventListener('click',go,{once:true});
+  },6000);
+}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)return;resumeSoon();if(!aud.paused)vizStart();});
 window.addEventListener('pageshow',resumeSoon);
 window.addEventListener('focus',resumeSoon);
@@ -3532,7 +3546,7 @@ init().catch(e=>{console.error(e);toastErr('Başlatma hatası: '+e.message);});
 
   // Canlılık işareti
   const trk=()=>{const t=cur>=0&&tracks[cur]?tracks[cur].name:'-';return t.slice(0,24)+' @'+(aud.currentTime||0).toFixed(0)+'s';};
-  setInterval(()=>{try{localStorage.setItem('smzk_hb',String(Date.now()));localStorage.setItem('smzk_ptrack',trk());}catch{}},4000);
+  setInterval(()=>{try{if(wantPlay&&!aud.paused)localStorage.setItem('smzk_want',String(Date.now()));localStorage.setItem('smzk_hb',String(Date.now()));localStorage.setItem('smzk_ptrack',trk());}catch{}},4000);
   setInterval(()=>{if(!aud.paused)dlog('çalıyor · '+trk()+' · rs='+aud.readyState+' ns='+aud.networkState);},45000);
 
   // Ses olayları
