@@ -608,7 +608,7 @@ body.dragover::after{content:'Şarkıları bırakın';position:fixed;inset:12px;
 <div class="bg"></div>
 <div id="app">
   <div class="appheader">
-    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.30</span></span>
+    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.31</span></span>
     <span class="appcopy">©sebasmobil &nbsp;<a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" style="color:inherit;font-size:0.8em;opacity:0.75;text-decoration:none;">AGPL v3.0</a></span>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Tema">🌙</button>
   </div>
@@ -974,7 +974,7 @@ aud.addEventListener('error', () => {
 });
 
 // ── VERSİYON & DEPOLAMA ANAHTARLARI
-const APP_VER   = 'Pro 2.30';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
+const APP_VER   = 'Pro 2.31';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
 const STORE_VER = 'Pro 1.7';      // Depolama anahtarı etiketi — SABİT. Değiştirilirse çalma listeleri/ayarlar sıfırlanır
 const DB_NAME   = 'mzk_pro_1_7';  // IndexedDB adı — SABİT. Değiştirilirse şarkılar yeni boş veritabanına düşer
 const DB_VER  = 1;
@@ -1398,22 +1398,25 @@ function resumeSoon(){wakeTry();if(!_interrupted)return;tryAutoResume();setTimeo
 //  2) Sayfa uyanınca (öne gelme, odak, ağ, dokunuş) niyet "çalmak" ise hemen devam eder,
 //  3) Ses kaynağı bozulmuşsa/boşaltılmışsa şarkıyı kaldığı saniyeden yeniden yükleyip çalar.
 let autoRes=true;try{autoRes=localStorage.getItem('smzk_autores')!=='0';}catch{}
-let _arTimer=null,_arStep=0,_arStart=0;
+let _arTimer=null,_arStep=0,_arStart=0,_arTried=false,_arLastOk=0,_arFight=0;
+const AR_FIGHT=[0,10,25,45,60];   // başka uygulama sesi sürüyorsa (otomatik devamdan hemen sonra yine kesildiyse) bekleme büyür
 const AR_DELAYS=[2,4,8,15,30,60,90,120];   // sn; sonra 120 sn'de bir, en çok ~40 dk
 function dl(m){try{if(window.dlog)dlog(m);}catch{}}
 function arStop(){if(_arTimer){clearTimeout(_arTimer);_arTimer=null;}_arStep=0;}
 function arBegin(why){
   if(!autoRes||!wantPlay)return;
-  arStop();_arStart=Date.now();dl('↻ otomatik devam denemeleri başladı ('+why+')');arSchedule();
+  arStop();_arStart=Date.now();
+  _arFight=(Date.now()-_arLastOk<45000)?Math.min(AR_FIGHT.length-1,_arFight+1):0;   // devamdan hemen sonra yine kesildi → karşıda ses çalıyor
+  dl('↻ otomatik devam denemeleri başladı ('+why+(_arFight?', ısrar '+_arFight+' → bekleme '+AR_FIGHT[_arFight]+' sn+':'')+')');arSchedule();
 }
 function arSchedule(){
   if(_arTimer||!autoRes||!wantPlay)return;
-  _arTimer=setTimeout(()=>{_arTimer=null;arTry();},(AR_DELAYS[_arStep]!==undefined?AR_DELAYS[_arStep]:120)*1000);
+  _arTimer=setTimeout(()=>{_arTimer=null;arTry();},Math.max(AR_DELAYS[_arStep]!==undefined?AR_DELAYS[_arStep]:120,AR_FIGHT[_arFight])*1000);
 }
 function arTry(){
   if(!autoRes||!wantPlay||!aud.paused||cur<0){arStop();return;}
   if(Date.now()-_arStart>40*60*1000){arStop();dl('↻ otomatik devam: süre doldu');return;}
-  _arStep++;dl('↻ deneme '+_arStep);
+  _arStep++;dl('↻ deneme '+_arStep);_arTried=true;
   try{const p=robustPlay();if(p&&p.catch)p.catch(()=>{});}catch{}
   arSchedule();
 }
@@ -1431,6 +1434,7 @@ function robustPlay(){   // ses kaynağı sağlıksızsa kaldığı yerden yenid
 }
 function wakeTry(){   // sayfa uyandı: niyet "çalmak" ise ve durmuşsa devam et
   if(!autoRes||!wantPlay||!aud.paused||cur<0)return;
+  _arTried=true;_arFight=0;   // kullanıcı uygulamaya döndü: bekleme sıfırlansın
   try{const p=robustPlay();if(p&&p.catch)p.catch(()=>{});}catch{}
 }
 window.addEventListener('online',wakeTry);
@@ -1449,7 +1453,7 @@ window.addEventListener('load',()=>setTimeout(()=>{
 document.addEventListener('visibilitychange',()=>{if(document.hidden)return;resumeSoon();if(!aud.paused)vizStart();});
 window.addEventListener('pageshow',resumeSoon);
 window.addEventListener('focus',resumeSoon);
-aud.addEventListener('play',()=>{_interrupted=false;wantPlay=true;arStop();lsSet('smzk_want',String(Date.now()));try{navigator.mediaSession.playbackState='playing';}catch{}updPlayBtn(true);updDisc(true);updPlayingIndicator();renderQueue();renderPlPanel();vizStart();});
+aud.addEventListener('play',()=>{_interrupted=false;wantPlay=true;arStop();if(_arTried){_arLastOk=Date.now();_arTried=false;}lsSet('smzk_want',String(Date.now()));try{navigator.mediaSession.playbackState='playing';}catch{}updPlayBtn(true);updDisc(true);updPlayingIndicator();renderQueue();renderPlPanel();vizStart();});
 aud.addEventListener('pause',()=>{
   savePos();
   if(_expectPause>0)_expectPause--;
