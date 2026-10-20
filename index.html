@@ -608,7 +608,7 @@ body.dragover::after{content:'Şarkıları bırakın';position:fixed;inset:12px;
 <div class="bg"></div>
 <div id="app">
   <div class="appheader">
-    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.33</span></span>
+    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.34</span></span>
     <span class="appcopy">©sebasmobil &nbsp;<a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" style="color:inherit;font-size:0.8em;opacity:0.75;text-decoration:none;">AGPL v3.0</a></span>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Tema">🌙</button>
   </div>
@@ -974,7 +974,7 @@ aud.addEventListener('error', () => {
 });
 
 // ── VERSİYON & DEPOLAMA ANAHTARLARI
-const APP_VER   = 'Pro 2.33';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
+const APP_VER   = 'Pro 2.34';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
 const STORE_VER = 'Pro 1.7';      // Depolama anahtarı etiketi — SABİT. Değiştirilirse çalma listeleri/ayarlar sıfırlanır
 const DB_NAME   = 'mzk_pro_1_7';  // IndexedDB adı — SABİT. Değiştirilirse şarkılar yeni boş veritabanına düşer
 const DB_VER  = 1;
@@ -1450,6 +1450,7 @@ function wakeTry(){   // sayfa uyandı: niyet "çalmak" ise ve durmuşsa devam e
 window.addEventListener('online',wakeTry);
 document.addEventListener('resume',wakeTry);
 document.addEventListener('touchend',()=>{if(wantPlay&&aud.paused)wakeTry();},{passive:true,capture:true});
+let _npTouch=0;document.addEventListener('touchend',()=>{const n=Date.now();if(!aud.paused&&n-_npTouch>20000){_npTouch=n;refreshNowPlaying('dokunuş');}},{passive:true});
 function toggleAutoRes(){autoRes=!autoRes;lsSet('smzk_autores',autoRes?'1':'0');if(!autoRes)arStop();syncAutoRes();toast(autoRes?'Kesintiden sonra otomatik devam açık':'Kesintiden sonra otomatik devam kapalı');}
 function syncAutoRes(){const e=document.getElementById('swAutoRes');if(e)e.classList.toggle('on',autoRes);}
 // Uygulama iOS tarafından kapatılıp yeniden açıldıysa (örn. başka bir ana ekran uygulaması kapatılınca süreç yenilenir):
@@ -1606,6 +1607,17 @@ function updPlayer(){
   renderQueue();
 }
 function openAddSheetFromPlayer(){if(cur>=0)openAddSheet(cur);}
+// Dinamik Ada / kilit ekranı kartını tazele: sessiz döngü durdurulunca iOS kartı bırakmış olabilir; bilgiyi yeniden bildir
+function refreshNowPlaying(why){
+  try{
+    if(!('mediaSession'in navigator)||cur<0||!tracks[cur])return;
+    updMS();
+    navigator.mediaSession.playbackState=aud.paused?'paused':'playing';
+    if(aud.duration&&isFinite(aud.duration)&&'setPositionState'in navigator.mediaSession)
+      navigator.mediaSession.setPositionState({duration:aud.duration,playbackRate:aud.playbackRate||1,position:Math.min(aud.currentTime||0,aud.duration)});
+    if(window.dlog)dlog('♪ now playing tazelendi'+(why?' ('+why+')':''));
+  }catch{}
+}
 function updMS(){
   if(!('mediaSession'in navigator)||cur<0)return;
   const t=tracks[cur];
@@ -2988,7 +3000,7 @@ aud.addEventListener('loadedmetadata',()=>{
   }
 });
 window.addEventListener('pagehide',savePos);
-document.addEventListener('visibilitychange',()=>{if(document.hidden)savePos();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){savePos();if(!aud.paused)refreshNowPlaying('arka plana geçildi');}});
 
 // ── Çalma hızı (tonu bozmadan)
 const RATES=[0.75,1,1.25,1.5,2];
@@ -3626,7 +3638,8 @@ init().catch(e=>{console.error(e);toastErr('Başlatma hatası: '+e.message);});
   // Sessiz döngü müzikle birlikte çalarsa kilit ekranı ilerlemesi her saniye sıfırlanıyor (iOS "Şu an çalıyor" 1 sn'lik döngüyü izler).
   // Bu yüzden: dokunuşta başlat (izin için), müzik gerçekten çalmaya başlayınca durdur; yalnızca şarkılar arası geçişte (ended) açık tut.
   aud.addEventListener('play',()=>{_pausedAt=0;});
-  aud.addEventListener('playing',()=>{if(ka&&!ka.paused){try{ka.pause();if(window.dlog)dlog('· sessiz döngü bırakıldı (müzik çalıyor)');}catch{}}});
+  aud.addEventListener('playing',()=>{if(ka&&!ka.paused){try{ka.pause();if(window.dlog)dlog('· sessiz döngü bırakıldı (müzik çalıyor)');}catch{}}
+    setTimeout(()=>refreshNowPlaying('çalma başladı'),300);setTimeout(()=>refreshNowPlaying('çalma başladı +2sn'),2000);});
   aud.addEventListener('ended',()=>{startKA();});
   aud.addEventListener('pause',()=>{
     _pausedAt=Date.now();
