@@ -156,6 +156,7 @@ html.light .disc .center{background:#222;}
 /* Animasyon seçici — yukarıda tanımlı */
 
 /* Müziğe tepkili plak efektleri: tuval plağın ARKASINDA, dışarı taşar */
+.art-wrap.idle #vizCanvas{display:block;}   /* şarkı yokken: yavaş büyüyüp solan halkalar */
 #vizCanvas{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:-1;display:none;}
 .art-wrap.viz #vizCanvas{display:block;}
 .art-wrap.viz .disc{will-change:transform;}
@@ -607,7 +608,7 @@ body.dragover::after{content:'Şarkıları bırakın';position:fixed;inset:12px;
 <div class="bg"></div>
 <div id="app">
   <div class="appheader">
-    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.28</span></span>
+    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.30</span></span>
     <span class="appcopy">©sebasmobil &nbsp;<a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" style="color:inherit;font-size:0.8em;opacity:0.75;text-decoration:none;">AGPL v3.0</a></span>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Tema">🌙</button>
   </div>
@@ -872,6 +873,8 @@ body.dragover::after{content:'Şarkıları bırakın';position:fixed;inset:12px;
         </button>
         <div class="fold-body">
           <div class="strow"><span class="stlabel">Karışıkta her turda yeni sıra</span><button class="sw" id="swReshuf" onclick="toggleReshuf()" aria-label="Her turda yeniden karıştır"><i></i></button></div>
+          <div class="strow" style="margin-top:12px"><span class="stlabel">Kesintiden sonra otomatik devam</span><button class="sw" id="swAutoRes" onclick="toggleAutoRes()" aria-label="Kesintiden sonra otomatik devam"><i></i></button></div>
+          <div class="st-note" style="margin:-2px 0 0">Başka uygulama (video, arama, Siri) müziği durdurunca, o ses bitince müzik kendiliğinden devam etmeyi dener. Başka uygulamada ses çalarken müziğin araya girmesini istemiyorsan kapat.</div>
           <div class="st-note" style="margin:-2px 0 0">Karışık modda liste bitince sıra yeniden karıştırılır ve çalma durmadan sürer; aynı şarkılar hep aynı sırayla dönmez.</div>
         </div>
       </div>
@@ -971,7 +974,7 @@ aud.addEventListener('error', () => {
 });
 
 // ── VERSİYON & DEPOLAMA ANAHTARLARI
-const APP_VER   = 'Pro 2.28';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
+const APP_VER   = 'Pro 2.30';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
 const STORE_VER = 'Pro 1.7';      // Depolama anahtarı etiketi — SABİT. Değiştirilirse çalma listeleri/ayarlar sıfırlanır
 const DB_NAME   = 'mzk_pro_1_7';  // IndexedDB adı — SABİT. Değiştirilirse şarkılar yeni boş veritabanına düşer
 const DB_VER  = 1;
@@ -1376,7 +1379,9 @@ aud.addEventListener('ended',()=>{
 // ── Sistem kesintisi (başka uygulama, arama, Siri…) ve otomatik devam
 // Uygulamanın kendi duraklatmaları appPause() ile yapılır; ondan gelmeyen 'pause' olayı kesinti sayılır.
 let _expectPause=0,_interrupted=false;
+let wantPlay=false;   // "çalmak istiyorum" niyeti: yalnızca kullanıcı/uygulama duraklatınca false olur (sistem kesintisi niyeti değiştirmez)
 function appPause(){
+  wantPlay=false;try{arStop();}catch{}lsSet('smzk_want','0');
   if(!aud.paused){_expectPause++;aud.pause();}
   _interrupted=false;
 }
@@ -1385,15 +1390,70 @@ function tryAutoResume(){
   const p=aud.play();
   if(p&&p.catch)p.catch(()=>{}); // izin verilmezse ▶ düğmesi normal çalışır
 }
-function resumeSoon(){if(!_interrupted)return;tryAutoResume();setTimeout(tryAutoResume,1200);}
+function resumeSoon(){wakeTry();if(!_interrupted)return;tryAutoResume();setTimeout(tryAutoResume,1200);}
+
+// ── v2.30: kesintiden sonra KALICI devam
+// iOS, başka bir uygulama ses çalınca müziği duraklatır ve sayfayı dondurabilir. Burada üç katman var:
+//  1) Kesinti sonrası arka planda artan aralıklarla yeniden çalmayı dener (sayfa çalışıyorsa),
+//  2) Sayfa uyanınca (öne gelme, odak, ağ, dokunuş) niyet "çalmak" ise hemen devam eder,
+//  3) Ses kaynağı bozulmuşsa/boşaltılmışsa şarkıyı kaldığı saniyeden yeniden yükleyip çalar.
+let autoRes=true;try{autoRes=localStorage.getItem('smzk_autores')!=='0';}catch{}
+let _arTimer=null,_arStep=0,_arStart=0;
+const AR_DELAYS=[2,4,8,15,30,60,90,120];   // sn; sonra 120 sn'de bir, en çok ~40 dk
+function dl(m){try{if(window.dlog)dlog(m);}catch{}}
+function arStop(){if(_arTimer){clearTimeout(_arTimer);_arTimer=null;}_arStep=0;}
+function arBegin(why){
+  if(!autoRes||!wantPlay)return;
+  arStop();_arStart=Date.now();dl('↻ otomatik devam denemeleri başladı ('+why+')');arSchedule();
+}
+function arSchedule(){
+  if(_arTimer||!autoRes||!wantPlay)return;
+  _arTimer=setTimeout(()=>{_arTimer=null;arTry();},(AR_DELAYS[_arStep]!==undefined?AR_DELAYS[_arStep]:120)*1000);
+}
+function arTry(){
+  if(!autoRes||!wantPlay||!aud.paused||cur<0){arStop();return;}
+  if(Date.now()-_arStart>40*60*1000){arStop();dl('↻ otomatik devam: süre doldu');return;}
+  _arStep++;dl('↻ deneme '+_arStep);
+  try{const p=robustPlay();if(p&&p.catch)p.catch(()=>{});}catch{}
+  arSchedule();
+}
+function robustPlay(){   // ses kaynağı sağlıksızsa kaldığı yerden yeniden yükle, değilse normal çal
+  if(cur<0||!tracks[cur])return Promise.reject(new Error('şarkı yok'));
+  const broken=!aud.src||aud.src==='about:blank'||aud.error||aud.networkState===3||aud.networkState===0;
+  if(broken){
+    let sp=null;try{sp=JSON.parse(localStorage.getItem('smzk_pos')||'null');}catch{}
+    dl('↻ ses kaynağı yenileniyor');
+    loadTrack(cur,true);
+    if(sp)restorePos(sp);
+    return Promise.resolve();
+  }
+  return aud.play();
+}
+function wakeTry(){   // sayfa uyandı: niyet "çalmak" ise ve durmuşsa devam et
+  if(!autoRes||!wantPlay||!aud.paused||cur<0)return;
+  try{const p=robustPlay();if(p&&p.catch)p.catch(()=>{});}catch{}
+}
+window.addEventListener('online',wakeTry);
+document.addEventListener('resume',wakeTry);
+document.addEventListener('touchend',()=>{if(wantPlay&&aud.paused)wakeTry();},{passive:true,capture:true});
+function toggleAutoRes(){autoRes=!autoRes;lsSet('smzk_autores',autoRes?'1':'0');if(!autoRes)arStop();syncAutoRes();toast(autoRes?'Kesintiden sonra otomatik devam açık':'Kesintiden sonra otomatik devam kapalı');}
+function syncAutoRes(){const e=document.getElementById('swAutoRes');if(e)e.classList.toggle('on',autoRes);}
+// Uygulama tamamen kapanıp yeniden açıldıysa (son 2 saatte çalıyorduysa) kaldığı yerden devam etmeyi dene; izin verilmezse ilk dokunuşta çal
+window.addEventListener('load',()=>setTimeout(()=>{
+  let w=0;try{w=+localStorage.getItem('smzk_want')||0;}catch{}
+  if(!autoRes||!w||Date.now()-w>2*3600e3||cur<0||!aud.paused||wantPlay)return;
+  const go=()=>{if(aud.paused&&cur>=0){try{const p=robustPlay();if(p&&p.catch)p.catch(()=>{});}catch{}}};
+  let ok=true;try{const p=robustPlay();if(p&&p.catch)p.catch(()=>{ok=false;});}catch{ok=false;}
+  setTimeout(()=>{if(aud.paused){toast('▶ Devam etmek için ekrana dokun');document.addEventListener('touchend',go,{once:true,passive:true});document.addEventListener('click',go,{once:true});}},1500);
+},2500));
 document.addEventListener('visibilitychange',()=>{if(document.hidden)return;resumeSoon();if(!aud.paused)vizStart();});
 window.addEventListener('pageshow',resumeSoon);
 window.addEventListener('focus',resumeSoon);
-aud.addEventListener('play',()=>{_interrupted=false;try{navigator.mediaSession.playbackState='playing';}catch{}updPlayBtn(true);updDisc(true);updPlayingIndicator();renderQueue();renderPlPanel();vizStart();});
+aud.addEventListener('play',()=>{_interrupted=false;wantPlay=true;arStop();lsSet('smzk_want',String(Date.now()));try{navigator.mediaSession.playbackState='playing';}catch{}updPlayBtn(true);updDisc(true);updPlayingIndicator();renderQueue();renderPlPanel();vizStart();});
 aud.addEventListener('pause',()=>{
   savePos();
   if(_expectPause>0)_expectPause--;
-  else if(!aud.ended&&aud.src&&cur>=0)_interrupted=true; // kullanıcı/uygulama istemedi → sistem kesintisi
+  else if(!aud.ended&&aud.src&&cur>=0){_interrupted=true;arBegin('sistem kesintisi');} // kullanıcı/uygulama istemedi → sistem kesintisi
   try{navigator.mediaSession.playbackState='paused';}catch{}
   updPlayBtn(false);updDisc(false);updPlayingIndicator();renderQueue();renderPlPanel();
 });
@@ -1524,7 +1584,7 @@ function updMS(){
   if(!('mediaSession'in navigator)||cur<0)return;
   const t=tracks[cur];
   navigator.mediaSession.metadata=new MediaMetadata({title:t.name,artist:t.artist||'Bilinmeyen Sanatçı'});
-  navigator.mediaSession.setActionHandler('play',()=>aud.play());
+  navigator.mediaSession.setActionHandler('play',()=>{try{const p=robustPlay();if(p&&p.catch)p.catch(()=>{});}catch{aud.play().catch(()=>{});}});
   navigator.mediaSession.setActionHandler('pause',()=>appPause());
   navigator.mediaSession.setActionHandler('previoustrack',prev);
   navigator.mediaSession.setActionHandler('nexttrack',()=>next(false));
@@ -2528,6 +2588,48 @@ function vizFrame(now){
   if(!aud.paused||V.live>0.01||V.kick>0.01||_shocks.length||_parts.length||V.busy)_vizRaf=requestAnimationFrame(vizFrame);
   else if(!isWide(curAnim))ctx.clearRect(0,0,W,H); // yatay modlar sakin çizgiyi gösterir
 }
+// ── Şarkı yokken (ilk kullanım): yavaşça büyüyen, solan ve kaybolan halkalar
+let _idleRaf=null,_idleOn=false,_idleT=0,_idleLast=0;
+function idleFrame(now){
+  _idleRaf=null;
+  const wrap=document.getElementById('artWrap');
+  if(cur>=0||!wrap){ // şarkı seçildi: temizle ve bırak
+    _idleOn=false;if(wrap)wrap.classList.remove('idle');
+    if(_vx)try{_vx.clearRect(0,0,_vW,_vH);}catch{}
+    return;
+  }
+  const pv=document.getElementById('pv');
+  if(!pv||!pv.classList.contains('active')||document.hidden){_idleRaf=requestAnimationFrame(idleFrame);_idleLast=now;return;}
+  wrap.classList.add('idle');
+  const t=vizTarget();if(t&&(t[0]!==_vW||t[1]!==_vH||!_vx))vizResize();
+  if(!_vx){_idleRaf=requestAnimationFrame(idleFrame);return;}
+  const dt=Math.min(0.05,(now-_idleLast)/1000||0.016);_idleLast=now;_idleT+=dt;
+  if((_idleT*10|0)%50===0)refreshVizColor();
+  const W=_vW,H=_vH,ctx=_vx,cx=W/2,cy=H/2,light=document.documentElement.classList.contains('light');
+  const Rmax=isWide(curAnim)?Math.min(W/2,H/2-2):W/2*0.96;   // yatay modda halkalar tuvalin yüksekliğinde kesilmesin
+  ctx.globalCompositeOperation='source-over';ctx.clearRect(0,0,W,H);
+  const N=4,PER=9;                         // 4 halka, her biri 9 sn'de büyüyüp kaybolur
+  for(let i=0;i<N;i++){
+    const p=((_idleT/PER)+i/N)%1;          // 0..1
+    const e=1-Math.pow(1-p,2.2);           // başta hızlı, sonra yavaşlayarak büyür
+    const r=Rmax*(0.06+0.94*e);
+    const a=Math.pow(1-p,1.6)*Math.min(1,p*7); // hızlıca belirir, uzun uzun solar
+    const L=light?46:64;
+    const g=ctx.createRadialGradient(cx,cy,r*0.55,cx,cy,r);
+    g.addColorStop(0,hsla(_hue+i*9,85,L,0));g.addColorStop(1,hsla(_hue+i*9,85,L,a*0.16));
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fill();
+    ctx.lineWidth=1.2+2.2*(1-p);ctx.strokeStyle=hsla(_hue+i*9,90,L,a*0.55);
+    ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();
+  }
+  const pulse=0.5+0.5*Math.sin(_idleT*0.7);   // merkezde yavaş nefes alan nokta
+  ctx.fillStyle=hsla(_hue,90,light?46:68,0.25+0.25*pulse);ctx.beginPath();ctx.arc(cx,cy,3+2*pulse,0,Math.PI*2);ctx.fill();
+  _idleRaf=requestAnimationFrame(idleFrame);
+}
+function idleCheck(){
+  if(cur<0&&!_idleRaf){_idleOn=true;_idleLast=performance.now();_idleRaf=requestAnimationFrame(idleFrame);}
+}
+setInterval(idleCheck,800);   // şarkı listesi boşalırsa ya da hiç yoksa halkalar devreye girer
+window.addEventListener('load',()=>setTimeout(idleCheck,300));
 function vizStart(){
   if(!isViz(curAnim))return;
   ensureAnalysis();
@@ -3683,7 +3785,7 @@ async function backupImport(file){
 document.getElementById('backupFile').addEventListener('change',e=>{const f=e.target.files[0];e.target.value='';if(f)backupImport(f);});
 
 // Açılışta arayüzü eşitle
-syncThemeAuto();syncReshuf();syncSleepMode();
+syncThemeAuto();syncReshuf();syncSleepMode();syncAutoRes();
 if(sleepMode==='clock'&&sleepDaily)startSleep(true);
 </script>
 </body>
