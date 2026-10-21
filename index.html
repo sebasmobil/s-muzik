@@ -608,7 +608,7 @@ body.dragover::after{content:'Şarkıları bırakın';position:fixed;inset:12px;
 <div class="bg"></div>
 <div id="app">
   <div class="appheader">
-    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.35</span></span>
+    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.36</span></span>
     <span class="appcopy">©sebasmobil &nbsp;<a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" style="color:inherit;font-size:0.8em;opacity:0.75;text-decoration:none;">AGPL v3.0</a></span>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Tema">🌙</button>
   </div>
@@ -974,7 +974,7 @@ aud.addEventListener('error', () => {
 });
 
 // ── VERSİYON & DEPOLAMA ANAHTARLARI
-const APP_VER   = 'Pro 2.35';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
+const APP_VER   = 'Pro 2.36';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
 const STORE_VER = 'Pro 1.7';      // Depolama anahtarı etiketi — SABİT. Değiştirilirse çalma listeleri/ayarlar sıfırlanır
 const DB_NAME   = 'mzk_pro_1_7';  // IndexedDB adı — SABİT. Değiştirilirse şarkılar yeni boş veritabanına düşer
 const DB_VER  = 1;
@@ -1267,17 +1267,17 @@ function parseMeta(fn, ab){
 }
 
 // ── ÇALMA
-let _loadToken = 0;
+let _loadToken = 0, _lastLoadAt = 0;
 function loadTrack(idx, play=true){
   if(idx<0||idx>=tracks.length)return;
   cur=idx; ps('ci',idx);
   const t=tracks[idx];
-  const token=++_loadToken;
+  const token=++_loadToken;_lastLoadAt=Date.now();
 
   // Çalma niyeti burada belirlenir; src değişimi oynatıcıyı zaten durdurur (ayrıca duraklatmaya gerek yok)
   wantPlay=!!play;_interrupted=false;_ownPauseAt=Date.now();try{arStop();}catch{}
   _resumeAt=0;_counted=false;abA=abB=null;abEditOpen=false;try{abTickStop();}catch{}
-  aud.preload='auto';
+  aud.preload='auto';syncLoop();
   aud.src=t.url;
   aud.load(); // ← Blob URL'nin tarayıcı tarafından kesin tanınması için
   updMS();    // kilit ekranı / Dinamik Ada bilgisi çalmadan ÖNCE hazır olsun
@@ -1401,7 +1401,7 @@ function resumeSoon(){wakeTry();if(!_interrupted)return;tryAutoResume();setTimeo
 //  2) Sayfa uyanınca (öne gelme, odak, ağ, dokunuş) niyet "çalmak" ise hemen devam eder,
 //  3) Ses kaynağı bozulmuşsa/boşaltılmışsa şarkıyı kaldığı saniyeden yeniden yükleyip çalar.
 let autoRes=true;try{autoRes=localStorage.getItem('smzk_autores')!=='0';}catch{}
-let _arTimer=null,_arStep=0,_arStart=0,_arTried=false,_arLastOk=0,_arFight=0;
+let _arTimer=null,_arStep=0,_arStart=0,_arTried=0,_arLastOk=0,_arFight=0;
 const AR_FIGHT=[0,15,30,60,90];   // başka uygulama sesi sürüyorsa (otomatik devamdan hemen sonra yine kesildiyse) bekleme büyür
 const AR_DELAYS=[15,30,60,90,120];   // sn; başka uygulamanın sesini (video) bozmamak için ilk deneme geç; sonra 120 sn'de bir, en çok ~40 dk
 function dl(m){try{if(window.dlog)dlog(m);}catch{}}
@@ -1410,7 +1410,7 @@ const _AS=(typeof navigator!=='undefined'&&navigator.audioSession)||null;
 function asState(){try{return _AS?String(_AS.state||''):'';}catch{return '';}}
 try{if(_AS&&_AS.addEventListener)_AS.addEventListener('statechange',()=>{
   const st=asState();dl('🔊 ses oturumu: '+st);
-  if(st!=='interrupted'&&wantPlay&&aud.paused&&autoRes){setTimeout(()=>{if(wantPlay&&aud.paused&&asState()!=='interrupted'){_arTried=true;try{const p=robustPlay();if(p&&p.catch)p.catch(()=>{});}catch{}}},400);}
+  if(st!=='interrupted'&&wantPlay&&aud.paused&&autoRes){setTimeout(()=>{if(wantPlay&&aud.paused&&asState()!=='interrupted'){_arTried=Date.now();try{const p=robustPlay();if(p&&p.catch)p.catch(()=>{});}catch{}}},400);}
 });}catch{}
 function arStop(){if(_arTimer){clearTimeout(_arTimer);_arTimer=null;}_arStep=0;}
 function arBegin(why){
@@ -1427,14 +1427,14 @@ function arTry(){
   if(!autoRes||!wantPlay||!aud.paused||cur<0){arStop();return;}
   if(Date.now()-_arStart>40*60*1000){arStop();dl('↻ otomatik devam: süre doldu');return;}
   if(asState()==='interrupted'){dl('↻ başka uygulama ses çalıyor, bekleniyor');arSchedule();return;}   // Ses Oturumu API'si destekleniyorsa araya girme
-  _arStep++;dl('↻ deneme '+_arStep);_arTried=true;
+  _arStep++;dl('↻ deneme '+_arStep);_arTried=Date.now();
   try{const p=robustPlay();if(p&&p.catch)p.catch(()=>{});}catch{}
   arSchedule();
 }
 function robustPlay(){   // ses kaynağı sağlıksızsa kaldığı yerden yeniden yükle, değilse normal çal
   if(cur<0||!tracks[cur])return Promise.reject(new Error('şarkı yok'));
-  const broken=!aud.src||aud.src==='about:blank'||aud.error||aud.networkState===3||aud.networkState===0;
-  if(broken){
+  const broken=!aud.src||aud.src==='about:blank'||aud.error||aud.networkState===3;
+  if(broken&&Date.now()-_lastLoadAt>3000){   // az önce yüklendiyse tekrar yükleme (çalma/duraklatma titremesine yol açıyordu)
     let sp=null;try{sp=JSON.parse(localStorage.getItem('smzk_pos')||'null');}catch{}
     dl('↻ ses kaynağı yenileniyor');
     loadTrack(cur,true);
@@ -1445,7 +1445,7 @@ function robustPlay(){   // ses kaynağı sağlıksızsa kaldığı yerden yenid
 }
 function wakeTry(){   // sayfa uyandı: niyet "çalmak" ise ve durmuşsa devam et
   if(!autoRes||!wantPlay||!aud.paused||cur<0)return;
-  _arTried=true;_arFight=0;   // kullanıcı uygulamaya döndü: bekleme sıfırlansın
+  _arTried=Date.now();_arFight=0;   // kullanıcı uygulamaya döndü: bekleme sıfırlansın
   try{const p=robustPlay();if(p&&p.catch)p.catch(()=>{});}catch{}
 }
 window.addEventListener('online',wakeTry);
@@ -1477,7 +1477,7 @@ function bootResume(){
 document.addEventListener('visibilitychange',()=>{if(document.hidden)return;resumeSoon();if(!aud.paused)vizStart();});
 window.addEventListener('pageshow',resumeSoon);
 window.addEventListener('focus',resumeSoon);
-aud.addEventListener('play',()=>{_interrupted=false;wantPlay=true;arStop();if(_arTried){_arLastOk=Date.now();_arTried=false;}lsSet('smzk_want',String(Date.now()));try{navigator.mediaSession.playbackState='playing';}catch{}updPlayBtn(true);updDisc(true);updPlayingIndicator();renderQueue();renderPlPanel();vizStart();});
+aud.addEventListener('play',()=>{_interrupted=false;wantPlay=true;arStop();if(_arTried&&Date.now()-_arTried<6000)_arLastOk=Date.now();_arTried=0;lsSet('smzk_want',String(Date.now()));try{navigator.mediaSession.playbackState='playing';}catch{}updPlayBtn(true);updDisc(true);updPlayingIndicator();renderQueue();renderPlPanel();vizStart();});
 aud.addEventListener('pause',()=>{
   savePos();
   if(Date.now()-_ownPauseAt<800){/* uygulama/kullanıcı duraklattı */}
@@ -1486,6 +1486,8 @@ aud.addEventListener('pause',()=>{
   updPlayBtn(false);updDisc(false);updPlayingIndicator();renderQueue();renderPlPanel();
 });
 aud.addEventListener('timeupdate',()=>{
+  if(aud.loop&&_lastT>3&&aud.currentTime<_lastT-1){_counted=false;try{localStorage.removeItem('smzk_pos');}catch{}}   // yerel döngüde başa sarma: sayım yeniden başlasın
+  _lastT=aud.currentTime||0;
   if(abA!==null&&abB===null)updAB();
   if(seeking||!aud.duration)return;
   if(abCheck())return;
@@ -1570,7 +1572,12 @@ function addToShuf(newIdxs){
 }
 function cycleRepeat(){repeat=(repeat+1)%3;ps('rp',repeat);updRep();toast(['Tekrar kapalı','Liste tekrar','Şarkı tekrar'][repeat]);}
 function updShuf(){document.getElementById('btnShuffle').classList.toggle('on',shuffled);}
-function updRep(){document.getElementById('btnRepeat').classList.toggle('on',repeat>0);document.getElementById('repeatIco').innerHTML=repeat===2?'<path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/><rect x="8.5" y="8.5" width="7" height="7" rx="1.5" fill="currentColor" opacity="0.92"/><text x="12" y="14.3" text-anchor="middle" font-size="6" fill="var(--bg)" font-weight="900" font-family="-apple-system,sans-serif">1</text>':'<path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/>';}
+// Şarkı tekrar (🔂) modunda yerel döngü: 'ended' olayı ve yeniden başlatma boşluğu olmaz → iPhone arka planda sayfayı dondurup takamaz.
+// Tur sayacı (rcActive) 'ended' olayına ihtiyaç duyar; o açıkken yerel döngü kapalı kalır.
+function syncLoop(){try{aud.loop=(repeat===2&&!rcActive);}catch{}}
+setInterval(syncLoop,1500);
+let _lastT=0;
+function updRep(){syncLoop();document.getElementById('btnRepeat').classList.toggle('on',repeat>0);document.getElementById('repeatIco').innerHTML=repeat===2?'<path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/><rect x="8.5" y="8.5" width="7" height="7" rx="1.5" fill="currentColor" opacity="0.92"/><text x="12" y="14.3" text-anchor="middle" font-size="6" fill="var(--bg)" font-weight="900" font-family="-apple-system,sans-serif">1</text>':'<path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/>';}
 function updPlayBtn(pl){document.getElementById('playIco').innerHTML=pl?'<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>':'<path d="M8 5v14l11-7z"/>';}
 function updDisc(pl){
   const d=document.getElementById('disc');
