@@ -608,7 +608,7 @@ body.dragover::after{content:'Şarkıları bırakın';position:fixed;inset:12px;
 <div class="bg"></div>
 <div id="app">
   <div class="appheader">
-    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.34</span></span>
+    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.35</span></span>
     <span class="appcopy">©sebasmobil &nbsp;<a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" style="color:inherit;font-size:0.8em;opacity:0.75;text-decoration:none;">AGPL v3.0</a></span>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Tema">🌙</button>
   </div>
@@ -974,7 +974,7 @@ aud.addEventListener('error', () => {
 });
 
 // ── VERSİYON & DEPOLAMA ANAHTARLARI
-const APP_VER   = 'Pro 2.34';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
+const APP_VER   = 'Pro 2.35';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
 const STORE_VER = 'Pro 1.7';      // Depolama anahtarı etiketi — SABİT. Değiştirilirse çalma listeleri/ayarlar sıfırlanır
 const DB_NAME   = 'mzk_pro_1_7';  // IndexedDB adı — SABİT. Değiştirilirse şarkılar yeni boş veritabanına düşer
 const DB_VER  = 1;
@@ -1274,37 +1274,38 @@ function loadTrack(idx, play=true){
   const t=tracks[idx];
   const token=++_loadToken;
 
-  appPause();
-  aud.currentTime=0;
+  // Çalma niyeti burada belirlenir; src değişimi oynatıcıyı zaten durdurur (ayrıca duraklatmaya gerek yok)
+  wantPlay=!!play;_interrupted=false;_ownPauseAt=Date.now();try{arStop();}catch{}
   _resumeAt=0;_counted=false;abA=abB=null;abEditOpen=false;try{abTickStop();}catch{}
+  aud.preload='auto';
   aud.src=t.url;
   aud.load(); // ← Blob URL'nin tarayıcı tarafından kesin tanınması için
+  updMS();    // kilit ekranı / Dinamik Ada bilgisi çalmadan ÖNCE hazır olsun
 
   if(play){
-    // Kısa gecikme — src değişimi tamamlansın, sonra play
-    setTimeout(()=>{
+    // DOĞRUDAN çal (zamanlayıcı yok): dokunuş ya da 'ended' yığınında kalır. iOS, arka planda gecikmeli play() çağrısını reddedebilir.
+    const p=aud.play();
+    if(p&&p.catch)p.catch(err=>{
       if(token!==_loadToken)return;
-      aud.play().catch(err=>{
-        if(token!==_loadToken)return;
-        if(err&&err.name==='NotAllowedError'){
-          // Kullanıcı dokunuşu bekle
-          const resume=()=>{
-            if(token!==_loadToken)return;
-            aud.play().catch(()=>{});
-            document.removeEventListener('click',resume);
-            document.removeEventListener('touchend',resume);
-          };
-          document.addEventListener('click',resume,{once:true});
-          document.addEventListener('touchend',resume,{once:true});
-        }else{
-          toastErr('⚠️ '+(err?err.name+': '+err.message:'Çalınamadı'));
-        }
-      });
-    },80);
+      if(err&&err.name==='AbortError')return; // daha yeni bir yükleme geldi
+      if(err&&err.name==='NotAllowedError'){
+        // Kullanıcı dokunuşu bekle
+        const resume=()=>{
+          if(token!==_loadToken)return;
+          aud.play().catch(()=>{});
+          document.removeEventListener('click',resume);
+          document.removeEventListener('touchend',resume);
+        };
+        document.addEventListener('click',resume,{once:true});
+        document.addEventListener('touchend',resume,{once:true});
+      }else{
+        toastErr('⚠️ '+(err?err.name+': '+err.message:'Çalınamadı'));
+      }
+    });
   }
 
   applyRate();updAB();if(animAuto)autoAnimFor(t);
-  updPlayer(); renderLib(); updMS(); updDiscArt();
+  updPlayer(); renderLib(); updDiscArt();
 }
 function togglePlay(){
   if(!tracks.length){showTab('l');return;}
@@ -1314,7 +1315,7 @@ function togglePlay(){
     loadTrack(cur,true);
     return;
   }
-  if(aud.paused)aud.play().catch(()=>{loadTrack(cur,true);});
+  if(aud.paused){wantPlay=true;robustPlay().catch(()=>{loadTrack(cur,true);});}
   else appPause();
 }
 function playIdx(idx){if(shuffled){ensureShuf();shufPos=shufOrder.indexOf(idx);}loadTrack(idx,true);}
@@ -1379,12 +1380,12 @@ aud.addEventListener('ended',()=>{
 });
 // ── Sistem kesintisi (başka uygulama, arama, Siri…) ve otomatik devam
 // Uygulamanın kendi duraklatmaları appPause() ile yapılır; ondan gelmeyen 'pause' olayı kesinti sayılır.
-let _expectPause=0,_interrupted=false;
+let _ownPauseAt=0,_interrupted=false;   // _ownPauseAt: uygulamanın kendi duraklatma anı (sistem kesintisinden ayırmak için)
 const _bootWant=(()=>{try{return +localStorage.getItem('smzk_want')||0;}catch{return 0;}})();   // açılışta okunur: başlangıçtaki loadTrack/appPause kaydı silmeden önce
 let wantPlay=false;   // "çalmak istiyorum" niyeti: yalnızca kullanıcı/uygulama duraklatınca false olur (sistem kesintisi niyeti değiştirmez)
 function appPause(){
   wantPlay=false;try{arStop();}catch{}lsSet('smzk_want','0');
-  if(!aud.paused){_expectPause++;aud.pause();}
+  if(!aud.paused){_ownPauseAt=Date.now();aud.pause();}
   _interrupted=false;
 }
 function tryAutoResume(){
@@ -1479,7 +1480,7 @@ window.addEventListener('focus',resumeSoon);
 aud.addEventListener('play',()=>{_interrupted=false;wantPlay=true;arStop();if(_arTried){_arLastOk=Date.now();_arTried=false;}lsSet('smzk_want',String(Date.now()));try{navigator.mediaSession.playbackState='playing';}catch{}updPlayBtn(true);updDisc(true);updPlayingIndicator();renderQueue();renderPlPanel();vizStart();});
 aud.addEventListener('pause',()=>{
   savePos();
-  if(_expectPause>0)_expectPause--;
+  if(Date.now()-_ownPauseAt<800){/* uygulama/kullanıcı duraklattı */}
   else if(!aud.ended&&aud.src&&cur>=0){_interrupted=true;arBegin('sistem kesintisi');} // kullanıcı/uygulama istemedi → sistem kesintisi
   try{navigator.mediaSession.playbackState='paused';}catch{}
   updPlayBtn(false);updDisc(false);updPlayingIndicator();renderQueue();renderPlPanel();
@@ -1622,11 +1623,7 @@ function updMS(){
   if(!('mediaSession'in navigator)||cur<0)return;
   const t=tracks[cur];
   navigator.mediaSession.metadata=new MediaMetadata({title:t.name,artist:t.artist||'Bilinmeyen Sanatçı'});
-  navigator.mediaSession.setActionHandler('play',()=>{try{const p=robustPlay();if(p&&p.catch)p.catch(()=>{});}catch{aud.play().catch(()=>{});}});
-  navigator.mediaSession.setActionHandler('pause',()=>appPause());
-  navigator.mediaSession.setActionHandler('previoustrack',prev);
-  navigator.mediaSession.setActionHandler('nexttrack',()=>next(false));
-  try{navigator.mediaSession.setActionHandler('seekto',d=>{if(aud.duration)aud.currentTime=d.seekTime;});}catch{}
+  try{navigator.mediaSession.playbackState=aud.paused?'paused':'playing';}catch{}
 }
 
 // ── KUYRUK
@@ -3597,66 +3594,34 @@ init().catch(e=>{console.error(e);toastErr('Başlatma hatası: '+e.message);});
   window.logRender();
 })();
 
-// ── Şarkılar arası boşlukta sayfanın dondurulmasını önle (ana ekran / iPhone)
-// Şarkı bitince ses kesildiği için iPhone sayfayı dondurabiliyor; yeni şarkının verisi o sırada yüklenemeyip takılıyor.
-// Çözüm: çalma sürerken duyulmayan (sıfır genlikli) bir döngü sesini de çalıp sayfayı "ses çalıyor" durumunda tutmak.
+// ── Medya oturumu (kilit ekranı / Dinamik Ada) ve şarkı geçiş bekçisi
+// v2.35: İkinci "sessiz döngü" ses öğesi KALDIRILDI. Kilit ekranındaki oynat/duraklat bazen ona gidiyor, kart karışıyordu.
+// Tek ses öğesi + tek medya oturumu; eylemler bir kez, başlangıçta kurulur.
 (function(){
-  let ka=null,_kaUrl=null,_pausedAt=0;
-  function silentWav(){
-    const rate=8000,n=rate,buf=new ArrayBuffer(44+n*2),v=new DataView(buf);
-    const w=(o,t)=>{for(let i=0;i<t.length;i++)v.setUint8(o+i,t.charCodeAt(i));};
-    w(0,'RIFF');v.setUint32(4,36+n*2,true);w(8,'WAVE');w(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
-    v.setUint32(24,rate,true);v.setUint32(28,rate*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,'data');v.setUint32(40,n*2,true);
-    return new Blob([buf],{type:'audio/wav'});
+  if('mediaSession' in navigator){
+    const ms=navigator.mediaSession;
+    const set=(a,f)=>{try{ms.setActionHandler(a,f);}catch{}};
+    set('play',()=>{
+      if(cur<0){togglePlay();return;}
+      wantPlay=true;
+      try{const p=robustPlay();if(p&&p.catch)p.catch(()=>{});}catch{}
+    });
+    set('pause',()=>appPause());
+    set('stop',()=>appPause());
+    set('previoustrack',()=>prev());
+    set('nexttrack',()=>next(false));
+    set('seekto',d=>{if(aud.duration&&d&&isFinite(d.seekTime))aud.currentTime=Math.max(0,Math.min(aud.duration,d.seekTime));});
   }
-  function mkKA(){
-    if(ka)return ka;
-    try{
-      _kaUrl=URL.createObjectURL(silentWav());
-      ka=new Audio(_kaUrl);ka.loop=true;ka.preload='auto';
-    }catch{ka=null;}
-    return ka;
-  }
-  function startKA(){
-    const k=mkKA();if(!k||!k.paused)return;
-    try{const p=k.play();if(p&&p.catch)p.catch(()=>{});if(window.dlog)dlog('· sessiz döngü başladı');}catch{}
-  }
-  function stopKA(why){
-    if(!ka||ka.paused)return;
-    try{ka.pause();ka.currentTime=0;if(window.dlog)dlog('· sessiz döngü durdu ('+why+')');}catch{}
-  }
-  // Mevcut aud.play sarmalayıcısının üstüne: kullanıcı dokunuşu yığınında sessiz döngüyü de başlat
-  try{
-    const _p=aud.play.bind(aud);
-    aud.play=function(){startKA();return _p();};
-  }catch{}
-  // İlk dokunuşta öğeyi "kilitten" çıkar (iOS ikinci ses öğesini ancak dokunuşla başlatmaya izin verir)
-  const unlock=()=>{const k=mkKA();if(!k)return;try{const p=k.play();if(p&&p.then)p.then(()=>{if(aud.paused)k.pause();}).catch(()=>{});}catch{}};
-  document.addEventListener('touchend',unlock,{once:true,passive:true});
-  document.addEventListener('click',unlock,{once:true});
-
-  // Sessiz döngü müzikle birlikte çalarsa kilit ekranı ilerlemesi her saniye sıfırlanıyor (iOS "Şu an çalıyor" 1 sn'lik döngüyü izler).
-  // Bu yüzden: dokunuşta başlat (izin için), müzik gerçekten çalmaya başlayınca durdur; yalnızca şarkılar arası geçişte (ended) açık tut.
-  aud.addEventListener('play',()=>{_pausedAt=0;});
-  aud.addEventListener('playing',()=>{if(ka&&!ka.paused){try{ka.pause();if(window.dlog)dlog('· sessiz döngü bırakıldı (müzik çalıyor)');}catch{}}
-    setTimeout(()=>refreshNowPlaying('çalma başladı'),300);setTimeout(()=>refreshNowPlaying('çalma başladı +2sn'),2000);});
-  aud.addEventListener('ended',()=>{startKA();});
-  aud.addEventListener('pause',()=>{
-    _pausedAt=Date.now();
-    // Şarkı sonu değilse (kullanıcı/sistem duraklattı) hemen durdur; şarkı sonunda geçişi beklemek için açık kalır
-    if(!aud.ended)stopKA('duraklatıldı');
-  });
-  // Liste sonunda ya da hata durumunda çalma devam etmiyorsa sessiz döngüyü bırakma (pil)
-  setInterval(()=>{if(ka&&!ka.paused&&aud.paused&&_pausedAt&&Date.now()-_pausedAt>12000)stopKA('çalma sürmedi');},4000);
-
-  // Bekçi: şarkı bitince sıradaki 2,5 sn içinde başlamazsa yeniden yüklemeyi dene
+  // Çalma başlayınca kartı tazele (Dinamik Ada)
+  aud.addEventListener('playing',()=>{setTimeout(()=>refreshNowPlaying('çalma başladı'),300);setTimeout(()=>refreshNowPlaying('çalma başladı +2sn'),2000);});
+  // Bekçi: şarkı bitince sıradaki 2,5 sn / 6 sn içinde çalmaya başlamazsa yeniden dene
   aud.addEventListener('ended',()=>{
     const check=(n)=>setTimeout(()=>{
-      if(cur<0||!tracks[cur])return;
-      const stuck=!aud.paused&&aud.readyState<3&&aud.currentTime<0.5;
-      if(stuck&&aud.src){
-        if(window.dlog)dlog('! bekçi: şarkı başlamadı, yeniden yükleniyor ('+n+') · '+tracks[cur].name);
-        try{aud.load();const p=aud.play();if(p&&p.catch)p.catch(()=>{});}catch{}
+      if(cur<0||!tracks[cur]||!wantPlay)return;
+      const stuck=(!aud.paused&&aud.readyState<3&&aud.currentTime<0.5)||(aud.paused&&!_interrupted&&aud.src);
+      if(stuck){
+        if(window.dlog)dlog('! bekçi: şarkı başlamadı, yeniden deneniyor ('+n+') · '+tracks[cur].name);
+        try{if(aud.readyState<2)aud.load();const p=aud.play();if(p&&p.catch)p.catch(()=>{});}catch{}
       }
     },n*1000);
     check(2.5);check(6);
