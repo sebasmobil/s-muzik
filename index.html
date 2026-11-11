@@ -383,6 +383,8 @@ html.light .disc .center{background:#222;}
 .sleep-slider::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:white;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.3);}
 .sleep-custom{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px;font-size:12px;color:var(--muted);}
 .sleep-custom input{width:84px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:7px 8px;color:var(--text);font-size:16px;font-weight:600;text-align:center;outline:none;-moz-appearance:textfield;}
+.sleep-ok{background:var(--accent);color:#fff;border:0;border-radius:9px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;}
+.sleep-ok:active{opacity:.7;}
 .sleep-custom input:focus{border-color:var(--accent);}
 .sleep-custom input:disabled{opacity:.5;}
 .sleep-val{text-align:center;font-size:20px;font-weight:700;color:var(--accent);margin-bottom:10px;}
@@ -391,6 +393,26 @@ html.light .disc .center{background:#222;}
 .theme-toggle{display:flex;background:var(--card2);border-radius:10px;padding:3px;gap:3px;}
 .t-opt{padding:6px 14px;border-radius:8px;border:none;background:transparent;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;}
 .t-opt.on{background:var(--accent);color:#fff;}
+/* Özel renk paleti */
+.color-sw.custom .color-dot{background:conic-gradient(from 0deg,#f43f5e,#f59e0b,#eab308,#22c55e,#06b6d4,#3b82f6,#8b5cf6,#ec4899,#f43f5e);}
+.color-sw.custom.on .color-dot{background:var(--cc);}
+.color-sw.custom .color-dot svg{opacity:1;transform:scale(1);}
+.color-sw.custom:not(.on) .color-dot svg{display:none;}
+.color-sw.custom.on .color-dot{box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--cc);}
+.pal-body{padding:4px 16px 16px;display:flex;flex-direction:column;gap:14px;overflow:auto;}
+.pal-sv{position:relative;height:170px;border-radius:14px;touch-action:none;cursor:crosshair;background:linear-gradient(to top,#000,rgba(0,0,0,0)),linear-gradient(to right,#fff,rgba(255,255,255,0)),var(--ph,#f00);border:1px solid var(--border);}
+.pal-sv i{position:absolute;width:22px;height:22px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1.5px rgba(0,0,0,.5),0 2px 8px rgba(0,0,0,.4);transform:translate(-50%,-50%);pointer-events:none;}
+.pal-hue{-webkit-appearance:none;appearance:none;width:100%;height:18px;border-radius:9px;outline:none;background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);border:1px solid var(--border);}
+.pal-hue::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:#fff;border:3px solid #fff;box-shadow:0 0 0 1.5px rgba(0,0,0,.5),0 2px 8px rgba(0,0,0,.4);}
+.pal-hue::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:3px solid #fff;box-shadow:0 0 0 1.5px rgba(0,0,0,.5);}
+.pal-row{display:flex;align-items:center;gap:10px;}
+.pal-prev{width:42px;height:42px;border-radius:12px;flex-shrink:0;border:1px solid var(--border);}
+.pal-hex{flex:1;min-width:0;height:42px;border-radius:12px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:16px;font-family:ui-monospace,monospace;text-transform:uppercase;padding:0 12px;outline:none;}
+.pal-btn{height:42px;padding:0 14px;border-radius:12px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
+.pal-btn.ok{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;}
+.pal-recent{display:flex;gap:8px;flex-wrap:wrap;}
+.pal-recent button{width:30px;height:30px;border-radius:50%;border:2px solid var(--card);box-shadow:0 0 0 1px var(--border);cursor:pointer;padding:0;}
+.pal-lbl{font-size:11px;color:var(--muted);font-weight:600;margin-bottom:-6px;}
 /* Renk teması seçici */
 .color-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px 6px;margin-top:10px;}
 .color-sw{display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:none;cursor:pointer;color:var(--muted);font-size:10px;font-weight:600;padding:0;font-family:inherit;}
@@ -594,6 +616,28 @@ body.dragover::after{content:'Şarkıları bırakın';position:fixed;inset:12px;
   </div>
 </div>
 
+<div class="add-sheet" id="palSheet" style="display:none">
+  <div class="add-bg" onclick="closePal()"></div>
+  <div class="add-box">
+    <div class="add-hdr">
+      <span class="add-title">Özel renk</span>
+      <button class="add-close" onclick="closePal()" aria-label="Kapat"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+    </div>
+    <div class="pal-body">
+      <div class="pal-sv" id="palSV"><i id="palKnob"></i></div>
+      <input type="range" class="pal-hue" id="palHue" min="0" max="360" step="1" value="30" aria-label="Renk tonu">
+      <div class="pal-row">
+        <span class="pal-prev" id="palPrev"></span>
+        <input class="pal-hex" id="palHex" maxlength="7" autocapitalize="off" autocomplete="off" spellcheck="false" aria-label="Hex renk kodu">
+        <button class="pal-btn" onclick="palRandom()" aria-label="Rastgele renk">🎲</button>
+        <button class="pal-btn ok" onclick="closePal()">Tamam</button>
+      </div>
+      <div class="pal-lbl" id="palRecentLbl">Son kullanılanlar</div>
+      <div class="pal-recent" id="palRecent"></div>
+    </div>
+  </div>
+</div>
+
 <div class="add-sheet" id="fxSheet" style="display:none">
   <div class="add-bg" onclick="closeFxSheet()"></div>
   <div class="add-box">
@@ -608,7 +652,7 @@ body.dragover::after{content:'Şarkıları bırakın';position:fixed;inset:12px;
 <div class="bg"></div>
 <div id="app">
   <div class="appheader">
-    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.37</span></span>
+    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.42</span></span>
     <span class="appcopy">©sebasmobil &nbsp;<a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" style="color:inherit;font-size:0.8em;opacity:0.75;text-decoration:none;">AGPL v3.0</a></span>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Tema">🌙</button>
   </div>
@@ -797,15 +841,15 @@ body.dragover::after{content:'Şarkıları bırakın';position:fixed;inset:12px;
           <svg class="fold-chev" viewBox="0 0 24 24" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>
         </button>
         <div class="fold-body">
-        <div class="stcard-sub">Aktif şarkı kaç kez tekrar edilsin?</div>
+        <div class="stcard-sub">Aktif şarkı kaç kez tekrar edilsin? (Kaydırıp bırakınca başlar)</div>
         <div class="rc-val-row"><span class="rc-big-val" id="rcVal">1</span><span style="font-size:12px;color:var(--muted)">kez</span></div>
-        <input type="range" class="sleep-slider" id="rcSlider" min="1" max="100" value="1" oninput="onRCSlider(this.value)">
+        <input type="range" class="sleep-slider" id="rcSlider" min="1" max="100" value="1" oninput="onRCSlider(this.value)" onchange="startRC()">
         <div class="rc-minmax"><span>1</span><span>100</span></div>
         <div class="strow" id="rcStatus" style="display:none">
           <span class="stlabel" style="color:var(--accent)">Kalan</span>
           <span class="stbadge" id="rcLeft">—</span>
+          <button class="stbtn stop" style="width:auto;margin:0 0 0 8px;padding:6px 14px" onclick="stopRC()">İptal</button>
         </div>
-        <button class="stbtn" id="rcBtn" onclick="toggleRC()">Başlat</button>
         </div>
       </div>
 
@@ -816,15 +860,15 @@ body.dragover::after{content:'Şarkıları bırakın';position:fixed;inset:12px;
           <svg class="fold-chev" viewBox="0 0 24 24" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>
         </button>
         <div class="fold-body">
-        <div class="stcard-sub" id="qrcSub">Çalar ne çalıyorsa (liste veya kütüphane) kaç kez tekrar edilsin?</div>
+        <div class="stcard-sub" id="qrcSub">Çalar ne çalıyorsa (liste veya kütüphane) kaç kez tekrar edilsin? (Kaydırıp bırakınca başlar)</div>
         <div class="rc-val-row"><span class="rc-big-val" id="qrcVal">1</span><span style="font-size:12px;color:var(--muted)">kez</span></div>
-        <input type="range" class="sleep-slider" id="qrcSlider" min="1" max="100" value="1" oninput="onQRCSlider(this.value)">
+        <input type="range" class="sleep-slider" id="qrcSlider" min="1" max="100" value="1" oninput="onQRCSlider(this.value)" onchange="startQRC()">
         <div class="rc-minmax"><span>1</span><span>100</span></div>
         <div class="strow" id="qrcStatus" style="display:none">
           <span class="stlabel" style="color:var(--accent)" id="qrcLabel">Kalan tur</span>
           <span class="stbadge" id="qrcLeft">—</span>
+          <button class="stbtn stop" style="width:auto;margin:0 0 0 8px;padding:6px 14px" onclick="stopQRC()">İptal</button>
         </div>
-        <button class="stbtn" id="qrcBtn" onclick="toggleQRC()">Başlat</button>
         </div>
       </div>
 
@@ -846,24 +890,24 @@ body.dragover::after{content:'Şarkıları bırakın';position:fixed;inset:12px;
           <button class="sleep-pre" onclick="setSP(90)">1.5sa</button>
           <button class="sleep-pre" onclick="setSP(120)">2sa</button>
         </div>
-        <input type="range" class="sleep-slider" id="sleepSlider" min="1" max="180" value="30" oninput="onSS(this.value)">
+        <input type="range" class="sleep-slider" id="sleepSlider" min="1" max="180" value="30" oninput="onSS(this.value)" onchange="startSleep(false)">
         <div class="sleep-val" id="sleepVal">30 dk</div>
-        <div class="sleep-custom"><span>Özel süre</span><input type="number" id="sleepCustom" min="1" max="720" step="1" value="30" inputmode="numeric" oninput="if(this.value!=='')onSS(this.value,true)" onblur="this.value=sleepMin" onfocus="this.select()"><span>dk</span></div>
+        <div class="sleep-custom"><span>Özel süre</span><input type="number" id="sleepCustom" min="1" max="720" step="1" value="30" inputmode="numeric" oninput="if(this.value!=='')onSS(this.value,true)" onkeydown="if(event.key==='Enter'){this.blur();confirmSleep();}" onblur="this.value=sleepMin" onfocus="this.select()"><span>dk</span><button class="sleep-ok" onclick="confirmSleep()">Onayla</button></div>
         </div>
         <div id="sleepClkBox" style="display:none">
-          <div class="stcard-sub">Seçilen saatte müzik durur</div>
-          <div class="sleep-custom"><span>Durdurma saati</span><input type="time" id="sleepClock" value="23:30" oninput="onClockChange(this.value)"></div>
+          <div class="stcard-sub">Saati seç, sonra Onayla'ya dokun</div>
+          <div class="sleep-custom"><span>Durdurma saati</span><input type="time" id="sleepClock" value="23:30" oninput="onClockChange(this.value)" onchange="onClockChange(this.value)"><button class="sleep-ok" onclick="confirmSleep()">Onayla</button></div>
           <div class="strow"><span class="stlabel">Her gün tekrarla</span><button class="sw" id="swDaily" onclick="toggleDaily()" aria-label="Her gün tekrarla"><i></i></button></div>
           <div class="st-note">Her gün tekrar, uygulama açık kaldığı sürece çalışır. Uygulamayı tamamen kapatırsanız zamanlayıcı da gider; yeniden açınca kendiliğinden kurulur.</div>
         </div>
         <div class="strow" id="sleepStatus" style="display:none">
           <span class="stlabel" style="color:var(--accent)">🌙 Kalan</span>
           <span class="stbadge" id="sleepCD">—</span>
+          <button class="stbtn stop" style="width:auto;margin:0 0 0 8px;padding:6px 14px" onclick="sleepStop('Uyku zamanlayıcı iptal')">İptal</button>
         </div>
         <div class="strow"><span class="stlabel">Sesi yavaşça kıs <span style="color:var(--muted);font-size:10px">(son 20 sn)</span></span><button class="sw" id="swFade" onclick="toggleFade()" aria-label="Yumuşak kapanış"><i></i></button></div>
         <div class="stcard-sub" style="padding-left:0;margin:-2px 0 10px">iPhone'da ses seviyesi sayfadan değiştirilemediği için bu seçenek orada etkisizdir.</div>
         <div class="strow"><span class="stlabel">Bu şarkı bitince durdur</span><button class="sw" id="swStop" onclick="toggleStopAfter()" aria-label="Şarkı bitince durdur"><i></i></button></div>
-        <button class="stbtn" id="sleepBtn" onclick="toggleSleep()">Başlat</button>
         </div>
       </div>
       <div class="stcard fold" id="foldPlay">
@@ -974,7 +1018,7 @@ aud.addEventListener('error', () => {
 });
 
 // ── VERSİYON & DEPOLAMA ANAHTARLARI
-const APP_VER   = 'Pro 2.37';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
+const APP_VER   = 'Pro 2.42';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
 const STORE_VER = 'Pro 1.7';      // Depolama anahtarı etiketi — SABİT. Değiştirilirse çalma listeleri/ayarlar sıfırlanır
 const DB_NAME   = 'mzk_pro_1_7';  // IndexedDB adı — SABİT. Değiştirilirse şarkılar yeni boş veritabanına düşer
 const DB_VER  = 1;
@@ -999,10 +1043,36 @@ const COLOR_THEMES=[
   {id:'teal',  name:'Turkuaz',d:['#0d9488','#14b8a6'],l:['#0f766e','#0d9488']},
 ];
 let curColor=localStorage.getItem(LS.color)||'orange';
-if(!COLOR_THEMES.some(c=>c.id===curColor))curColor='orange';
+let customHex=/^#[0-9a-f]{6}$/i.test(localStorage.getItem('smzk_color_hex')||'')?localStorage.getItem('smzk_color_hex'):'#14b8a6';
+if(curColor!=='custom'&&!COLOR_THEMES.some(c=>c.id===curColor))curColor='orange';
+// ── ÖZEL RENK: sonsuz renk. Seçilen renkten koyu/açık tema tonları üretilir; okunabilirlik için parlaklık hafifçe sınırlanır
+function h2rgb(h){const m=/^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(h);return m?[parseInt(m[1],16),parseInt(m[2],16),parseInt(m[3],16)]:[20,184,166];}
+function rgb2h(r,g,b){return '#'+[r,g,b].map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join('');}
+function rgb2hsl(r,g,b){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;let h=0,l=(mx+mn)/2,s=d===0?0:d/(1-Math.abs(2*l-1));
+  if(d){if(mx===r)h=((g-b)/d)%6;else if(mx===g)h=(b-r)/d+2;else h=(r-g)/d+4;h*=60;if(h<0)h+=360;}return[h,s,l];}
+function hsl2rgb(h,s,l){const c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs((h/60)%2-1)),m=l-c/2;let r=0,g=0,b=0;
+  if(h<60){r=c;g=x;}else if(h<120){r=x;g=c;}else if(h<180){g=c;b=x;}else if(h<240){g=x;b=c;}else if(h<300){r=x;b=c;}else{r=c;b=x;}return[(r+m)*255,(g+m)*255,(b+m)*255];}
+function hsv2rgb(h,s,v){const c=v*s,x=c*(1-Math.abs((h/60)%2-1)),m=v-c;let r=0,g=0,b=0;
+  if(h<60){r=c;g=x;}else if(h<120){r=x;g=c;}else if(h<180){g=c;b=x;}else if(h<240){g=x;b=c;}else if(h<300){r=x;b=c;}else{r=c;b=x;}return[(r+m)*255,(g+m)*255,(b+m)*255];}
+function rgb2hsv(r,g,b){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;let h=0;
+  if(d){if(mx===r)h=((g-b)/d)%6;else if(mx===g)h=(b-r)/d+2;else h=(r-g)/d+4;h*=60;if(h<0)h+=360;}return[h,mx===0?0:d/mx,mx];}
+function mixHex(a,b,t){const A=h2rgb(a),B=h2rgb(b);return rgb2h(A[0]+(B[0]-A[0])*t,A[1]+(B[1]-A[1])*t,A[2]+(B[2]-A[2])*t);}
+function lumHex(hex){const c=h2rgb(hex).map(v=>{v/=255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4);});return 0.2126*c[0]+0.7152*c[1]+0.0722*c[2];}
+function fitAccent(hex,light){   // beyaz yazı okunsun (çok parlak olmasın) ve koyu zeminde seçilsin (çok koyu olmasın): algısal parlaklığı aralığa çek
+  const lo=light?0.03:0.12,hi=light?0.30:0.42;
+  const [r,g,b]=h2rgb(hex),[h,sa,l0]=rgb2hsl(r,g,b);
+  const L=lumHex(hex);if(L>=lo&&L<=hi)return hex;
+  let a=L>hi?0:l0,z=L>hi?l0:1,l=l0;   // iki parçalı arama
+  for(let k=0;k<14;k++){l=(a+z)/2;const v=lumHex(rgb2h(...hsl2rgb(h,sa,l)));
+    if(L>hi){if(v>hi)z=l;else a=l;}else{if(v<lo)a=l;else z=l;}}
+  return rgb2h(...hsl2rgb(h,sa,l));}
+function customTheme(){
+  const hd=fitAccent(customHex,false),hl=fitAccent(customHex,true);
+  return{id:'custom',name:'Özel',d:[hd,mixHex(hd,'#ffffff',.2)],l:[mixHex(hl,'#000000',.1),hl]};}
+function getTheme(id){return id==='custom'?customTheme():(COLOR_THEMES.find(c=>c.id===id)||COLOR_THEMES[0]);}
 function hexRGB(h){const m=/^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(h);return m?parseInt(m[1],16)+','+parseInt(m[2],16)+','+parseInt(m[3],16):'249,115,22';}
 function applyColorTheme(id){
-  const th=COLOR_THEMES.find(c=>c.id===id)||COLOR_THEMES[0];
+  const th=getTheme(id);
   const light=document.documentElement.classList.contains('light');
   const [a,a2]=light?th.l:th.d,st=document.documentElement.style;
   st.setProperty('--accent',a);st.setProperty('--accent2',a2);
@@ -1010,17 +1080,66 @@ function applyColorTheme(id){
 }
 function renderColorGrid(){
   const el=document.getElementById('colorGrid');if(!el)return;
-  el.innerHTML=COLOR_THEMES.map(c=>`<button class="color-sw${c.id===curColor?' on':''}" onclick="setColorTheme('${c.id}')" title="${c.name}" style="--c1:${c.d[0]};--c2:${c.d[1]};--l1:${c.l[0]};--l2:${c.l[1]}"><span class="color-dot"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" fill="currentColor"/></svg></span>${c.name}</button>`).join('');
+  el.innerHTML=COLOR_THEMES.map(c=>`<button class="color-sw${c.id===curColor?' on':''}" onclick="setColorTheme('${c.id}')" title="${c.name}" style="--c1:${c.d[0]};--c2:${c.d[1]};--l1:${c.l[0]};--l2:${c.l[1]}"><span class="color-dot"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" fill="currentColor"/></svg></span>${c.name}</button>`).join('')+
+    `<button class="color-sw custom${curColor==='custom'?' on':''}" onclick="openPal()" title="Özel renk" style="--cc:${customHex}"><span class="color-dot"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" fill="currentColor"/></svg></span>Özel</button>`;
 }
 function setColorTheme(id,silent){
-  if(!COLOR_THEMES.some(c=>c.id===id))id='orange';
+  if(id!=='custom'&&!COLOR_THEMES.some(c=>c.id===id))id='orange';
   curColor=id;localStorage.setItem(LS.color,id);
   applyColorTheme(id);renderColorGrid();
   if(typeof refreshVizColor==='function')refreshVizColor();
   // PWA ikonu/manifest yeni renge göre yenilensin (art arda tıklamada bekle)
   clearTimeout(window._pwaT);window._pwaT=setTimeout(()=>{if(window.refreshPWAIcons)window.refreshPWAIcons();},600);
-  if(!silent)toast('Renk: '+COLOR_THEMES.find(c=>c.id===id).name);
+  if(!silent)toast('Renk: '+getTheme(id).name);
 }
+// ── Palet: renk tonu çubuğu + parlaklık/doygunluk alanı + hex kutusu + son kullanılanlar
+let _pal={h:30,s:.8,v:.9},_palSave=null;
+function palRecentGet(){try{return JSON.parse(localStorage.getItem('smzk_color_recent')||'[]').filter(h=>/^#[0-9a-f]{6}$/i.test(h)).slice(0,8);}catch{return[];}}
+function palRecentAdd(hex){const a=[hex.toLowerCase(),...palRecentGet().filter(h=>h.toLowerCase()!==hex.toLowerCase())].slice(0,8);try{localStorage.setItem('smzk_color_recent',JSON.stringify(a));}catch{}}
+function palCur(){return rgb2h(...hsv2rgb(_pal.h,_pal.s,_pal.v));}
+function palUI(skipHex){
+  const hex=palCur();
+  const sv=document.getElementById('palSV');sv.style.setProperty('--ph',rgb2h(...hsv2rgb(_pal.h,1,1)));
+  const k=document.getElementById('palKnob');k.style.left=(_pal.s*100)+'%';k.style.top=((1-_pal.v)*100)+'%';k.style.background=hex;
+  document.getElementById('palHue').value=Math.round(_pal.h);
+  document.getElementById('palPrev').style.background=hex;
+  if(!skipHex)document.getElementById('palHex').value=hex.toUpperCase();
+}
+function palApply(final){   // canlı önizleme; sonuncuda kalıcı kaydet
+  customHex=palCur();curColor='custom';
+  try{localStorage.setItem(LS.color,'custom');localStorage.setItem('smzk_color_hex',customHex);}catch{}
+  applyColorTheme('custom');renderColorGrid();
+  if(typeof refreshVizColor==='function')refreshVizColor();
+  clearTimeout(window._pwaT);window._pwaT=setTimeout(()=>{if(window.refreshPWAIcons)window.refreshPWAIcons();},800);
+  clearTimeout(_palSave);_palSave=setTimeout(()=>palRecentAdd(customHex),1200);
+}
+function palRecentRender(){
+  const a=palRecentGet(),el=document.getElementById('palRecent');
+  document.getElementById('palRecentLbl').style.display=a.length?'':'none';
+  el.innerHTML=a.map(h=>`<button style="background:${h}" onclick="palPick('${h}')" aria-label="${h}"></button>`).join('');
+}
+function palPick(hex){const [r,g,b]=h2rgb(hex);const [h,sa,v]=rgb2hsv(r,g,b);_pal={h:sa<0.02?_pal.h:h,s:sa,v};palUI();palApply();}
+function palRandom(){_pal={h:Math.random()*360,s:0.55+Math.random()*0.4,v:0.65+Math.random()*0.3};palUI();palApply();}
+function openPal(){
+  const [r,g,b]=h2rgb(customHex);const [h,sa,v]=rgb2hsv(r,g,b);_pal={h,s:sa,v};
+  palUI();palRecentRender();document.getElementById('palSheet').style.display='flex';
+  palApply();   // Özel seçilmiş olsun
+}
+function closePal(){
+  document.getElementById('palSheet').style.display='none';
+  clearTimeout(_palSave);palRecentAdd(customHex);toast('Renk: '+customHex.toUpperCase());
+}
+(function(){
+  const sv=document.getElementById('palSV'),hue=document.getElementById('palHue'),hx=document.getElementById('palHex');
+  if(!sv)return;
+  const move=e=>{const r=sv.getBoundingClientRect(),p=e.touches?e.touches[0]:e;_pal.s=Math.max(0,Math.min(1,(p.clientX-r.left)/r.width));_pal.v=1-Math.max(0,Math.min(1,(p.clientY-r.top)/r.height));palUI();palApply();};
+  let drag=false;
+  sv.addEventListener('pointerdown',e=>{drag=true;try{sv.setPointerCapture(e.pointerId);}catch{}move(e);e.preventDefault();});
+  sv.addEventListener('pointermove',e=>{if(drag){move(e);e.preventDefault();}});
+  const end=()=>{drag=false;};sv.addEventListener('pointerup',end);sv.addEventListener('pointercancel',end);
+  hue.addEventListener('input',()=>{_pal.h=+hue.value;palUI();palApply();});
+  hx.addEventListener('input',()=>{let v=hx.value.trim();if(v&&v[0]!=='#')v='#'+v;if(/^#[0-9a-f]{6}$/i.test(v)){const [r,g,b]=h2rgb(v);const [h,sa,vv]=rgb2hsv(r,g,b);_pal={h:sa<0.02?_pal.h:h,s:sa,v:vv};palUI(true);palApply();}});
+})();
 // İlk boyamadan önce uygula (turuncu kırpışması olmasın)
 if(localStorage.getItem(LS.theme)==='light')document.documentElement.classList.add('light');
 applyColorTheme(curColor);renderColorGrid();
@@ -2812,62 +2931,48 @@ function toggleTheme(){setTheme(document.documentElement.classList.contains('lig
 
 // ── TEKRAR SAYACI (Şarkı)
 function onRCSlider(v){
-  if(rcActive)return;
   rcTarget=+v;
   document.getElementById('rcVal').textContent=rcTarget;
   const pct=((v-1)/99*100).toFixed(1)+'%';
   document.getElementById('rcSlider').style.background=`linear-gradient(90deg,var(--accent) ${pct},rgba(128,128,128,.2) ${pct})`;
 }
-function chgRC(d){if(rcActive)return;rcTarget=Math.max(1,Math.min(100,rcTarget+d));document.getElementById('rcVal').textContent=rcTarget;document.getElementById('rcSlider').value=rcTarget;onRCSlider(rcTarget);}
-function toggleRC(){
-  if(rcActive){rcActive=false;rcLeft=0;document.getElementById('rcBtn').textContent='Başlat';document.getElementById('rcBtn').classList.remove('stop');document.getElementById('rcStatus').style.display='none';document.getElementById('rcSlider').disabled=false;toast('Tekrar sayacı iptal');}
-  else{if(cur<0){toast('Önce şarkı seçin');return;}rcActive=true;rcLeft=rcTarget;document.getElementById('rcBtn').textContent='Durdur';document.getElementById('rcBtn').classList.add('stop');document.getElementById('rcStatus').style.display='flex';document.getElementById('rcLeft').textContent=rcLeft;document.getElementById('rcSlider').disabled=true;aud.currentTime=0;aud.play().catch(()=>{});toast(rcTarget+' kez tekrar başladı');}
+function chgRC(d){rcTarget=Math.max(1,Math.min(100,rcTarget+d));document.getElementById('rcSlider').value=rcTarget;onRCSlider(rcTarget);}
+function rcUI(on){document.getElementById('rcStatus').style.display=on?'flex':'none';}
+function startRC(){
+  if(cur<0){toast('Önce şarkı seçin');return;}
+  rcActive=true;rcLeft=rcTarget;rcUI(true);document.getElementById('rcLeft').textContent=rcLeft;
+  aud.currentTime=0;aud.play().catch(()=>{});toast(rcTarget+' kez tekrar başladı');
 }
+function stopRC(){rcActive=false;rcLeft=0;rcUI(false);toast('Tekrar sayacı iptal');}
 function handleRC(){
   if(!rcActive)return false;rcLeft--;document.getElementById('rcLeft').textContent=rcLeft;
-  if(rcLeft<=0){rcActive=false;document.getElementById('rcBtn').textContent='Başlat';document.getElementById('rcBtn').classList.remove('stop');document.getElementById('rcStatus').style.display='none';document.getElementById('rcSlider').disabled=false;appPause();updPlayBtn(false);toast('Tekrar tamamlandı');return true;}
+  if(rcLeft<=0){rcActive=false;rcUI(false);appPause();updPlayBtn(false);toast('Tekrar tamamlandı');return true;}
   aud.currentTime=0;aud.play().catch(()=>{});return true;
 }
 
 // ── TEKRAR SAYACI (Liste / Kütüphane — birleşik)
 function onQRCSlider(v){
-  if(qrcActive)return;
   qrcTarget=+v;
   document.getElementById('qrcVal').textContent=qrcTarget;
   const pct=((v-1)/99*100).toFixed(1)+'%';
   document.getElementById('qrcSlider').style.background=`linear-gradient(90deg,var(--accent) ${pct},rgba(128,128,128,.2) ${pct})`;
 }
-function toggleQRC(){
-  if(qrcActive){
-    qrcActive=false;qrcLeft=0;
-    document.getElementById('qrcBtn').textContent='Başlat';
-    document.getElementById('qrcBtn').classList.remove('stop');
-    document.getElementById('qrcStatus').style.display='none';
-    document.getElementById('qrcSlider').disabled=false;
-    toast('Tekrar sayacı iptal');
-  } else {
-    qrcActive=true;qrcLeft=qrcTarget;
-    document.getElementById('qrcBtn').textContent='Durdur';
-    document.getElementById('qrcBtn').classList.add('stop');
-    document.getElementById('qrcStatus').style.display='flex';
-    document.getElementById('qrcLeft').textContent=qrcLeft;
-    document.getElementById('qrcSlider').disabled=true;
-    const modeName=activePlId?'liste':'kütüphane';
-    document.getElementById('qrcLabel').textContent='Kalan tur ('+modeName+')';
-    toast(qrcTarget+' tur '+modeName+' tekrar etkinleştirildi');
-  }
+function qrcUI(on){document.getElementById('qrcStatus').style.display=on?'flex':'none';}
+function startQRC(){
+  qrcActive=true;qrcLeft=qrcTarget;qrcUI(true);
+  document.getElementById('qrcLeft').textContent=qrcLeft;
+  const modeName=activePlId?'liste':'kütüphane';
+  document.getElementById('qrcLabel').textContent='Kalan tur ('+modeName+')';
+  toast(qrcTarget+' tur '+modeName+' tekrar etkinleştirildi');
 }
+function stopQRC(){qrcActive=false;qrcLeft=0;qrcUI(false);toast('Tekrar sayacı iptal');}
 function handleQRC(mode){
   // mode: 'pl' = playlist bitti, 'lib' = kütüphane bitti
   if(!qrcActive)return false;
   qrcLeft--;
   document.getElementById('qrcLeft').textContent=qrcLeft;
   if(qrcLeft<=0){
-    qrcActive=false;
-    document.getElementById('qrcBtn').textContent='Başlat';
-    document.getElementById('qrcBtn').classList.remove('stop');
-    document.getElementById('qrcStatus').style.display='none';
-    document.getElementById('qrcSlider').disabled=false;
+    qrcActive=false;qrcUI(false);
     appPause();updPlayBtn(false);
     toast('Tekrar tamamlandı 🎉');
     return true;
@@ -2879,13 +2984,9 @@ function handleQRC(mode){
 }
 
 function fmtSleep(m){return m<60?m+' dk':Math.floor(m/60)+'sa'+(m%60?' '+(m%60)+'dk':'');}
-function onSS(v,fromInput){if(sleepTimer)return;sleepMin=Math.max(1,Math.min(720,Math.round(+v)||1));document.getElementById('sleepVal').textContent=fmtSleep(sleepMin);const sv=Math.min(180,sleepMin),sl=document.getElementById('sleepSlider');sl.value=sv;const pct=((sv-1)/179*100).toFixed(1)+'%';sl.style.background=`linear-gradient(90deg,var(--accent) ${pct},rgba(128,128,128,.2) ${pct})`;document.querySelectorAll('.sleep-pre').forEach((b,i)=>{const ps=[15,30,45,60,90,120];b.classList.toggle('sel',ps[i]===sleepMin);});const c=document.getElementById('sleepCustom');if(c&&!fromInput)c.value=sleepMin;}
-function setSP(m){if(sleepTimer)return;sleepMin=m;document.getElementById('sleepSlider').value=m;onSS(m);}
+function onSS(v,fromInput){sleepMin=Math.max(1,Math.min(720,Math.round(+v)||1));document.getElementById('sleepVal').textContent=fmtSleep(sleepMin);const sv=Math.min(180,sleepMin),sl=document.getElementById('sleepSlider');sl.value=sv;const pct=((sv-1)/179*100).toFixed(1)+'%';sl.style.background=`linear-gradient(90deg,var(--accent) ${pct},rgba(128,128,128,.2) ${pct})`;document.querySelectorAll('.sleep-pre').forEach((b,i)=>{const ps=[15,30,45,60,90,120];b.classList.toggle('sel',ps[i]===sleepMin);});const c=document.getElementById('sleepCustom');if(c&&!fromInput)c.value=sleepMin;}
+function setSP(m){sleepMin=m;document.getElementById('sleepSlider').value=m;onSS(m);startSleep(false);}
 function sleepUI(on){
-  ['sleepSlider','sleepCustom','sleepClock'].forEach(id=>{const e=document.getElementById(id);if(e)e.disabled=on;});
-  document.querySelectorAll('.sleep-pre').forEach(b=>b.disabled=on);
-  document.querySelectorAll('#sleepSeg button').forEach(b=>b.disabled=on);
-  const btn=document.getElementById('sleepBtn');btn.textContent=on?'İptal':'Başlat';btn.classList.toggle('stop',on);
   document.getElementById('sleepStatus').style.display=on?'flex':'none';
 }
 function nextClockMs(hhmm){
@@ -2930,6 +3031,11 @@ function sleepFire(){
   sleepUI(false);updSleepBadge(null);
   toast('İyi geceler 🌙 Müzik durduruldu');
 }
+function confirmSleep(){
+  if(sleepMode==='clock'){const c=document.getElementById('sleepClock');onClockChange(c.value||sleepClock);}
+  else{const c=document.getElementById('sleepCustom');if(c&&c.value!=='')onSS(c.value,true);}
+  startSleep(false);
+}
 function toggleSleep(){
   if(sleepTimer||sleepTick)sleepStop('Uyku zamanlayıcı iptal');
   else startSleep(false);
@@ -2937,7 +3043,7 @@ function toggleSleep(){
 // Sayfa arka plandan dönünce süre dolmuşsa hemen durdur (arka planda zamanlayıcı gecikebilir)
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&(sleepTimer||sleepTick)&&Date.now()>=sleepEnd)sleepFire();});
 function lsSet(k,v){try{localStorage.setItem(k,v);}catch{}}
-function setSleepMode(m){if(sleepTimer)return;sleepMode=m==='clock'?'clock':'dur';lsSet('smzk_sleepmode',sleepMode);syncSleepMode();}
+function setSleepMode(m){if(sleepTimer||sleepTick)sleepStop();sleepMode=m==='clock'?'clock':'dur';lsSet('smzk_sleepmode',sleepMode);syncSleepMode();}
 function onClockChange(v){if(!/^\d{1,2}:\d{2}$/.test(v||''))return;sleepClock=v;lsSet('smzk_sleepclock',v);}
 function toggleDaily(){
   sleepDaily=!sleepDaily;lsSet('smzk_sleepdaily',sleepDaily?'1':'0');syncSleepMode();
@@ -3386,7 +3492,7 @@ init().catch(e=>{console.error(e);toastErr('Başlatma hatası: '+e.message);});
 (function(){
   // ── SVG İkon üretici (turuncu nota teması)
   // maskable=true: tam kare zemin + içerik %80'e küçültülür (güvenli alan), işletim sistemi kendi maskesini uygular
-  function iconColors(){const th=COLOR_THEMES.find(c=>c.id===curColor)||COLOR_THEMES[0];return th.d;}
+  function iconColors(){return getTheme(curColor).d;}
   // İkon: "Play halkaları". mode: false = 'any' (yuvarlak köşeli), true = maskable (tam kare, içerik %80),
   // 'apple' = iPhone ana ekranı (tam kare, içerik tam boyut; köşeleri iOS yuvarlar, şeffaf alan bırakılmaz)
   function makeSVGIcon(size, mode){
@@ -3739,7 +3845,7 @@ async function buildBackup(){
   const g=k=>{try{return localStorage.getItem(k);}catch{return null;}};
   return{
     app:'S-Müzik',format:1,created:new Date().toISOString(),version:APP_VER,
-    settings:{theme:g(LS.theme),color:g(LS.color),anim:g(LS.discAnim),sort:g('smzk_sort'),animauto:g('smzk_animauto'),rate:g('smzk_rate'),sleepfade:g('smzk_sleepfade'),themeauto:g('smzk_themeauto'),reshuf:g('smzk_reshuf'),sleepmode:g('smzk_sleepmode'),sleepclock:g('smzk_sleepclock'),sleepdaily:g('smzk_sleepdaily')},
+    settings:{theme:g(LS.theme),color:g(LS.color),colorhex:g('smzk_color_hex'),anim:g(LS.discAnim),sort:g('smzk_sort'),animauto:g('smzk_animauto'),rate:g('smzk_rate'),sleepfade:g('smzk_sleepfade'),themeauto:g('smzk_themeauto'),reshuf:g('smzk_reshuf'),sleepmode:g('smzk_sleepmode'),sleepclock:g('smzk_sleepclock'),sleepdaily:g('smzk_sleepdaily')},
     prefs:{sh:!!shuffled,rp:repeat,vol},
     tracks:tracks.map(t=>({id:t.id,name:t.name,artist:t.artist||''})),
     playlists:playlists.filter(p=>!p.auto).map(p=>({id:p.id,name:p.name,trackIds:[...p.trackIds]})),
@@ -3777,7 +3883,7 @@ async function backupImport(file){
   lsSet('smzk_fav',JSON.stringify(fav));
   lsSet('smzk_plays',JSON.stringify(pl2));
   const st=data.settings||{};
-  const setMap={theme:LS.theme,color:LS.color,anim:LS.discAnim,sort:'smzk_sort',animauto:'smzk_animauto',rate:'smzk_rate',sleepfade:'smzk_sleepfade',themeauto:'smzk_themeauto',reshuf:'smzk_reshuf',sleepmode:'smzk_sleepmode',sleepclock:'smzk_sleepclock',sleepdaily:'smzk_sleepdaily'};
+  const setMap={theme:LS.theme,color:LS.color,colorhex:'smzk_color_hex',anim:LS.discAnim,sort:'smzk_sort',animauto:'smzk_animauto',rate:'smzk_rate',sleepfade:'smzk_sleepfade',themeauto:'smzk_themeauto',reshuf:'smzk_reshuf',sleepmode:'smzk_sleepmode',sleepclock:'smzk_sleepclock',sleepdaily:'smzk_sleepdaily'};
   Object.entries(setMap).forEach(([k,lk])=>{if(st[k]!=null)lsSet(lk,String(st[k]));});
   const pf=data.prefs||{};
   if(pf.sh!=null)await psWait('sh',!!pf.sh);
