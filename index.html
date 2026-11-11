@@ -383,7 +383,8 @@ html.light .disc .center{background:#222;}
 .sleep-slider::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:white;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.3);}
 .sleep-custom{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px;font-size:12px;color:var(--muted);}
 .sleep-custom input{width:84px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:7px 8px;color:var(--text);font-size:16px;font-weight:600;text-align:center;outline:none;-moz-appearance:textfield;}
-.sleep-ok{background:var(--accent);color:#fff;border:0;border-radius:9px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;}
+.sleep-ok{display:none;background:var(--accent);color:#fff;border:0;border-radius:9px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;}
+.sleep-custom.edit .sleep-ok{display:inline-block;}
 .sleep-ok:active{opacity:.7;}
 .sleep-custom input:focus{border-color:var(--accent);}
 .sleep-custom input:disabled{opacity:.5;}
@@ -652,7 +653,7 @@ body.dragover::after{content:'Şarkıları bırakın';position:fixed;inset:12px;
 <div class="bg"></div>
 <div id="app">
   <div class="appheader">
-    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.42</span></span>
+    <span class="appname">S-Müzik Çalar<span class="appver" id="appVer">Pro 2.44</span></span>
     <span class="appcopy">©sebasmobil &nbsp;<a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" style="color:inherit;font-size:0.8em;opacity:0.75;text-decoration:none;">AGPL v3.0</a></span>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Tema">🌙</button>
   </div>
@@ -892,11 +893,11 @@ body.dragover::after{content:'Şarkıları bırakın';position:fixed;inset:12px;
         </div>
         <input type="range" class="sleep-slider" id="sleepSlider" min="1" max="180" value="30" oninput="onSS(this.value)" onchange="startSleep(false)">
         <div class="sleep-val" id="sleepVal">30 dk</div>
-        <div class="sleep-custom"><span>Özel süre</span><input type="number" id="sleepCustom" min="1" max="720" step="1" value="30" inputmode="numeric" oninput="if(this.value!=='')onSS(this.value,true)" onkeydown="if(event.key==='Enter'){this.blur();confirmSleep();}" onblur="this.value=sleepMin" onfocus="this.select()"><span>dk</span><button class="sleep-ok" onclick="confirmSleep()">Onayla</button></div>
+        <div class="sleep-custom"><span>Özel süre</span><input type="number" id="sleepCustom" min="1" max="720" step="1" value="30" inputmode="numeric" onfocus="okShow(this)" oninput="if(this.value!=='')onSS(this.value,true)" onkeydown="if(event.key==='Enter'){this.blur();confirmSleep();}" onblur="this.value=sleepMin;okHide(this)" onclick="okShow(this)" onfocus="this.select()"><span>dk</span><button class="sleep-ok" onclick="confirmSleep()">Onayla</button></div>
         </div>
         <div id="sleepClkBox" style="display:none">
           <div class="stcard-sub">Saati seç, sonra Onayla'ya dokun</div>
-          <div class="sleep-custom"><span>Durdurma saati</span><input type="time" id="sleepClock" value="23:30" oninput="onClockChange(this.value)" onchange="onClockChange(this.value)"><button class="sleep-ok" onclick="confirmSleep()">Onayla</button></div>
+          <div class="sleep-custom"><span>Durdurma saati</span><input type="time" id="sleepClock" value="23:30" onfocus="okShow(this)" onclick="okShow(this)" onblur="okHide(this)" oninput="onClockChange(this.value)" onchange="onClockChange(this.value)"><button class="sleep-ok" onclick="confirmSleep()">Onayla</button></div>
           <div class="strow"><span class="stlabel">Her gün tekrarla</span><button class="sw" id="swDaily" onclick="toggleDaily()" aria-label="Her gün tekrarla"><i></i></button></div>
           <div class="st-note">Her gün tekrar, uygulama açık kaldığı sürece çalışır. Uygulamayı tamamen kapatırsanız zamanlayıcı da gider; yeniden açınca kendiliğinden kurulur.</div>
         </div>
@@ -1018,7 +1019,7 @@ aud.addEventListener('error', () => {
 });
 
 // ── VERSİYON & DEPOLAMA ANAHTARLARI
-const APP_VER   = 'Pro 2.42';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
+const APP_VER   = 'Pro 2.44';      // Ekranda görünen sürüm — yeni sürümde yalnızca burayı güncelle
 const STORE_VER = 'Pro 1.7';      // Depolama anahtarı etiketi — SABİT. Değiştirilirse çalma listeleri/ayarlar sıfırlanır
 const DB_NAME   = 'mzk_pro_1_7';  // IndexedDB adı — SABİT. Değiştirilirse şarkılar yeni boş veritabanına düşer
 const DB_VER  = 1;
@@ -2304,7 +2305,7 @@ function fillFromAnalysis(tm){
 
 // ── Müzik özellikleri: bas / orta / tiz, genel seviye, vuruş (kick)
 const V={bass:0,mid:0,high:0,level:0,kick:0,live:0,lastBeat:0,beatNow:false,busy:false,rot:0,t:0,pace:0.7,sc:0.775};
-let _agc=0.3,_tdAgc=0.3,_bAvg=0,_pAcc=0,_vizRaf=null,_vizLast=0,_vizN=0,_acc=accentRGB(),_hue=rgbHue(_acc);
+let _agc=0.3,_tdAgc=0.3,_bAvg=0,_pAcc=0,_vizRaf=null,_vizLast=0,_vizN=0,_acc=accentRGB(),_hue=rgbHue(_acc),_satF=1,_hueK=0.55;
 let _shocks=[],_parts=[];const _bars=new Float32Array(36);
 // Yatay dalga modları için ortak veri
 const _S=new Float32Array(64);                 // yumuşatılmış, log aralıklı 64 bantlı spektrum (0..1)
@@ -2318,7 +2319,7 @@ function crReset(){_pk.fill(0);}
 let _vc=null,_vx=null,_vW=0,_vH=0,_vDpr=1,_discEl=null;
 
 const rgba=(r,g,b,a)=>`rgba(${r},${g},${b},${(Number.isFinite(a)?Math.max(0,Math.min(1,a)):0).toFixed(3)})`;
-const hsla=(h,s,l,a)=>`hsla(${Math.round(Number.isFinite(h)?h:0)},${Math.round(s)}%,${Math.round(Number.isFinite(l)?l:50)}%,${(Number.isFinite(a)?Math.max(0,Math.min(1,a)):0).toFixed(3)})`;
+const hsla=(h,s,l,a)=>`hsla(${Math.round(Number.isFinite(h)?_hue+(h-_hue)*_hueK:0)},${Math.round(s*_satF)}%,${Math.round(Number.isFinite(l)?l:50)}%,${(Number.isFinite(a)?Math.max(0,Math.min(1,a)):0).toFixed(3)})`;
 function accentRGB(){
   const v=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
   const m=/^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(v);
@@ -2330,7 +2331,7 @@ function rgbHue(c){
   let h=(mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4)*60;
   return h<0?h+360:h;
 }
-function refreshVizColor(){_acc=accentRGB();_hue=rgbHue(_acc);}
+function refreshVizColor(){_acc=accentRGB();_hue=rgbHue(_acc);const sa=rgb2hsl(_acc[0],_acc[1],_acc[2])[1];_satF=Math.max(0.12,Math.min(1,sa/0.85));}
 function avgBins(a,i0,i1){let s=0;for(let i=i0;i<i1;i++)s+=a[i];return s/(i1-i0)/255;}
 function discT(rot,sc){
   if(!_discEl)_discEl=document.getElementById('disc');
@@ -3031,7 +3032,9 @@ function sleepFire(){
   sleepUI(false);updSleepBadge(null);
   toast('İyi geceler 🌙 Müzik durduruldu');
 }
-function confirmSleep(){
+function okShow(el){const p=el.closest('.sleep-custom');if(p){clearTimeout(p._ht);p.classList.add('edit');}}
+function okHide(el){const p=el.closest('.sleep-custom');if(p){clearTimeout(p._ht);p._ht=setTimeout(()=>p.classList.remove('edit'),400);}}
+function confirmSleep(){document.querySelectorAll('.sleep-custom').forEach(p=>{clearTimeout(p._ht);p.classList.remove('edit');});
   if(sleepMode==='clock'){const c=document.getElementById('sleepClock');onClockChange(c.value||sleepClock);}
   else{const c=document.getElementById('sleepCustom');if(c&&c.value!=='')onSS(c.value,true);}
   startSleep(false);
